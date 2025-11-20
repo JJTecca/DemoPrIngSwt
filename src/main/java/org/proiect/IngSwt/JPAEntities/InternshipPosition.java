@@ -2,6 +2,7 @@ package org.proiect.IngSwt.JPAEntities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "internship_position")
@@ -40,8 +41,8 @@ public class InternshipPosition {
     @Column(name = "max_spots", nullable = false)
     private Integer maxSpots;
 
-    //@OneToMany(mappedBy = "internshipPosition", cascade = CascadeType.ALL)
-    //private List<InternshipApplication> applications;
+    @OneToMany(mappedBy = "internshipPosition", cascade = CascadeType.ALL)
+    private List<InternshipApplication> applications;
 
     // Constructor
     public InternshipPosition() {}
@@ -70,6 +71,6 @@ public class InternshipPosition {
     public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
     public Integer getMaxSpots() { return maxSpots; }
     public void setMaxSpots(Integer maxSpots) { this.maxSpots = maxSpots; }
-    //public List<InternshipApplication> getApplications() { return applications; }
-    //public void setApplications(List<InternshipApplication> applications) { this.applications = applications; }
+    public List<InternshipApplication> getApplications() { return applications; }
+    public void setApplications(List<InternshipApplication> applications) { this.applications = applications; }
 }
