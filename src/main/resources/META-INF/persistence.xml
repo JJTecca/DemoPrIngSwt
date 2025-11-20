@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             version="3.0">
+    <persistence-unit name="default" transaction-type="JTA">
+        <jta-data-source>jdbc/PrIngSWT</jta-data-source>
+        <class>org.proiect.IngSwt.JPAEntities.Attachment</class>
+        <class>org.proiect.IngSwt.JPAEntities.CompanyInfo</class>
+        <class>org.proiect.IngSwt.JPAEntities.StudentInfo</class>
+        <class>org.proiect.IngSwt.JPAEntities.UserAccount</class>
+        <class>org.proiect.IngSwt.JPAEntities.Sess</class>
+        <class>org.proiect.IngSwt.JPAEntities.AccountActivity</class>
+        <class>org.proiect.IngSwt.JPAEntities.InternshipPosition</class>
+        <class>org.proiect.IngSwt.JPAEntities.InternshipApplication</class>
+        <class>org.proiect.IngSwt.JPAEntities.Permission</class>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
+            <property name="jakarta.persistence.logging.level" value="FINE"/>
+        </properties>
+    </persistence-unit>
+</persistence>
