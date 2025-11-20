@@ -1,5 +1,6 @@
 # ProiectIngSwt
-<img width="1064" height="724" alt="Screenshot 2025-11-20 205336" src="https://github.com/user-attachments/assets/f42aae8f-7e4e-41a2-b066-39a02399ed14" />
+<img width="945" height="660" alt="image" src="https://github.com/user-attachments/assets/bcd03733-2d8c-41d5-af70-c97e48ca69fb" />
+
 
 ## Description
 This is a Jakarta EE project that manages internship applications, student and company information. It uses:
