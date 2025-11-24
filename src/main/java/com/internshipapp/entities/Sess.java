@@ -1,5 +1,6 @@
 package com.internshipapp.entities;
 
+import com.internshipapp.common.SessDto;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -36,4 +37,12 @@ public class Sess {
     private LocalDateTime login;
     @Column(name="token",length = 255)
     private String token;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public UserAccount getUser() { return user; }
+    public void setUser(UserAccount user) { this.user = user; }
+    public void setLogin(LocalDateTime login) { this.login = login; }
+    public String getToken() { return token; }
+    public LocalDateTime getLogin() { return login; }
 }

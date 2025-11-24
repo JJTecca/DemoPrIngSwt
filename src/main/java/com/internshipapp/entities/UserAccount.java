@@ -19,8 +19,8 @@ import jakarta.persistence.*;
  *************************/
 public class UserAccount {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private Long userId;
 
     @Column(name="username", length = 255, nullable = false)
     private String username;
@@ -40,7 +40,7 @@ public class UserAccount {
 
     //Constructors
     public UserAccount() {}
-    public UserAccount(String username, Integer userId, String email, String password, CompanyInfo companyInfo, StudentInfo studentInfo) {
+    public UserAccount(String username, Long userId, String email, String password, CompanyInfo companyInfo, StudentInfo studentInfo) {
         this.username = username;
         this.userId = userId;
         this.email = email;
@@ -51,8 +51,8 @@ public class UserAccount {
 
     public String getUsername() {return username;}
     public void setUsername(String username) {this.username = username;}
-    public Integer getUserId() {return userId;}
-    public void setUserId(Integer userId) {this.userId = userId;}
+    public Long getUserId() {return userId;}
+    public void setUserId(Long userId) {this.userId = userId;}
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getEmail() { return email; }

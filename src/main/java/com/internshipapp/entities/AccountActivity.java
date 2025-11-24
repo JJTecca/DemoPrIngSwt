@@ -1,5 +1,6 @@
 package com.internshipapp.entities;
 
+import com.internshipapp.common.AccountActivityDto;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,10 @@ public class AccountActivity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private UserAccount user;
+
+    public UserAccount getUser() {
+        return user;
+    }
 
     // Enum for the Action
     public enum Action {
