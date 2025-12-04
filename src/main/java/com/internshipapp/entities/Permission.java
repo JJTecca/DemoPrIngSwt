@@ -3,7 +3,7 @@ package com.internshipapp.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "permission")
+@Table(name = "Permission")
 /************************
  *      FORMAT
  *      1. Ids

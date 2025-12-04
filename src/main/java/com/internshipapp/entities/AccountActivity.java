@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "account_activity")
+@Table(name = "accountActivity")
 
 /************************
  *      FORMAT

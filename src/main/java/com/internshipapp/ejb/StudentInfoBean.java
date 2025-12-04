@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 public class StudentInfoBean {
     private static final Logger LOG = Logger.getLogger(StudentInfoBean.class.getName());
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "default")
     EntityManager entityManager;
 
     /*******************************************************
@@ -56,6 +56,136 @@ public class StudentInfoBean {
         LOG.info("findAllStudents");
         try {
             TypedQuery<StudentInfo> typedQuery = entityManager.createQuery("SELECT s FROM StudentInfo s", StudentInfo.class);
+            List<StudentInfo> students = typedQuery.getResultList();
+            return copyStudentsToDto(students);
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public long countStudents() {
+        LOG.info("countStudents");
+        try {
+            TypedQuery<Long> typedQuery = entityManager.createQuery("SELECT COUNT(s) FROM StudentInfo s", Long.class);
+            return typedQuery.getSingleResult();
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public long countAvailableStudents() {
+        LOG.info("countAvailableStudents");
+        try {
+            TypedQuery<Long> typedQuery = entityManager.createQuery(
+                    "SELECT COUNT(s) FROM StudentInfo s WHERE s.status = com.internshipapp.entities.StudentInfo.StudentStatus.Available",
+                    Long.class
+            );
+            return typedQuery.getSingleResult();
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public StudentInfoDto findById(Long studentId) {
+        LOG.info("findById: " + studentId);
+        try {
+            StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+            if (student != null) {
+                return new StudentInfoDto(
+                        student.getId(),
+                        student.getAttachment() != null ? student.getAttachment().getId() : null,
+                        student.getFirstName(),
+                        student.getMiddleName(),
+                        student.getLastName(),
+                        student.getStudyYear(),
+                        student.getLastYearGrade(),
+                        student.getStatus().toString(),
+                        student.getEnrolled()
+                );
+            }
+            return null;
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public void createStudent(String firstName, String middleName, String lastName,
+                              Integer studyYear, Float lastYearGrade) {
+        LOG.info("createStudent");
+        try {
+            StudentInfo student = new StudentInfo();
+            student.setFirstName(firstName);
+            student.setMiddleName(middleName);
+            student.setLastName(lastName);
+            student.setStudyYear(studyYear);
+            student.setLastYearGrade(lastYearGrade);
+            student.setStatus(StudentInfo.StudentStatus.Available);
+            student.setEnrolled(true);
+
+            entityManager.persist(student);
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public void updateStudent(Long studentId, String firstName, String middleName,
+                              String lastName, Integer studyYear, Float lastYearGrade,
+                              String status, Boolean enrolled) {
+        LOG.info("updateStudent: " + studentId);
+        try {
+            StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+            if (student != null) {
+                student.setFirstName(firstName);
+                student.setMiddleName(middleName);
+                student.setLastName(lastName);
+                student.setStudyYear(studyYear);
+                student.setLastYearGrade(lastYearGrade);
+                student.setStatus(StudentInfo.StudentStatus.valueOf(status));
+                student.setEnrolled(enrolled);
+
+                entityManager.merge(student);
+            }
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public void deleteStudent(Long studentId) {
+        LOG.info("deleteStudent: " + studentId);
+        try {
+            StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+            if (student != null) {
+                entityManager.remove(student);
+            }
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public List<StudentInfoDto> findByStatus(String status) {
+        LOG.info("findByStatus: " + status);
+        try {
+            StudentInfo.StudentStatus studentStatus = StudentInfo.StudentStatus.valueOf(status);
+            TypedQuery<StudentInfo> typedQuery = entityManager.createQuery(
+                    "SELECT s FROM StudentInfo s WHERE s.status = :status",
+                    StudentInfo.class
+            );
+            typedQuery.setParameter("status", studentStatus);
+            List<StudentInfo> students = typedQuery.getResultList();
+            return copyStudentsToDto(students);
+        } catch (Exception ex) {
+            throw new EJBException(ex);
+        }
+    }
+
+    public List<StudentInfoDto> findByStudyYear(Integer studyYear) {
+        LOG.info("findByStudyYear: " + studyYear);
+        try {
+            TypedQuery<StudentInfo> typedQuery = entityManager.createQuery(
+                    "SELECT s FROM StudentInfo s WHERE s.studyYear = :studyYear",
+                    StudentInfo.class
+            );
+            typedQuery.setParameter("studyYear", studyYear);
             List<StudentInfo> students = typedQuery.getResultList();
             return copyStudentsToDto(students);
         } catch (Exception ex) {

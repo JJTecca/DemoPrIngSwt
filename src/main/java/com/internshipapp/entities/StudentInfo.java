@@ -3,7 +3,7 @@ package com.internshipapp.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "student_info")
+@Table(name = "studentInfo")
 
 /************************
  *      FORMAT

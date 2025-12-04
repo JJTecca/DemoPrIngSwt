@@ -1,11 +1,12 @@
 package com.internshipapp.entities;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
+import java.util.Date;
 import java.util.List;
 
 @Entity
-@Table(name = "internship_position")
+@Table(name = "InternshipPosition")
 
 /************************
  *      FORMAT
@@ -38,7 +39,8 @@ public class InternshipPosition {
     @Column(name = "requirements", nullable = false)
     private String requirements;
     @Column(name = "deadline", nullable = false)
-    private LocalDateTime deadline;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date deadline;
     @Column(name = "max_spots", nullable = false)
     private Integer maxSpots;
 
@@ -48,7 +50,7 @@ public class InternshipPosition {
     // Constructor
     public InternshipPosition() {}
     public InternshipPosition(CompanyInfo company, String title, String description,
-                              String requirements, LocalDateTime deadline, Integer maxSpots) {
+                              String requirements, Date deadline, Integer maxSpots) {
         this.company = company;
         this.title = title;
         this.description = description;
@@ -68,8 +70,8 @@ public class InternshipPosition {
     public void setDescription(String description) { this.description = description; }
     public String getRequirements() { return requirements; }
     public void setRequirements(String requirements) { this.requirements = requirements; }
-    public LocalDateTime getDeadline() { return deadline; }
-    public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
+    public Date getDeadline() { return deadline; }
+    public void setDeadline(Date deadline) { this.deadline = deadline; }
     public Integer getMaxSpots() { return maxSpots; }
     public void setMaxSpots(Integer maxSpots) { this.maxSpots = maxSpots; }
     public List<InternshipApplication> getApplications() { return applications; }

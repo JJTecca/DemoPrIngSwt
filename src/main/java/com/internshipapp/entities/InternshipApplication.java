@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "internship_application")
+@Table(name = "InternshipApplication")
 
 /************************
  *      FORMAT
