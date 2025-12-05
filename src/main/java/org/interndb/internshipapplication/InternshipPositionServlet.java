@@ -18,6 +18,8 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the positions.jsp
  **********************************************************/
+// TODO : Change value if needed , we should stick to same notation
+// 2nd parameter (optional)
 @WebServlet(name = "InternshipPos", value = "/InternshipPos")
 class InternshipPos extends HttpServlet {
 

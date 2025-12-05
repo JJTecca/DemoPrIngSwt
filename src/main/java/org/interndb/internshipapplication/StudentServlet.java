@@ -19,6 +19,8 @@ import java.util.List;
  *   4. Redirect to render the test.jsp
  **********************************************************/
 @WebServlet(name = "Students", value = "/Students")
+// TODO : Change value if needed , we should stick to same notation 
+// 2nd parameter (optional)
 class Students extends HttpServlet {
 
     @Inject
