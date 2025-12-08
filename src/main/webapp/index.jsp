@@ -67,6 +67,14 @@
         🧪 Test Internship Positions Page
     </a>
 
+    <a href="${pageContext.request.contextPath}/UserLogin" class="btn btn-lg btn-primary mt-3">
+        Go to Login Page
+    </a>
+
+    <a href="${pageContext.request.contextPath}/CompanyRegister" class="btn btn-lg btn-primary mt-3">
+        Go to Company Register Page
+    </a>
+
     <div style="margin-top: 30px; color: #666;">
         <p><strong>Server Time:</strong> <%= new java.util.Date() %></p>
         <p><strong>Context Path:</strong> ${pageContext.request.contextPath}</p>
