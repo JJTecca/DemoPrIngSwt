@@ -18,10 +18,8 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the positions.jsp
  **********************************************************/
-// TODO : Change value if needed , we should stick to same notation
-// 2nd parameter (optional)
-@WebServlet(name = "InternshipPos", value = "/InternshipPos")
-class InternshipPos extends HttpServlet {
+@WebServlet(name = "InternshipPosServlet", value = "/InternshipPos")
+class InternshipPosServlet extends HttpServlet {
 
     @Inject
     InternshipPositionBean internshipPositionBean;
@@ -56,7 +54,6 @@ class InternshipPos extends HttpServlet {
             request.setAttribute("totalPositions", totalPositions);
 
             System.out.println("DEBUG: Attributes set - positions: " + (positions != null));
-            System.out.println("DEBUG: Forwarding to positions.jsp...");
 
         } catch (Exception e) {
             System.err.println("ERROR in servlet: " + e.getMessage());

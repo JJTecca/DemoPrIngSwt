@@ -18,10 +18,8 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the test.jsp
  **********************************************************/
-@WebServlet(name = "Students", value = "/Students")
-// TODO : Change value if needed , we should stick to same notation 
-// 2nd parameter (optional)
-class Students extends HttpServlet {
+@WebServlet(name = "StudentsServlet", value = "/Students")
+class StudentsServlet extends HttpServlet {
 
     @Inject
     StudentInfoBean studentInfoBean;
