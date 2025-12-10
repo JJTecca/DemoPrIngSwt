@@ -15,13 +15,17 @@ import java.io.IOException;
 import java.util.*;
 
 /**********************************************************
- *              STUDENT DASHBOARD SERVLET:
- *    Displays comprehensive student information including:
- *    1. Student personal details
- *    2. Account information
- *    3. Recent activities
- *    4. Statistics
+ *              GENERAL SERVLET STRUCTURE :
+ *   1. @WebServlet with it's value set to redirect webpage
+ *   2. @Inject the bean Class
+ *   3. /doGet function at first with debugging context (optional)
+ *   4. Redirect to render the studentPanel.jsp
  **********************************************************/
+/****************************************************************************
+ * StudentsServlet logic:
+ *  -doGet :  Set User Attributes we want to display 
+ *  -doPost : TODO
+ ****************************************************************************/
 @WebServlet(name = "StudentsServlet", value = "/Students")
 public class StudentsServlet extends HttpServlet {
     /**************************************************************
@@ -56,6 +60,7 @@ public class StudentsServlet extends HttpServlet {
             return;
         }
 
+        List<StudentInfoDto> allStudents = studentInfoBean.findAllStudents();
         String email = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
 
@@ -85,9 +90,8 @@ public class StudentsServlet extends HttpServlet {
                     System.out.println("DEBUG: Student data loaded successfully");
                 }
             }
-            // For FACULTY/ADMIN role: Show all students with statistics
-            else if ("Faculty".equals(role) || "Admin".equals(role)) {
-                List<StudentInfoDto> allStudents = studentInfoBean.findAllStudents();
+            // For FACULTY role: Show all students (read-only view)
+            else if ("Faculty".equals(role)) {
                 Map<String, Object> statistics = studentInfoBean.getStudentStatistics();
                 List<AccountActivityDto> recentActivities = getRecentActivities(null);
 
@@ -95,13 +99,32 @@ public class StudentsServlet extends HttpServlet {
                 request.setAttribute("allStudents", allStudents);
                 request.setAttribute("statistics", statistics);
                 request.setAttribute("recentActivities", recentActivities);
+                // TODO: Add faculty-specific permissions/actions later
+                request.setAttribute("isFacultyView", true);
 
-                System.out.println("DEBUG: Loaded " + allStudents.size() + " students");
+                System.out.println("DEBUG: Faculty view - Loaded " + allStudents.size() + " students");
+            }
+            // For ADMIN role: Show all students with full control
+            else if ("Admin".equals(role)) {
+                Map<String, Object> statistics = studentInfoBean.getStudentStatistics();
+                List<AccountActivityDto> recentActivities = getRecentActivities(null);
+
+                // Set attributes for JSP
+                request.setAttribute("allStudents", allStudents);
+                request.setAttribute("statistics", statistics);
+                request.setAttribute("recentActivities", recentActivities);
+                // Admin-specific controls
+                request.setAttribute("canEditAll", true);
+                request.setAttribute("canDelete", true);
+
+                System.out.println("DEBUG: Admin view - Loaded " + allStudents.size() + " students");
                 System.out.println("DEBUG: Statistics: " + statistics);
             }
             else {
-                // For other roles (Company), redirect to appropriate panel
-                response.sendRedirect("UserLogin");
+                // For Company role, redirect to company panel
+                // Note: UserLoginServlet redirects Company to companyPanel.jsp
+                System.out.println("DEBUG: Company role detected, redirecting to company panel");
+                response.sendRedirect("pages/panels/companyPanel.jsp");
                 return;
             }
 
@@ -115,12 +138,8 @@ public class StudentsServlet extends HttpServlet {
             request.setAttribute("error", "Error loading student data: " + e.getMessage());
         }
 
-        // Forward to appropriate JSP based on role
-        if ("Student".equals(role)) {
-            request.getRequestDispatcher("pages/panels/studentPanel.jsp").forward(request, response);
-        } else if ("Faculty".equals(role) || "Admin".equals(role)) {
-            request.getRequestDispatcher("pages/panels/facultyStudentView.jsp").forward(request, response);
-        }
+        // Forward to studentPanel.jsp (all roles see student data, just differently)
+        request.getRequestDispatcher("pages/panels/studentPanel.jsp").forward(request, response);
     }
 
     private List<AccountActivityDto> getRecentActivities(Long userId) {

@@ -19,6 +19,11 @@ import java.util.logging.Logger;
  *   3. /doGet function at first with debugging context (optional)
  *   5. /doPost to handle specific CRUD operations
  **********************************************************/
+/***********************************************************
+ * AddRequestServlet logic:
+ *  -doGet : redirect to /pages/auth/companyRegister.jsp
+ *  -doPost : RequestDTO Obj creation + SHA-512 Encryption
+ ************************************************************/
 @WebServlet(name = "AddRequestServlet", value = "/CompanyRegister")
 public class AddRequestServlet extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(AddRequestServlet.class.getName());

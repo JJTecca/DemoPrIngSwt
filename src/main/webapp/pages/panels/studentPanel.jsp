@@ -1,5 +1,3 @@
-[file name]: studentPanel.jsp (Updated)
-[file content begin]
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.internshipapp.common.StudentInfoDto" %>
 <%@ page import="com.internshipapp.common.AccountActivityDto" %>
@@ -572,4 +570,3 @@
 </script>
 </body>
 </html>
-[file content end]

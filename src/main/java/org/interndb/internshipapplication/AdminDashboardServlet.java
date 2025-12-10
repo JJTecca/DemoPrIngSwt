@@ -16,6 +16,11 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the adminPanel.jsp
  **********************************************************/
+/***********************************************************
+ * AdminDashboardServlet logic:
+ *  -doGet :  Get pending requests
+ *  -doPost : TODO
+ **********************************************************/
 @WebServlet(name = "AdminDashboardServlet", value = "/AdminDashboard")
 public class AdminDashboardServlet extends HttpServlet {
 
@@ -47,10 +52,6 @@ public class AdminDashboardServlet extends HttpServlet {
         }
         // Get pending requests
         List<com.internshipapp.common.RequestDto> pendingRequests = requestBean.getPendingRequests();
-
-        for (com.internshipapp.common.RequestDto req : pendingRequests) {
-            System.out.println("Request: " + req.getCompanyName() + " - " + req.getCompanyEmail());
-        }
 
         request.setAttribute("pendingRequests", pendingRequests);
         request.setAttribute("pendingRequestsCount", pendingRequests.size());

@@ -18,6 +18,11 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the positions.jsp
  **********************************************************/
+/****************************************************************************
+ * AdminDashboardServlet logic:
+ *  -doGet :  Get all the Positions from Backend + redirect to /pages/positions
+ *  -doPost : TODO
+ ****************************************************************************/
 @WebServlet(name = "InternshipPosServlet", value = "/InternshipPos")
 class InternshipPosServlet extends HttpServlet {
 
