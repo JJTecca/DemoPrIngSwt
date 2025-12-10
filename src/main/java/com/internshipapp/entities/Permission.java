@@ -32,7 +32,8 @@ public class Permission {
     public enum Role {
         Faculty,
         Student,
-        Company
+        Company,
+        Admin
     }
 
     @Enumerated(EnumType.STRING)

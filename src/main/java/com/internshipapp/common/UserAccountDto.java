@@ -11,34 +11,32 @@ package com.internshipapp.common;
 public class UserAccountDto {
     private Long userId;
     private String username;
+    private String password;  // ADDED: For authentication and user creation
     private String email;
     private Long studentId;
     private String studentName;
     private Long companyId;
     private String companyName;
 
-     /************************************************
+    /************************************************
      *        Constructors
      *  - we have more type of constructors
      *  - adjust params as needed
      *  - *NOTE* : constructors called based on feature */
-     /****************************************************************
+    /****************************************************************
      *               PERFORMANCE NOTES
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
-      **************************************************************/
-    public UserAccountDto() {}
-    public UserAccountDto(Long userId, String username, String email) {
-        this.userId = userId;
-        this.username = username;
-        this.email = email;
-    }
+     **************************************************************/
 
-    public UserAccountDto(Long userId, String username, String email,
+    public UserAccountDto() {}
+
+    public UserAccountDto(Long userId, String username, String password, String email,
                           Long studentId, String studentName,
                           Long companyId, String companyName) {
         this.userId = userId;
         this.username = username;
+        this.password = password;
         this.email = email;
         this.studentId = studentId;
         this.studentName = studentName;
@@ -49,16 +47,39 @@ public class UserAccountDto {
     // Getters and Setters
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
+
+    public String getPassword() { return password; }  // ADDED
+    public void setPassword(String password) { this.password = password; }  // ADDED
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
     public Long getStudentId() { return studentId; }
     public void setStudentId(Long studentId) { this.studentId = studentId; }
+
     public String getStudentName() { return studentName; }
     public void setStudentName(String studentName) { this.studentName = studentName; }
+
     public Long getCompanyId() { return companyId; }
     public void setCompanyId(Long companyId) { this.companyId = companyId; }
+
     public String getCompanyName() { return companyName; }
     public void setCompanyName(String companyName) { this.companyName = companyName; }
+
+    // Helper methods
+    @Override
+    public String toString() {
+        return "UserAccountDto{" +
+                "userId=" + userId +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", studentId=" + studentId +
+                ", studentName='" + studentName + '\'' +
+                ", companyId=" + companyId +
+                ", companyName='" + companyName + '\'' +
+                '}';
+    }
 }

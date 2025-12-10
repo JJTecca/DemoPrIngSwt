@@ -11,6 +11,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
+        /* ALL YOUR ORIGINAL STYLES HERE - KEEP THEM EXACTLY AS BEFORE */
         body, html {
             height: 100%;
             margin: 0;
@@ -164,6 +165,34 @@
             color: var(--brand-blue);
             font-weight: 800;
         }
+
+        /* Success Modal Styles - Minimal addition */
+        .success-icon {
+            color: #28a745;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-success-header {
+            background-color: var(--brand-blue);
+            color: white;
+            border-bottom: none;
+        }
+
+        .modal-success-header .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        .modal-success-btn {
+            background-color: var(--brand-blue);
+            border-color: var(--brand-blue);
+            color: white;
+        }
+
+        .modal-success-btn:hover {
+            background-color: var(--brand-blue-dark);
+            border-color: var(--brand-blue-dark);
+        }
     </style>
 </head>
 <body>
@@ -181,7 +210,16 @@
             </div>
 
             <div class="form-box-body">
-                <form action="registerCompany" method="POST">
+                <!-- Display error message if any -->
+                <c:if test="${not empty errorMessage}">
+                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                            ${errorMessage}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </c:if>
+
+                <form id="registrationForm" action="CompanyRegister" method="POST">
 
                     <div class="mb-3">
                         <label for="companyName" class="form-label visually-hidden">Company Name</label>
@@ -232,7 +270,7 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-main-register">
+                        <button type="submit" class="btn btn-main-register" id="submitBtn">
                             REGISTER COMPANY
                         </button>
                     </div>
@@ -271,15 +309,94 @@
     </div>
 </div>
 
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header modal-success-header">
+                <h5 class="modal-title" id="successModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Registration Successful!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h4 class="mb-3">Thank You for Registering!</h4>
+                <p class="mb-2"><strong>Company:</strong> <span id="modalCompanyName">${companyName}</span></p>
+                <p class="mb-3"><strong>Email:</strong> <span id="modalCompanyEmail">${companyEmail}</span></p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${not empty successMessage ? successMessage : 'Registration submitted! Your request is pending admin approval.'}
+                </div>
+                <p class="text-muted small mt-3">
+                    <i class="fas fa-clock me-1"></i>
+                    Approval typically takes 1-2 business days.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn modal-success-btn" data-bs-dismiss="modal" onclick="redirectToLogin()">
+                    <i class="fas fa-sign-in-alt me-1"></i>Go to Login
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.forEach(function (tooltipTriggerEl) {
-            new bootstrap.Tooltip(tooltipTriggerEl); // script for tooltip popups
+            new bootstrap.Tooltip(tooltipTriggerEl);
         });
+
+        // Check if we should show success modal (from servlet attribute)
+        const showModal = '${showSuccessModal}' === 'true';
+
+        if (showModal) {
+            // Wait a moment for page to load, then show modal
+            setTimeout(function() {
+                const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                successModal.show();
+            }, 500);
+        }
+
+        // Form validation
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                // Validate passwords match
+                if (password !== confirmPassword) {
+                    e.preventDefault();
+                    alert('Passwords do not match! Please check and try again.');
+                    return false;
+                }
+
+                // Show loading state
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                    submitBtn.disabled = true;
+                }
+
+                return true;
+            });
+        }
     });
+
+    function redirectToLogin() {
+        window.location.href = '${pageContext.request.contextPath}/UserLogin';
+    }
 </script>
 
 </body>

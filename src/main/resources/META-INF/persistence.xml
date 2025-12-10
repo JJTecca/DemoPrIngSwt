@@ -17,6 +17,7 @@
         <class>com.internshipapp.entities.InternshipPosition</class>
         <class>com.internshipapp.entities.Sess</class>
         <class>com.internshipapp.entities.Permission</class>
+        <class>com.internshipapp.entities.Request</class>
 
         <properties>
             <!-- Nu imi apare value="create-or-extend-tables" /> -->

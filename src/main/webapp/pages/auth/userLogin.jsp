@@ -197,7 +197,7 @@
             </div>
 
             <div class="form-box-body">
-                <form action="login" method="POST" class="mt-4">
+                <form action="UserLogin" method="POST" class="mt-4">
 
                     <div class="mb-3">
                         <label for="email" class="form-label text-muted fw-bold small">EMAIL ADDRESS</label>
