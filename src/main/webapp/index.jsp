@@ -63,7 +63,7 @@
         <p><strong>Context Path:</strong> ${pageContext.request.contextPath}</p>
     </div>
 
-    <a href="${pageContext.request.contextPath}/InternshipPos" class="btn">
+    <a href="${pageContext.request.contextPath}/InternshipPositions" class="btn">
         🧪 Test Internship Positions Page
     </a>
 

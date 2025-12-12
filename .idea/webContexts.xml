@@ -6,6 +6,8 @@
         <entry key="file://$PROJECT_DIR$/src/main/webapp/pages/auth/companyRegister.jsp" value="file://$PROJECT_DIR$/src/main/webapp/pages/auth" />
         <entry key="file://$PROJECT_DIR$/src/main/webapp/pages/auth/user-login.jsp" value="file://$PROJECT_DIR$/src/main/webapp/pages/auth" />
         <entry key="file://$PROJECT_DIR$/src/main/webapp/pages/auth/userLogin.jsp" value="file://$PROJECT_DIR$/src/main/webapp/pages/auth" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/pages/panels/studentPanel.jsp" value="file://$PROJECT_DIR$/src/main/webapp/pages/panels" />
+        <entry key="file://$PROJECT_DIR$/src/main/webapp/pages/public/studentProfile.jsp" value="file://$PROJECT_DIR$/src/main/webapp/pages/public" />
       </map>
     </option>
   </component>

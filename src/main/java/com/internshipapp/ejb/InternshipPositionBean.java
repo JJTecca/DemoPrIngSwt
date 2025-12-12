@@ -97,6 +97,30 @@ public class InternshipPositionBean {
         }
     }
 
+    public List<InternshipPositionDto> findByCompanyId(Long companyId) {
+        LOG.info("Finding position DTOs for Company ID: " + companyId);
+        try {
+            // 1. Fetch Entities
+            TypedQuery<InternshipPosition> query = entityManager.createQuery(
+                    "SELECT p FROM InternshipPosition p WHERE p.company.id = :companyId",
+                    InternshipPosition.class
+            );
+            query.setParameter("companyId", companyId);
+            List<InternshipPosition> entities = query.getResultList();
+
+            // 2. Convert to DTOs
+            List<InternshipPositionDto> dtos = new ArrayList<>();
+            for (InternshipPosition entity : entities) {
+                dtos.add(copyPositionToDto(entity));
+            }
+            return dtos;
+
+        } catch (Exception ex) {
+            LOG.warning("Error finding positions: " + ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
     // Get active positions (deadline in future)
     public List<InternshipPositionDto> findActivePositions() {
         LOG.info("findActivePositions");
@@ -450,16 +474,39 @@ public class InternshipPositionBean {
         public double utilizationRate;
 
         // Getters
-        public long getTotalPositions() { return totalPositions; }
-        public long getActivePositions() { return activePositions; }
-        public long getPositionsWithSpots() { return positionsWithSpots; }
-        public int getTotalSpots() { return totalSpots; }
-        public int getFilledSpots() { return filledSpots; }
-        public int getCompaniesWithPositions() { return companiesWithPositions; }
-        public double getUtilizationRate() { return utilizationRate; }
+        public long getTotalPositions() {
+            return totalPositions;
+        }
+
+        public long getActivePositions() {
+            return activePositions;
+        }
+
+        public long getPositionsWithSpots() {
+            return positionsWithSpots;
+        }
+
+        public int getTotalSpots() {
+            return totalSpots;
+        }
+
+        public int getFilledSpots() {
+            return filledSpots;
+        }
+
+        public int getCompaniesWithPositions() {
+            return companiesWithPositions;
+        }
+
+        public double getUtilizationRate() {
+            return utilizationRate;
+        }
 
         // Helper methods
-        public int getAvailableSpots() { return totalSpots - filledSpots; }
+        public int getAvailableSpots() {
+            return totalSpots - filledSpots;
+        }
+
         public double getFillPercentage() {
             return totalSpots > 0 ? (double) filledSpots / totalSpots * 100 : 0;
         }

@@ -63,16 +63,45 @@ public class InternshipApplication {
     // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public InternshipPosition getInternshipPosition() { return internshipPosition; }
     public void setInternshipPosition(InternshipPosition internshipPosition) { this.internshipPosition = internshipPosition; }
+
     public StudentInfo getStudent() { return student; }
-    public void setStudent(StudentInfo student) { this.student = student; }
-    public ApplicationStatus getStatus() { return status; }
-    public void setStatus(ApplicationStatus status) { this.status = status; }
-    public Integer getGrade() { return grade; }
-    public void setGrade(Integer grade) { this.grade = grade; }
-    public LocalDateTime getAppliedAt() { return appliedAt; }
-    public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
-    public String getChatIds() { return chatIds; }
-    public void setChatIds(String chatIds) { this.chatIds = chatIds; }
+
+    public void setStudent(StudentInfo student) {
+        this.student = student;
+    }
+
+    public ApplicationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ApplicationStatus status) {
+        this.status = status;
+    }
+
+    public Integer getGrade() {
+        return grade;
+    }
+
+    public void setGrade(Integer grade) {
+        this.grade = grade;
+    }
+
+    public LocalDateTime getAppliedAt() {
+        return appliedAt;
+    }
+
+    public void setAppliedAt(LocalDateTime appliedAt) {
+        this.appliedAt = appliedAt;
+    }
+
+    public String getChatIds() {
+        return chatIds;
+    }
+
+    public void setChatIds(String chatIds) {
+        this.chatIds = chatIds;
+    }
 }

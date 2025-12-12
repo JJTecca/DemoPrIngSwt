@@ -41,7 +41,9 @@ public class Permission {
     private Role role;
 
     // Constructors
-    public Permission() {}
+    public Permission() {
+    }
+
     public Permission(Long permissionId, UserAccount user, Role role) {
         this.permissionId = permissionId;
         this.user = user;
@@ -49,11 +51,28 @@ public class Permission {
     }
 
     // Getters and Setters
-    public Long getId() { return permissionId; }
-    public void setId(Long id) { this.permissionId = id; }
-    public UserAccount getUser() { return user; }
-    public void setUser(UserAccount user) { this.user = user; }
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public Long getId() {
+        return permissionId;
+    }
+
+    public void setId(Long id) {
+        this.permissionId = id;
+    }
+
+    public UserAccount getUser() {
+        return user;
+    }
+
+    public void setUser(UserAccount user) {
+        this.user = user;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
 }

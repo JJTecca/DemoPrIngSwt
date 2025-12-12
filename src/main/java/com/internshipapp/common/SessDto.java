@@ -1,6 +1,7 @@
 package com.internshipapp.common;
 
 import java.time.LocalDateTime;
+
 /******************************
  *Purpose of DTO Pattern:
  * 1.Data Transfer: Moves data between layers (Database → Business Logic → UI)
@@ -26,7 +27,9 @@ public class SessDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public SessDto() {}
+    public SessDto() {
+    }
+
     public SessDto(Long id, Long userId, String username, LocalDateTime login, String token) {
         this.id = id;
         this.userId = userId;
@@ -35,14 +38,43 @@ public class SessDto {
         this.token = token;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public LocalDateTime getLogin() { return login; }
-    public void setLogin(LocalDateTime login) { this.login = login; }
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public LocalDateTime getLogin() {
+        return login;
+    }
+
+    public void setLogin(LocalDateTime login) {
+        this.login = login;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }

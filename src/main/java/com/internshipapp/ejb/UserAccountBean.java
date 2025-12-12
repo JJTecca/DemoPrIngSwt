@@ -6,6 +6,7 @@ import com.internshipapp.entities.StudentInfo;
 import com.internshipapp.entities.UserAccount;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -20,6 +21,9 @@ public class UserAccountBean {
 
     @PersistenceContext
     EntityManager entityManager;
+
+    @Inject
+    private StudentInfoBean studentInfoBean;
 
     public List<UserAccountDto> copyUsersToDto(List<UserAccount> users) {
         List<UserAccountDto> dtos = new ArrayList<>();
@@ -124,6 +128,7 @@ public class UserAccountBean {
     public StudentInfoDto getStudentInfoByEmail(String email) {
         LOG.info("getStudentInfoByEmail: " + email);
         try {
+            // Retrieve UserAccount, eagerly fetching studentInfo
             TypedQuery<UserAccount> query = entityManager.createQuery(
                     "SELECT u FROM UserAccount u LEFT JOIN FETCH u.studentInfo WHERE u.email = :email",
                     UserAccount.class
@@ -132,21 +137,9 @@ public class UserAccountBean {
             UserAccount user = query.getSingleResult();
 
             if (user != null && user.getStudentInfo() != null) {
-                StudentInfo student = user.getStudentInfo();
-                return new StudentInfoDto(
-                        student.getId(),
-                        student.getAttachment() != null ? student.getAttachment().getId() : null,
-                        student.getFirstName(),
-                        student.getMiddleName(),
-                        student.getLastName(),
-                        student.getStudyYear(),
-                        student.getLastYearGrade(),
-                        student.getStatus().toString(),
-                        student.getEnrolled(),
-                        user.getEmail(),
-                        user.getUsername(),
-                        user.getUserId()
-                );
+                // Delegate the complex mapping (including the AttachmentDto logic)
+                // to the StudentInfoBean
+                return studentInfoBean.copyStudentToDto(user.getStudentInfo());
             }
             return null;
         } catch (Exception ex) {

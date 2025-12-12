@@ -1,16 +1,15 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.AccountActivityDto;
 import com.internshipapp.common.UserAccountDto;
-import com.internshipapp.ejb.AccountActivityBean;
-import com.internshipapp.ejb.PermissionBean;
-import com.internshipapp.ejb.StudentInfoBean;
-import com.internshipapp.ejb.UserAccountBean;
+import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -21,6 +20,7 @@ import java.util.*;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the studentPanel.jsp
  **********************************************************/
+
 /****************************************************************************
  * StudentsServlet logic:
  *  -doGet :  Set User Attributes we want to display 
@@ -35,7 +35,10 @@ public class StudentsServlet extends HttpServlet {
     StudentInfoBean studentInfoBean;
 
     @Inject
-    PermissionBean  permissionBean;
+    InternshipApplicationBean internshipAppBean;
+
+    @Inject
+    PermissionBean permissionBean;
 
     @Inject
     AccountActivityBean accountActivityBean;
@@ -80,8 +83,10 @@ public class StudentsServlet extends HttpServlet {
                     UserAccountDto userDto = userAccountBean.findByEmail(email);
                     List<AccountActivityDto> activities = getRecentActivities(student.getUserId());
                     Map<String, Object> studentStats = calculateStudentStats(student);
+                    List<InternshipApplicationDto> myApplications = internshipAppBean.findApplicationsByStudentId(student.getId());
 
                     // Set attributes for JSP
+                    request.setAttribute("myApplications", myApplications);
                     request.setAttribute("student", student);
                     request.setAttribute("userAccount", userDto);
                     request.setAttribute("activities", activities);
@@ -119,8 +124,7 @@ public class StudentsServlet extends HttpServlet {
 
                 System.out.println("DEBUG: Admin view - Loaded " + allStudents.size() + " students");
                 System.out.println("DEBUG: Statistics: " + statistics);
-            }
-            else {
+            } else {
                 // For Company role, redirect to company panel
                 // Note: UserLoginServlet redirects Company to companyPanel.jsp
                 System.out.println("DEBUG: Company role detected, redirecting to company panel");

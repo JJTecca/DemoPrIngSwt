@@ -1,4 +1,4 @@
-<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -71,7 +71,7 @@
             width: 100%;
             padding: 0;
             border-radius: 1rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             background-color: white;
         }
@@ -105,6 +105,7 @@
             border-radius: 0.5rem;
             background-color: #f8f9fa;
         }
+
         .form-control-lg:focus {
             background-color: #ffffff;
             border-color: var(--brand-blue);
@@ -121,6 +122,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(14, 43, 88, 0.2);
         }
+
         .btn-main-login:hover {
             background-color: var(--brand-blue-dark);
             transform: translateY(-2px);
@@ -134,6 +136,7 @@
             border-radius: 50px;
             transition: all 0.3s ease;
         }
+
         .btn-contact-us:hover {
             background-color: var(--brand-blue);
             color: white;
@@ -159,8 +162,13 @@
             margin-bottom: 2rem;
         }
 
-        .login-info-area h1 { color: var(--brand-blue); }
-        .login-info-area h2 { color: #555; }
+        .login-info-area h1 {
+            color: var(--brand-blue);
+        }
+
+        .login-info-area h2 {
+            color: #555;
+        }
 
         .info-lead-text {
             color: #444;
@@ -233,7 +241,7 @@
 
     <div class="col-lg-3 col-md-4 d-none d-md-flex login-info-area">
         <div>
-            <img src="images/logo.png"
+            <img src="images/logo_vert.png"
                  alt="ULBS Logo" class="ulbs-logo">
 
             <h2 class="h5 text-uppercase fw-bold mb-2 ls-2">Internship Program</h2>

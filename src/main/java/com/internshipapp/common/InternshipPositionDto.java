@@ -35,7 +35,9 @@ public class InternshipPositionDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public InternshipPositionDto() {}
+    public InternshipPositionDto() {
+    }
+
     public InternshipPositionDto(Long id, Long companyId, String title,
                                  String description, String requirements,
                                  LocalDateTime deadline, Integer maxSpots) {
@@ -47,6 +49,7 @@ public class InternshipPositionDto {
         this.deadline = deadline;
         this.maxSpots = maxSpots;
     }
+
     // Full constructor
     public InternshipPositionDto(Long id, Long companyId, String companyName,
                                  String title, String description, String requirements,
@@ -83,20 +86,61 @@ public class InternshipPositionDto {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getCompanyId() { return companyId; }
-    public void setCompanyId(Long companyId) { this.companyId = companyId; }
-    public String getCompanyName() { return companyName; }
-    public void setCompanyName(String companyName) { this.companyName = companyName; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public String getRequirements() { return requirements; }
-    public void setRequirements(String requirements) { this.requirements = requirements; }
-    public LocalDateTime getDeadline() { return deadline; }
-    public void setDeadline(LocalDateTime deadline) { this.deadline = deadline; }
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getCompanyId() {
+        return companyId;
+    }
+
+    public void setCompanyId(Long companyId) {
+        this.companyId = companyId;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(String requirements) {
+        this.requirements = requirements;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
 
     // Set deadline from Date
     public void setDeadlineFromDate(Date deadline) {
@@ -114,23 +158,46 @@ public class InternshipPositionDto {
         return null;
     }
 
-    public Integer getMaxSpots() { return maxSpots; }
-    public void setMaxSpots(Integer maxSpots) { this.maxSpots = maxSpots; }
+    public Integer getMaxSpots() {
+        return maxSpots;
+    }
 
-    public Integer getFilledSpots() { return filledSpots; }
-    public void setFilledSpots(Integer filledSpots) { this.filledSpots = filledSpots; }
+    public void setMaxSpots(Integer maxSpots) {
+        this.maxSpots = maxSpots;
+    }
 
-    public Integer getApplicationsCount() { return applicationsCount; }
-    public void setApplicationsCount(Integer applicationsCount) { this.applicationsCount = applicationsCount; }
+    public Integer getFilledSpots() {
+        return filledSpots;
+    }
 
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    public void setFilledSpots(Integer filledSpots) {
+        this.filledSpots = filledSpots;
+    }
+
+    public Integer getApplicationsCount() {
+        return applicationsCount;
+    }
+
+    public void setApplicationsCount(Integer applicationsCount) {
+        this.applicationsCount = applicationsCount;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
+    }
 
     public Integer getAvailableSpots() {
         if (availableSpots != null) return availableSpots;
         return calculateAvailableSpots();
     }
-    public void setAvailableSpots(Integer availableSpots) { this.availableSpots = availableSpots; }
+
+    public void setAvailableSpots(Integer availableSpots) {
+        this.availableSpots = availableSpots;
+    }
 
     // Helper methods
     public Integer calculateAvailableSpots() {

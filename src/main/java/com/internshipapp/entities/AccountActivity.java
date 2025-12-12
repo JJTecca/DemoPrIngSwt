@@ -1,21 +1,11 @@
 package com.internshipapp.entities;
 
-import com.internshipapp.common.AccountActivityDto;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "accountActivity")
-
-/************************
- *      FORMAT
- *      1. Ids
- *      2. Relationships (FKs)
- *      3. Columns
- *      4. Constructor
- *      5. Getter & Setter
- ************************/
 public class AccountActivity {
 
     @Id
@@ -23,37 +13,39 @@ public class AccountActivity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    // Relationship with UserAccount
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id")
     private UserAccount user;
 
-    public UserAccount getUser() {
-        return user;
-    }
-
-    // Enum for the Action
+    // --- UPDATED ENUM ---
     public enum Action {
         ChangeCV,
+        DeleteCV,
         ChangePFP,
+        DeletePFP,
         ChangePassword,
-        ChangeDepartRepresentative
+        ChangeDepartRepresentative,
+        AppliedForPosition
     }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
     private Action action;
+
     @Lob
     @Column(name = "old_data")
     private byte[] oldData;
+
     @Lob
     @Column(name = "new_data")
     private byte[] newData;
+
     @Column(name = "action_time", nullable = false)
     private LocalDateTime actionTime = LocalDateTime.now();
 
-    // Constructor
-    public AccountActivity() {}
+    public AccountActivity() {
+    }
+
     public AccountActivity(UserAccount user, Action action, byte[] oldData, byte[] newData) {
         this.user = user;
         this.action = action;
@@ -62,17 +54,53 @@ public class AccountActivity {
         this.actionTime = LocalDateTime.now();
     }
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    //public UserAccount getUser() { return user; }
-    //public void setUser(UserAccount user) { this.user = user; }
-    public Action getAction() { return action; }
-    public void setAction(Action action) { this.action = action; }
-    public byte[] getOldData() { return oldData; }
-    public void setOldData(byte[] oldData) { this.oldData = oldData; }
-    public byte[] getNewData() { return newData; }
-    public void setNewData(byte[] newData) { this.newData = newData; }
-    public LocalDateTime getActionTime() { return actionTime; }
-    public void setActionTime(LocalDateTime actionTime) { this.actionTime = actionTime; }
+    // --- Getters & Setters ---
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public UserAccount getUser() {
+        return user;
+    }
+
+    // --- ADDED MISSING SETTER ---
+    public void setUser(UserAccount user) {
+        this.user = user;
+    }
+
+    public Action getAction() {
+        return action;
+    }
+
+    public void setAction(Action action) {
+        this.action = action;
+    }
+
+    public byte[] getOldData() {
+        return oldData;
+    }
+
+    public void setOldData(byte[] oldData) {
+        this.oldData = oldData;
+    }
+
+    public byte[] getNewData() {
+        return newData;
+    }
+
+    public void setNewData(byte[] newData) {
+        this.newData = newData;
+    }
+
+    public LocalDateTime getActionTime() {
+        return actionTime;
+    }
+
+    public void setActionTime(LocalDateTime actionTime) {
+        this.actionTime = actionTime;
+    }
 }

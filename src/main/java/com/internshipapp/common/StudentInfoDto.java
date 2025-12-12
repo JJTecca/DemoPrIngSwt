@@ -1,10 +1,11 @@
 package com.internshipapp.common;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class StudentInfoDto implements Serializable {
     private Long id;
-    private Long attachmentId;
+    // private Long attachmentId; <-- REMOVED
     private String firstName;
     private String middleName;
     private String lastName;
@@ -15,15 +16,21 @@ public class StudentInfoDto implements Serializable {
     private String userEmail;
     private String username;
     private Long userId;
+    private List<InternshipApplicationDto> internshipApplications;
+
+    // Primary source of attachment data
+    private AttachmentDto attachment;
+
 
     // Constructors
-    public StudentInfoDto() {}
+    public StudentInfoDto() {
+    }
 
-    public StudentInfoDto(Long id, Long attachmentId, String firstName, String middleName,
+    // Constructor 1 (Basic Student Info - User Account data excluded)
+    public StudentInfoDto(Long id, String firstName, String middleName,
                           String lastName, Integer studyYear, Float lastYearGrade,
                           String status, Boolean enrolled) {
         this.id = id;
-        this.attachmentId = attachmentId;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
@@ -33,12 +40,12 @@ public class StudentInfoDto implements Serializable {
         this.enrolled = enrolled;
     }
 
-    public StudentInfoDto(Long id, Long attachmentId, String firstName, String middleName,
+    // Constructor 2 (Student + User Account Info)
+    public StudentInfoDto(Long id, String firstName, String middleName,
                           String lastName, Integer studyYear, Float lastYearGrade,
                           String status, Boolean enrolled, String userEmail,
                           String username, Long userId) {
         this.id = id;
-        this.attachmentId = attachmentId;
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
@@ -51,42 +58,146 @@ public class StudentInfoDto implements Serializable {
         this.userId = userId;
     }
 
+    // Constructor 3 (Full DTO - Used by copyStudentToDto)
+    public StudentInfoDto(Long id, String firstName, String middleName, String lastName,
+                          Integer studyYear, Float lastYearGrade, String status,
+                          Boolean enrolled, String userEmail, String username, Long userId,
+                          AttachmentDto attachment) {
+        this.id = id;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.studyYear = studyYear;
+        this.lastYearGrade = lastYearGrade;
+        this.status = status;
+        this.enrolled = enrolled;
+        this.userEmail = userEmail;
+        this.username = username;
+        this.userId = userId;
+        this.attachment = attachment;
+    }
+
+    public StudentInfoDto(Long id, Long aLong, String firstName, String middleName, String lastName, Integer studyYear, Float lastYearGrade, String string, Boolean enrolled, String email, String username, Long userId) {
+        this.id = id;
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.studyYear = studyYear;
+        this.lastYearGrade = lastYearGrade;
+        this.status = string;
+        this.enrolled = enrolled;
+        this.userEmail = email;
+        this.username = username;
+        this.userId = userId;
+    }
+
+    // Note: Constructors 3 and 4 from your original file were redundant/similar
+    // and have been streamlined into the final Constructor 3 above.
+
+
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public Long getAttachmentId() { return attachmentId; }
-    public void setAttachmentId(Long attachmentId) { this.attachmentId = attachmentId; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    // Removed getAttachmentId() and setAttachmentId()
 
-    public String getMiddleName() { return middleName; }
-    public void setMiddleName(String middleName) { this.middleName = middleName; }
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-    public Integer getStudyYear() { return studyYear; }
-    public void setStudyYear(Integer studyYear) { this.studyYear = studyYear; }
+    public String getMiddleName() {
+        return middleName;
+    }
 
-    public Float getLastYearGrade() { return lastYearGrade; }
-    public void setLastYearGrade(Float lastYearGrade) { this.lastYearGrade = lastYearGrade; }
+    public void setMiddleName(String middleName) {
+        this.middleName = middleName;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public Boolean getEnrolled() { return enrolled; }
-    public void setEnrolled(Boolean enrolled) { this.enrolled = enrolled; }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-    public String getUserEmail() { return userEmail; }
-    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    public Integer getStudyYear() {
+        return studyYear;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    public void setStudyYear(Integer studyYear) {
+        this.studyYear = studyYear;
+    }
 
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public Float getLastYearGrade() {
+        return lastYearGrade;
+    }
+
+    public void setLastYearGrade(Float lastYearGrade) {
+        this.lastYearGrade = lastYearGrade;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Boolean getEnrolled() {
+        return enrolled;
+    }
+
+    public void setEnrolled(Boolean enrolled) {
+        this.enrolled = enrolled;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    // DTO Composition Getters for JSP (Correctly used in your JSP)
+    public boolean getHasCv() {
+        return attachment != null && attachment.isCvAvailable();
+    }
+
+    public boolean getHasProfilePic() {
+        return attachment != null && attachment.isProfilePicAvailable();
+    }
+
+    public AttachmentDto getAttachment() {
+        return attachment;
+    }
 
     // Helper methods
     public String getFullName() {
@@ -112,9 +223,9 @@ public class StudentInfoDto implements Serializable {
         return String.format("%.2f", lastYearGrade);
     }
 
-    public boolean hasAttachment() {
-        return attachmentId != null;
-    }
+    // Removed hasAttachment() which relied on attachmentId
+    // If you need a replacement:
+    // public boolean hasAttachment() { return this.attachment != null; }
 
     public boolean hasUserAccount() {
         return userId != null;
