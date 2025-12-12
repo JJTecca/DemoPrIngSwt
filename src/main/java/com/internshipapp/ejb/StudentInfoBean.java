@@ -1,6 +1,7 @@
 package com.internshipapp.ejb;
 
 import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.entities.Attachment;
 import com.internshipapp.entities.StudentInfo;
 import com.internshipapp.entities.UserAccount;
 import jakarta.ejb.EJBException;
@@ -10,20 +11,12 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-/*******************************************************************
- *      Format of the Bean
- *      1. User proper java EE annotations
- *      2. Declare one log + entityManager
- *      3. Functions which involve calling DTO's
- *      4. CRUD Operations / Other SQL Statement Execution functions
- *      NOTE:  Follow consistent naming conventions and code organization
- *******************************************************************/
 @Stateless
 public class StudentInfoBean {
     private static final Logger LOG = Logger.getLogger(StudentInfoBean.class.getName());
@@ -31,11 +24,6 @@ public class StudentInfoBean {
     @PersistenceContext(unitName = "default")
     EntityManager entityManager;
 
-    /*******************************************************
-     *  Implement conversion methods between entities and DTOs
-     *  Write specific sentence about what each function does
-     *  Copy function example is standard
-     **********************************************************/
     public List<StudentInfoDto> copyStudentsToDto(List<StudentInfo> students) {
         List<StudentInfoDto> dtos = new ArrayList<>();
         for (StudentInfo student : students) {
@@ -47,32 +35,53 @@ public class StudentInfoBean {
     public StudentInfoDto copyStudentToDto(StudentInfo student) {
         if (student == null) return null;
 
-        // Get user account information by querying UserAccount table
+        // 1. Get User Account Info
         String userEmail = null;
         String username = null;
         Long userId = null;
 
-        // Find the user account that references this student
         try {
             TypedQuery<UserAccount> userQuery = entityManager.createQuery(
                     "SELECT u FROM UserAccount u WHERE u.studentInfo = :student",
                     UserAccount.class
             );
             userQuery.setParameter("student", student);
-            UserAccount userAccount = userQuery.getSingleResult();
+            List<UserAccount> accounts = userQuery.getResultList();
 
-            if (userAccount != null) {
-                userEmail = userAccount.getEmail();
-                username = userAccount.getUsername();
-                userId = userAccount.getUserId();
+            if (!accounts.isEmpty()) {
+                userEmail = accounts.get(0).getEmail();
+                username = accounts.get(0).getUsername();
+                userId = accounts.get(0).getUserId();
             }
         } catch (Exception e) {
-            LOG.info("No user account found for student ID: " + student.getId());
+            // Log silently
         }
 
+        // 2. ATTACHMENT LOGIC (Simplified: Using your Entity Flags)
+        com.internshipapp.common.AttachmentDto attachmentDto = null;
+
+        if (student.getAttachment() != null) {
+            // We reload the attachment to ensure we have the latest boolean flags
+            // and avoid any stale proxy state.
+            Attachment att = entityManager.find(Attachment.class, student.getAttachment().getId());
+
+            if (att != null) {
+                // DIRECTLY READ THE FLAGS from your Entity
+                // This avoids all complex SQL queries and syntax errors.
+                boolean hasCv = (att.getHasCv() != null && att.getHasCv());
+                boolean hasPfp = (att.getHasProfilePic() != null && att.getHasProfilePic());
+
+                attachmentDto = new com.internshipapp.common.AttachmentDto(
+                        att.getId(),
+                        hasCv,
+                        hasPfp
+                );
+            }
+        }
+
+        // 3. Return StudentInfoDto
         return new StudentInfoDto(
                 student.getId(),
-                student.getAttachment() != null ? student.getAttachment().getId() : null,
                 student.getFirstName(),
                 student.getMiddleName(),
                 student.getLastName(),
@@ -82,20 +91,19 @@ public class StudentInfoBean {
                 student.getEnrolled(),
                 userEmail,
                 username,
-                userId
+                userId,
+                attachmentDto
         );
     }
 
-    // Add custom query methods for specific business requirements
+    // --- Standard CRUD Methods ---
+
     public List<StudentInfoDto> findAllStudents() {
         LOG.info("findAllStudents");
         try {
             TypedQuery<StudentInfo> typedQuery = entityManager.createQuery(
-                    "SELECT s FROM StudentInfo s",
-                    StudentInfo.class
-            );
-            List<StudentInfo> students = typedQuery.getResultList();
-            return copyStudentsToDto(students);
+                    "SELECT s FROM StudentInfo s", StudentInfo.class);
+            return copyStudentsToDto(typedQuery.getResultList());
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
@@ -115,7 +123,6 @@ public class StudentInfoBean {
     public StudentInfoDto findByUserId(Long userId) {
         LOG.info("findByUserId: " + userId);
         try {
-            // Get the user account first
             UserAccount userAccount = entityManager.find(UserAccount.class, userId);
             if (userAccount != null && userAccount.getStudentInfo() != null) {
                 return copyStudentToDto(userAccount.getStudentInfo());
@@ -130,11 +137,8 @@ public class StudentInfoBean {
     public StudentInfoDto findByUserEmail(String email) {
         LOG.info("findByUserEmail: " + email);
         try {
-            // Find user account by email, then get the student info
             TypedQuery<UserAccount> userQuery = entityManager.createQuery(
-                    "SELECT u FROM UserAccount u WHERE u.email = :email",
-                    UserAccount.class
-            );
+                    "SELECT u FROM UserAccount u WHERE u.email = :email", UserAccount.class);
             userQuery.setParameter("email", email);
             UserAccount userAccount = userQuery.getSingleResult();
 
@@ -148,35 +152,28 @@ public class StudentInfoBean {
         }
     }
 
-    // The rest of the methods remain the same...
-    // Only the find methods above need to be changed
+    // --- Operations ---
 
     public long countStudents() {
-        LOG.info("countStudents");
         try {
-            TypedQuery<Long> typedQuery = entityManager.createQuery("SELECT COUNT(s) FROM StudentInfo s", Long.class);
-            return typedQuery.getSingleResult();
+            return entityManager.createQuery("SELECT COUNT(s) FROM StudentInfo s", Long.class).getSingleResult();
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
     }
 
     public long countAvailableStudents() {
-        LOG.info("countAvailableStudents");
         try {
-            TypedQuery<Long> typedQuery = entityManager.createQuery(
+            return entityManager.createQuery(
                     "SELECT COUNT(s) FROM StudentInfo s WHERE s.status = com.internshipapp.entities.StudentInfo.StudentStatus.Available",
                     Long.class
-            );
-            return typedQuery.getSingleResult();
+            ).getSingleResult();
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
     }
 
-    public void createStudent(String firstName, String middleName, String lastName,
-                              Integer studyYear, Float lastYearGrade) {
-        LOG.info("createStudent");
+    public void createStudent(String firstName, String middleName, String lastName, Integer studyYear, Float lastYearGrade) {
         try {
             StudentInfo student = new StudentInfo();
             student.setFirstName(firstName);
@@ -186,17 +183,33 @@ public class StudentInfoBean {
             student.setLastYearGrade(lastYearGrade);
             student.setStatus(StudentInfo.StudentStatus.Available);
             student.setEnrolled(true);
-
             entityManager.persist(student);
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
     }
 
-    public void updateStudent(Long studentId, String firstName, String middleName,
-                              String lastName, Integer studyYear, Float lastYearGrade,
-                              String status, Boolean enrolled) {
-        LOG.info("updateStudent: " + studentId);
+    private Object[] getAttachmentStatusByStudentId(Long studentId) {
+        try {
+            // Query to get the Attachment ID and the boolean flags directly
+            TypedQuery<Object[]> query = entityManager.createQuery(
+                    "SELECT s.attachment.id, s.attachment.hasCv, s.attachment.hasProfilePic " +
+                            "FROM StudentInfo s WHERE s.id = :sid",
+                    Object[].class
+            );
+            query.setParameter("sid", studentId);
+
+            // Use getSingleResult() because we expect one row
+            return query.getSingleResult();
+
+        } catch (Exception e) {
+            // Log quietly if no attachment is linked or other fetch error
+            return null;
+        }
+    }
+
+    public void updateStudent(Long studentId, String firstName, String middleName, String lastName,
+                              Integer studyYear, Float lastYearGrade, String status, Boolean enrolled) {
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null) {
@@ -207,7 +220,6 @@ public class StudentInfoBean {
                 student.setLastYearGrade(lastYearGrade);
                 student.setStatus(StudentInfo.StudentStatus.valueOf(status));
                 student.setEnrolled(enrolled);
-
                 entityManager.merge(student);
             }
         } catch (Exception ex) {
@@ -216,7 +228,6 @@ public class StudentInfoBean {
     }
 
     public void deleteStudent(Long studentId) {
-        LOG.info("deleteStudent: " + studentId);
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null) {
@@ -228,116 +239,82 @@ public class StudentInfoBean {
     }
 
     public List<StudentInfoDto> findByStatus(String status) {
-        LOG.info("findByStatus: " + status);
         try {
             StudentInfo.StudentStatus studentStatus = StudentInfo.StudentStatus.valueOf(status);
             TypedQuery<StudentInfo> typedQuery = entityManager.createQuery(
-                    "SELECT s FROM StudentInfo s WHERE s.status = :status",
-                    StudentInfo.class
-            );
+                    "SELECT s FROM StudentInfo s WHERE s.status = :status", StudentInfo.class);
             typedQuery.setParameter("status", studentStatus);
-            List<StudentInfo> students = typedQuery.getResultList();
-            return copyStudentsToDto(students);
+            return copyStudentsToDto(typedQuery.getResultList());
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
     }
 
     public List<StudentInfoDto> findByStudyYear(Integer studyYear) {
-        LOG.info("findByStudyYear: " + studyYear);
         try {
             TypedQuery<StudentInfo> typedQuery = entityManager.createQuery(
-                    "SELECT s FROM StudentInfo s WHERE s.studyYear = :studyYear",
-                    StudentInfo.class
-            );
+                    "SELECT s FROM StudentInfo s WHERE s.studyYear = :studyYear", StudentInfo.class);
             typedQuery.setParameter("studyYear", studyYear);
-            List<StudentInfo> students = typedQuery.getResultList();
-            return copyStudentsToDto(students);
+            return copyStudentsToDto(typedQuery.getResultList());
         } catch (Exception ex) {
             throw new EJBException(ex);
         }
     }
 
-    // NEW METHODS FOR STATISTICS AND DASHBOARD
+    // --- Statistics ---
 
     public Map<String, Integer> getStatusDistribution() {
-        LOG.info("getStatusDistribution");
         try {
-            TypedQuery<Object[]> query = entityManager.createQuery(
-                    "SELECT s.status, COUNT(s) FROM StudentInfo s GROUP BY s.status",
-                    Object[].class
-            );
-            List<Object[]> results = query.getResultList();
-
+            List<Object[]> results = entityManager.createQuery(
+                    "SELECT s.status, COUNT(s) FROM StudentInfo s GROUP BY s.status", Object[].class).getResultList();
             Map<String, Integer> distribution = new HashMap<>();
             for (Object[] result : results) {
-                StudentInfo.StudentStatus status = (StudentInfo.StudentStatus) result[0];
-                Long count = (Long) result[1];
-                distribution.put(status.toString(), count.intValue());
+                distribution.put(result[0].toString(), ((Long) result[1]).intValue());
             }
             return distribution;
         } catch (Exception ex) {
-            LOG.warning("Error getting status distribution: " + ex.getMessage());
             return new HashMap<>();
         }
     }
 
     public Map<Integer, Integer> getYearDistribution() {
-        LOG.info("getYearDistribution");
         try {
-            TypedQuery<Object[]> query = entityManager.createQuery(
+            List<Object[]> results = entityManager.createQuery(
                     "SELECT s.studyYear, COUNT(s) FROM StudentInfo s GROUP BY s.studyYear ORDER BY s.studyYear",
-                    Object[].class
-            );
-            List<Object[]> results = query.getResultList();
-
+                    Object[].class).getResultList();
             Map<Integer, Integer> distribution = new TreeMap<>();
             for (Object[] result : results) {
-                Integer year = (Integer) result[0];
-                Long count = (Long) result[1];
-                distribution.put(year, count.intValue());
+                distribution.put((Integer) result[0], ((Long) result[1]).intValue());
             }
             return distribution;
         } catch (Exception ex) {
-            LOG.warning("Error getting year distribution: " + ex.getMessage());
             return new TreeMap<>();
         }
     }
 
     public double getAverageGrade() {
-        LOG.info("getAverageGrade");
         try {
-            TypedQuery<Double> query = entityManager.createQuery(
+            Double avg = entityManager.createQuery(
                     "SELECT AVG(s.lastYearGrade) FROM StudentInfo s WHERE s.lastYearGrade IS NOT NULL",
-                    Double.class
-            );
-            Double avg = query.getSingleResult();
+                    Double.class).getSingleResult();
             return avg != null ? avg : 0.0;
         } catch (Exception ex) {
-            LOG.warning("Error getting average grade: " + ex.getMessage());
             return 0.0;
         }
     }
 
     public int getEnrolledCount() {
-        LOG.info("getEnrolledCount");
         try {
-            TypedQuery<Long> query = entityManager.createQuery(
-                    "SELECT COUNT(s) FROM StudentInfo s WHERE s.enrolled = true",
-                    Long.class
-            );
-            Long count = query.getSingleResult();
+            Long count = entityManager.createQuery(
+                    "SELECT COUNT(s) FROM StudentInfo s WHERE s.enrolled = true", Long.class).getSingleResult();
             return count != null ? count.intValue() : 0;
         } catch (Exception ex) {
-            LOG.warning("Error getting enrolled count: " + ex.getMessage());
             return 0;
         }
     }
 
     public Map<String, Object> getStudentStatistics() {
-        LOG.info("getStudentStatistics");
         Map<String, Object> stats = new HashMap<>();
-
         try {
             stats.put("totalStudents", countStudents());
             stats.put("availableStudents", countAvailableStudents());
@@ -346,7 +323,6 @@ public class StudentInfoBean {
             stats.put("statusDistribution", getStatusDistribution());
             stats.put("yearDistribution", getYearDistribution());
 
-            // Calculate completion rate
             long total = countStudents();
             long completed = 0;
             Map<String, Integer> statusDist = getStatusDistribution();
@@ -355,11 +331,9 @@ public class StudentInfoBean {
             }
             double completionRate = total > 0 ? (completed * 100.0 / total) : 0;
             stats.put("completionRate", String.format("%.1f%%", completionRate));
-
         } catch (Exception ex) {
             LOG.warning("Error getting student statistics: " + ex.getMessage());
         }
-
         return stats;
     }
 }

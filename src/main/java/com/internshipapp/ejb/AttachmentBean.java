@@ -1,7 +1,9 @@
 package com.internshipapp.ejb;
 
 import com.internshipapp.common.AttachmentDto;
+import com.internshipapp.common.FileDto;
 import com.internshipapp.entities.Attachment;
+import com.internshipapp.entities.StudentInfo;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -43,6 +45,134 @@ public class AttachmentBean {
             dtos.add(attachmentDto);
         }
         return dtos;
+    }
+
+    public FileDto getCvFile(Long studentId) {
+        Attachment att = findAttachmentByStudentId(studentId);
+        if (att != null && att.getCv() != null && att.getCv().length > 0) {
+            return new FileDto(att.getCvFileName(), att.getCvContentType(), att.getCv());
+        }
+        return null;
+    }
+
+    public FileDto getProfilePicture(Long studentId) {
+        Attachment att = findAttachmentByStudentId(studentId);
+        if (att != null && att.getProfilePic() != null && att.getProfilePic().length > 0) {
+            return new FileDto("pfp.jpg", "image/jpeg", att.getProfilePic());
+        }
+        return null;
+    }
+
+    // --- WRITE OPERATIONS ---
+
+    public void updateCv(Long studentId, byte[] fileData, String fileName, String contentType) {
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        if (student == null) throw new IllegalArgumentException("Student not found");
+
+        Attachment att = student.getAttachment();
+        if (att == null) {
+            att = new Attachment();
+            entityManager.persist(att);
+            student.setAttachment(att);
+        }
+
+        att.setCv(fileData);
+        att.setCvFileName(fileName);
+        att.setCvContentType(contentType);
+
+        // SET FLAG
+        att.setHasCv(true);
+
+        entityManager.merge(att);
+        entityManager.merge(student);
+    }
+
+    public void updateProfilePicture(Long studentId, byte[] fileData) {
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        if (student == null) throw new IllegalArgumentException("Student not found");
+
+        Attachment att = student.getAttachment();
+        if (att == null) {
+            att = new Attachment();
+            entityManager.persist(att);
+            student.setAttachment(att);
+        }
+
+        att.setProfilePic(fileData);
+
+        // SET FLAG
+        att.setHasProfilePic(true);
+
+        entityManager.merge(att);
+        entityManager.merge(student);
+    }
+
+    // --- DELETE OPERATIONS (Updated to clear Flags) ---
+
+    public void deleteCv(Long studentId) {
+        try {
+            StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+            if (student != null && student.getAttachment() != null) {
+                Attachment att = student.getAttachment();
+
+                // Clear Data
+                att.setCv(null);
+                att.setCvFileName(null);
+                att.setCvContentType(null);
+
+                // UNSET FLAG
+                att.setHasCv(false);
+
+                // If both false, delete row. Else update.
+                if (!att.getHasProfilePic()) {
+                    student.setAttachment(null);
+                    entityManager.merge(student);
+                    entityManager.remove(att);
+                } else {
+                    entityManager.merge(att);
+                }
+            }
+        } catch (Exception e) {
+            // Log error
+        }
+    }
+
+    public void deleteProfilePicture(Long studentId) {
+        try {
+            StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+            if (student != null && student.getAttachment() != null) {
+                Attachment att = student.getAttachment();
+
+                // Clear Data
+                att.setProfilePic(null);
+
+                // UNSET FLAG
+                att.setHasProfilePic(false);
+
+                // If both false, delete row
+                if (!att.getHasCv()) {
+                    student.setAttachment(null);
+                    entityManager.merge(student);
+                    entityManager.remove(att);
+                } else {
+                    entityManager.merge(att);
+                }
+            }
+        } catch (Exception e) {
+            // Log error
+        }
+    }
+
+    // --- HELPER ---
+    private Attachment findAttachmentByStudentId(Long studentId) {
+        try {
+            return entityManager.createQuery(
+                            "SELECT a FROM StudentInfo s JOIN s.attachment a WHERE s.id = :sid", Attachment.class)
+                    .setParameter("sid", studentId)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     // Add custom query methods for specific business requirements

@@ -24,7 +24,9 @@ public class PermissionDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public PermissionDto() {}
+    public PermissionDto() {
+    }
+
     public PermissionDto(Long permissionId, Long userId, String username, String role) {
         this.permissionId = permissionId;
         this.userId = userId;
@@ -32,12 +34,35 @@ public class PermissionDto {
         this.role = role;
     }
 
-    public Long getPermissionId() { return permissionId; }
-    public void setPermissionId(Long permissionId) { this.permissionId = permissionId; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public Long getPermissionId() {
+        return permissionId;
+    }
+
+    public void setPermissionId(Long permissionId) {
+        this.permissionId = permissionId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

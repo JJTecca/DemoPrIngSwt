@@ -8,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Base64;
@@ -19,6 +20,7 @@ import java.util.logging.Logger;
  *   3. /doGet function at first with debugging context (optional)
  *   5. /doPost to handle specific CRUD operations
  **********************************************************/
+
 /***********************************************************
  * AddRequestServlet logic:
  *  -doGet : redirect to /pages/auth/companyRegister.jsp

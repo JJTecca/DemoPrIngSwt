@@ -29,38 +29,86 @@ public class CompanyInfo {
 
     //Zero to One relationship -> OneToOne -> Join with FK
     @OneToOne(optional = true)
-    @JoinColumn(name="id_attachment")
+    @JoinColumn(name = "id_attachment")
     private Attachment attachment;
 
-    @Column(name="name",nullable = false,length = 255)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
-    @Column(name="short_name",nullable = false,length = 255)
+    @Column(name = "short_name", nullable = false, length = 255)
     private String shortName;
-    @Column(name="website",nullable = false,length = 510)
+    @Column(name = "website", nullable = false, length = 510)
     private String website;
-    @Column(name="comp_description",nullable = false, length = 50)
+    @Column(name = "comp_description", nullable = false, length = 50)
     private String compDescription;
-    @Column(name="opened_positions",nullable = false, length = 50)
+    @Column(name = "opened_positions", nullable = false, length = 50)
     private String openedPositions;
-    @Column(name="students_applied",nullable = false)
+    @Column(name = "students_applied", nullable = false)
     private String studentsApplied;
 
-    public CompanyInfo() {}
+    public CompanyInfo() {
+    }
 
-    public Attachment getAttachment() { return attachment; }
-    public void setAttachment(Attachment attachment) { this.attachment = attachment;}
-    public Long getId() {return id;}
-    public void setId(Long id) {this.id = id;}
-    public String getName() {return name;}
-    public void setName(String name) {this.name = name;}
-    public String getWebsite() {return website;}
-    public void setWebsite(String website) {this.website = website;}
-    public String getShortName() {return shortName;}
-    public void setShortName(String shortName) {this.shortName = shortName;}
-    public String getCompDescription() {return compDescription;}
-    public void setCompDescription(String compDescription) {this.compDescription = compDescription;}
-    public String getOpenedPositions() {return openedPositions;}
-    public void setOpenedPositions(String openedPositions) {this.openedPositions = openedPositions;}
-    public String getStudentsApplied() {return studentsApplied;}
-    public void setStudentsApplied(String studentsApplied) {this.studentsApplied = studentsApplied;}
+    public Attachment getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(Attachment attachment) {
+        this.attachment = attachment;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getCompDescription() {
+        return compDescription;
+    }
+
+    public void setCompDescription(String compDescription) {
+        this.compDescription = compDescription;
+    }
+
+    public String getOpenedPositions() {
+        return openedPositions;
+    }
+
+    public void setOpenedPositions(String openedPositions) {
+        this.openedPositions = openedPositions;
+    }
+
+    public String getStudentsApplied() {
+        return studentsApplied;
+    }
+
+    public void setStudentsApplied(String studentsApplied) {
+        this.studentsApplied = studentsApplied;
+    }
 }

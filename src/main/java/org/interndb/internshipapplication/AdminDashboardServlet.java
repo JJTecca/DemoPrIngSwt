@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the adminPanel.jsp
  **********************************************************/
+
 /***********************************************************
  * AdminDashboardServlet logic:
  *  -doGet :  Get pending requests

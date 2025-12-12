@@ -2,13 +2,17 @@ package com.internshipapp.ejb;
 
 import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.entities.InternshipApplication;
+import com.internshipapp.entities.InternshipPosition;
+import com.internshipapp.entities.StudentInfo;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -34,22 +38,136 @@ public class InternshipApplicationBean {
      **********************************************************/
     public List<InternshipApplicationDto> copyApplicationsToDto(List<InternshipApplication> applications) {
         List<InternshipApplicationDto> dtos = new ArrayList<>();
-        for (InternshipApplication application : applications) {
-            InternshipApplicationDto applicationDto = new InternshipApplicationDto(
-                    application.getId(),
-                    application.getInternshipPosition().getId(),
-                    application.getStudent().getId(),
-                    application.getStatus().toString(),
-                    application.getGrade(),
-                    application.getAppliedAt(),
-                    application.getChatIds()
+
+        for (InternshipApplication app : applications) {
+            // Default values to avoid NullPointerExceptions
+            String posTitle = "Unknown Position";
+            String compName = "Unknown Company";
+            String description = "No description available.";
+            String requirements = "No requirements specified.";
+            Date deadline = null;
+
+            // 1. Get the Position Entity
+            InternshipPosition pos = app.getInternshipPosition();
+
+            if (pos != null) {
+                // 2. Get Basic Details
+                if (pos.getTitle() != null) {
+                    posTitle = pos.getTitle();
+                }
+
+                // 3. Get Company Name
+                if (pos.getCompany() != null && pos.getCompany().getName() != null) {
+                    compName = pos.getCompany().getName();
+                }
+
+                // 4. Get Extended Details for Popup (NEW LOGIC)
+                if (pos.getDescription() != null) {
+                    description = pos.getDescription();
+                }
+                if (pos.getRequirements() != null) {
+                    requirements = pos.getRequirements();
+                }
+                if (pos.getDeadline() != null) {
+                    deadline = pos.getDeadline();
+                }
+            }
+
+            // 5. Create DTO using the NEW 12-parameter constructor
+            InternshipApplicationDto dto = new InternshipApplicationDto(
+                    app.getId(),
+                    pos != null ? pos.getId() : null,
+                    app.getStudent().getId(),
+                    app.getStatus().toString(),
+                    app.getGrade(),
+                    app.getAppliedAt(),
+                    app.getChatIds(),
+                    posTitle,
+                    compName,
+                    description,   // Passed here
+                    requirements,  // Passed here
+                    deadline       // Passed here
             );
-            dtos.add(applicationDto);
+            dtos.add(dto);
         }
         return dtos;
     }
 
-    // Add custom query methods for specific business requirements
+    public List<InternshipApplicationDto> findApplicationsByCompanyId(Long companyId) {
+        try {
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "LEFT JOIN FETCH a.internshipPosition p " +
+                            "LEFT JOIN FETCH p.company c " +
+                            "WHERE c.id = :companyId " +
+                            "ORDER BY a.appliedAt DESC",
+                    InternshipApplication.class
+            );
+            query.setParameter("companyId", companyId);
+            return copyApplicationsToDto(query.getResultList());
+        } catch (Exception ex) {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<InternshipApplicationDto> findApplicationsByStudentId(Long studentId) {
+        LOG.info("findApplicationsByStudentId: " + studentId);
+        try {
+            // Join Fetch ensures we load the Position and Company data in one query (Performance optimization)
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "LEFT JOIN FETCH a.internshipPosition p " +
+                            "LEFT JOIN FETCH p.company " +
+                            "WHERE a.student.id = :studentId " +
+                            "ORDER BY a.appliedAt DESC",
+                    InternshipApplication.class
+            );
+            query.setParameter("studentId", studentId);
+            return copyApplicationsToDto(query.getResultList());
+        } catch (Exception ex) {
+            LOG.warning("Error finding applications: " + ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public String createApplication(Long studentId, Long positionId) throws Exception {
+        // 1. Find Entities
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
+
+        if (student == null || position == null) {
+            throw new IllegalArgumentException("Invalid Student or Position ID");
+        }
+
+        // 2. Check for Duplicates (Prevent applying twice)
+        Long count = entityManager.createQuery(
+                        "SELECT COUNT(a) FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid", Long.class)
+                .setParameter("sid", studentId)
+                .setParameter("pid", positionId)
+                .getSingleResult();
+
+        if (count > 0) {
+            throw new IllegalStateException("Already applied");
+        }
+
+        // 3. Create Entity
+        InternshipApplication app = new InternshipApplication();
+        app.setStudent(student);
+        app.setInternshipPosition(position);
+        app.setStatus(InternshipApplication.ApplicationStatus.Pending); // Assuming Enum exists
+        app.setAppliedAt(LocalDateTime.now());
+
+        // 4. Update Position Counters (Optional but recommended)
+        if (position.getApplicationsCount() == null) position.setApplicationsCount(0);
+        position.setApplicationsCount(position.getApplicationsCount() + 1);
+
+        entityManager.persist(app);
+        entityManager.merge(position);
+
+        // Return title for the Activity Log
+        return position.getTitle();
+    }
+
     public List<InternshipApplicationDto> findAllApplications() {
         LOG.info("findAllApplications");
         try {

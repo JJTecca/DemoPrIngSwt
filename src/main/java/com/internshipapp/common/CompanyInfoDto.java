@@ -28,7 +28,9 @@ public class CompanyInfoDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public CompanyInfoDto() {}
+    public CompanyInfoDto() {
+    }
+
     public CompanyInfoDto(Long id, Long attachmentId, String name, String shortName, String website, String compDescription, String openedPositions, String studentsApplied) {
         this.id = id;
         this.attachmentId = attachmentId;
@@ -40,20 +42,67 @@ public class CompanyInfoDto {
         this.studentsApplied = studentsApplied;
     }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public Long getAttachmentId() { return attachmentId; }
-    public void setAttachmentId(Long attachmentId) { this.attachmentId = attachmentId; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getShortName() { return shortName; }
-    public void setShortName(String shortName) { this.shortName = shortName; }
-    public String getWebsite() { return website; }
-    public void setWebsite(String website) { this.website = website; }
-    public String getCompDescription() { return compDescription; }
-    public void setCompDescription(String compDescription) { this.compDescription = compDescription; }
-    public String getOpenedPositions() { return openedPositions; }
-    public void setOpenedPositions(String openedPositions) { this.openedPositions = openedPositions; }
-    public String getStudentsApplied() { return studentsApplied; }
-    public void setStudentsApplied(String studentsApplied) { this.studentsApplied = studentsApplied;}
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getAttachmentId() {
+        return attachmentId;
+    }
+
+    public void setAttachmentId(Long attachmentId) {
+        this.attachmentId = attachmentId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
+    public String getCompDescription() {
+        return compDescription;
+    }
+
+    public void setCompDescription(String compDescription) {
+        this.compDescription = compDescription;
+    }
+
+    public String getOpenedPositions() {
+        return openedPositions;
+    }
+
+    public void setOpenedPositions(String openedPositions) {
+        this.openedPositions = openedPositions;
+    }
+
+    public String getStudentsApplied() {
+        return studentsApplied;
+    }
+
+    public void setStudentsApplied(String studentsApplied) {
+        this.studentsApplied = studentsApplied;
+    }
 }

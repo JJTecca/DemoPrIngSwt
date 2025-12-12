@@ -8,6 +8,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -18,12 +20,13 @@ import java.util.List;
  *   3. /doGet function at first with debugging context (optional)
  *   4. Redirect to render the positions.jsp
  **********************************************************/
+
 /****************************************************************************
  * AdminDashboardServlet logic:
  *  -doGet :  Get all the Positions from Backend + redirect to /pages/positions
  *  -doPost : TODO
  ****************************************************************************/
-@WebServlet(name = "InternshipPosServlet", value = "/InternshipPos")
+@WebServlet(name = "InternshipPosServlet", value = "/InternshipPositions")
 class InternshipPosServlet extends HttpServlet {
 
     @Inject
@@ -32,6 +35,11 @@ class InternshipPosServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("userEmail") == null) {
+            response.sendRedirect("UserLogin");
+            return;
+        }
 
         try {
             // Get data
@@ -66,7 +74,7 @@ class InternshipPosServlet extends HttpServlet {
             request.setAttribute("error", e.toString());
         }
 
-        //Forward to positions.jsp
-        request.getRequestDispatcher("/pages/positions.jsp").forward(request, response);
+        //Forward to internshipPositions.jsp
+        request.getRequestDispatcher("/pages/public/internshipPositions.jsp").forward(request, response);
     }
 }

@@ -1,6 +1,7 @@
 package com.internshipapp.entities;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -48,7 +49,8 @@ public class Request {
     private RequestStatus status;
 
     // Constructors
-    public Request() {}
+    public Request() {
+    }
 
     public Request(String companyName, String companyEmail, String hqAddress,
                    String phoneNumber, String password, String token) {
@@ -62,29 +64,69 @@ public class Request {
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getCompanyName() { return companyName; }
-    public void setCompanyName(String companyName) { this.companyName = companyName; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getCompanyEmail() { return companyEmail; }
-    public void setCompanyEmail(String companyEmail) { this.companyEmail = companyEmail; }
+    public String getCompanyName() {
+        return companyName;
+    }
 
-    public String getHqAddress() { return hqAddress; }
-    public void setHqAddress(String hqAddress) { this.hqAddress = hqAddress; }
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
 
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public String getCompanyEmail() {
+        return companyEmail;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public void setCompanyEmail(String companyEmail) {
+        this.companyEmail = companyEmail;
+    }
 
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
+    public String getHqAddress() {
+        return hqAddress;
+    }
 
-    public RequestStatus getStatus() { return status; }
-    public void setStatus(RequestStatus status) { this.status = status; }
+    public void setHqAddress(String hqAddress) {
+        this.hqAddress = hqAddress;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public RequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(RequestStatus status) {
+        this.status = status;
+    }
 
     // Enum for request status
     public enum RequestStatus {

@@ -1,4 +1,4 @@
-<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -46,7 +46,10 @@
         .register-form-area::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: linear-gradient(
                     to bottom,
                     rgba(14, 43, 88, 0.50),
@@ -65,7 +68,7 @@
             width: 100%;
             padding: 0;
             border-radius: 1rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
             overflow: hidden;
             background-color: white;
         }
@@ -99,6 +102,7 @@
             font-size: 1rem;
             background-color: #f8f9fa;
         }
+
         .form-control-lg:focus {
             background-color: #ffffff;
             border-color: var(--brand-blue);
@@ -112,6 +116,7 @@
             color: var(--brand-blue);
             cursor: help;
         }
+
         .input-group:hover .input-group-text {
             background-color: #dee2e6;
             border-color: #dee2e6;
@@ -127,6 +132,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(14, 43, 88, 0.2);
         }
+
         .btn-main-register:hover {
             background-color: var(--brand-blue-dark);
             transform: translateY(-2px);
@@ -223,14 +229,16 @@
 
                     <div class="mb-3">
                         <label for="companyName" class="form-label visually-hidden">Company Name</label>
-                        <input type="text" class="form-control form-control-lg rounded" id="companyName" name="companyName"
+                        <input type="text" class="form-control form-control-lg rounded" id="companyName"
+                               name="companyName"
                                placeholder="Company Name" required>
                     </div>
 
                     <div class="mb-3">
                         <label for="companyEmail" class="form-label visually-hidden">Company Email</label>
                         <div class="input-group">
-                            <input type="email" class="form-control form-control-lg" id="companyEmail" name="companyEmail"
+                            <input type="email" class="form-control form-control-lg" id="companyEmail"
+                                   name="companyEmail"
                                    placeholder="Company Email" required>
                             <span class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="right"
                                   title="This email address will be used for logging into the platform and receiving official notifications.">
@@ -241,7 +249,8 @@
 
                     <div class="mb-3">
                         <label for="companyAddress" class="form-label visually-hidden">Company Address</label>
-                        <input type="text" class="form-control form-control-lg rounded" id="companyAddress" name="companyAddress"
+                        <input type="text" class="form-control form-control-lg rounded" id="companyAddress"
+                               name="companyAddress"
                                placeholder="Company Headquarters Address" required>
                     </div>
 
@@ -259,13 +268,15 @@
 
                     <div class="mb-3">
                         <label for="password" class="form-label visually-hidden">Password</label>
-                        <input type="password" class="form-control form-control-lg rounded" id="password" name="password"
+                        <input type="password" class="form-control form-control-lg rounded" id="password"
+                               name="password"
                                placeholder="Password" required>
                     </div>
 
                     <div class="mb-4">
                         <label for="confirmPassword" class="form-label visually-hidden">Confirm Password</label>
-                        <input type="password" class="form-control form-control-lg rounded" id="confirmPassword" name="confirmPassword"
+                        <input type="password" class="form-control form-control-lg rounded" id="confirmPassword"
+                               name="confirmPassword"
                                placeholder="Confirm Password" required>
                     </div>
 
@@ -279,7 +290,8 @@
                 <hr class="text-muted my-4">
 
                 <div class="text-center">
-                    <a href="${pageContext.request.contextPath}/UserLogin" class="text-decoration-none fw-bold" style="color: var(--brand-blue);">
+                    <a href="${pageContext.request.contextPath}/UserLogin" class="text-decoration-none fw-bold"
+                       style="color: var(--brand-blue);">
                         <i class="fa-solid fa-arrow-left me-1"></i> Back to Log In
                     </a>
                 </div>
@@ -290,7 +302,7 @@
 
     <div class="col-lg-3 col-md-4 d-none d-md-flex register-info-area">
         <div>
-            <img src="images/logo.png" alt="ULBS Logo" class="ulbs-logo">
+            <img src="images/logo_vert.png" alt="ULBS Logo" class="ulbs-logo">
 
             <h2 class="h5 text-uppercase fw-bold mb-2 ls-2">Partner With</h2>
             <h1 class="h2 fw-bolder mb-4">CSEE ULBS</h1>
@@ -349,7 +361,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.forEach(function (tooltipTriggerEl) {
@@ -361,7 +373,7 @@
 
         if (showModal) {
             // Wait a moment for page to load, then show modal
-            setTimeout(function() {
+            setTimeout(function () {
                 const successModal = new bootstrap.Modal(document.getElementById('successModal'));
                 successModal.show();
             }, 500);
@@ -372,7 +384,7 @@
         const submitBtn = document.getElementById('submitBtn');
 
         if (form) {
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function (e) {
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
 

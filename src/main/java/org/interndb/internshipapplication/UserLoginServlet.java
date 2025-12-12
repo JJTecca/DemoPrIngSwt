@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
+
 import java.io.IOException;
 
 @WebServlet(name = "UserLoginServlet", value = "/UserLogin")
@@ -80,9 +81,9 @@ public class UserLoginServlet extends HttpServlet {
         } else if ("Student".equals(role)) {
             response.sendRedirect("Students");
         } else if ("Company".equals(role)) {
-            response.sendRedirect("pages/panels/companyPanel.jsp");
+            response.sendRedirect("CompanyDashboard");
         } else if ("Faculty".equals(role)) {
-            response.sendRedirect("pages/panels/facultyPanel.jsp");
+            response.sendRedirect("FacultyDashboard");
         }
     }
 }

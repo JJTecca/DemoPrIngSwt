@@ -22,15 +22,15 @@ public class UserAccount {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name="username", length = 255, nullable = false)
+    @Column(name = "username", length = 255, nullable = false)
     private String username;
-    @Column(name="password", length = 255, nullable = false)
+    @Column(name = "password", length = 255, nullable = false)
     private String password;
-    @Column(name="email", length = 255,  nullable = false)
+    @Column(name = "email", length = 255, nullable = false)
     private String email;
 
     // Relationship with StudentInfo
-    @ManyToOne(optional = false)
+    @OneToOne(optional = false)
     @JoinColumn(name = "id_student")
     private StudentInfo studentInfo;
     // Relationship with CompanyInfo
@@ -39,7 +39,9 @@ public class UserAccount {
     private CompanyInfo companyInfo;
 
     //Constructors
-    public UserAccount() {}
+    public UserAccount() {
+    }
+
     public UserAccount(String username, Long userId, String email, String password, CompanyInfo companyInfo, StudentInfo studentInfo) {
         this.username = username;
         this.id = userId;
@@ -49,16 +51,51 @@ public class UserAccount {
         this.studentInfo = studentInfo;
     }
 
-    public String getUsername() {return username;}
-    public void setUsername(String username) {this.username = username;}
-    public Long getUserId() {return id;}
-    public void setUserId(Long userId) {this.id = userId;}
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public CompanyInfo getCompanyInfo() { return companyInfo; }
-    public void setCompanyInfo(CompanyInfo companyInfo) { this.companyInfo = companyInfo; }
-    public StudentInfo getStudentInfo() { return studentInfo; }
-    public void setStudentInfo(StudentInfo studentInfo) { this.studentInfo = studentInfo; }
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Long getUserId() {
+        return id;
+    }
+
+    public void setUserId(Long userId) {
+        this.id = userId;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public CompanyInfo getCompanyInfo() {
+        return companyInfo;
+    }
+
+    public void setCompanyInfo(CompanyInfo companyInfo) {
+        this.companyInfo = companyInfo;
+    }
+
+    public StudentInfo getStudentInfo() {
+        return studentInfo;
+    }
+
+    public void setStudentInfo(StudentInfo studentInfo) {
+        this.studentInfo = studentInfo;
+    }
 }
