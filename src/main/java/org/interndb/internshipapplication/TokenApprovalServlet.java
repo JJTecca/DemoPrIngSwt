@@ -1,29 +1,21 @@
 package org.interndb.internshipapplication;
 
-import com.internshipapp.ejb.RequestBean;
 import com.internshipapp.ejb.UserAccountBean;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 
 @WebServlet(name = "TokenApprovalServlet", value = "/TokenApproval")
 public class TokenApprovalServlet extends HttpServlet {
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Inject
-    private RequestBean requestBean;
-
-    @Inject
-    private UserAccountBean userAccountBean;
+    private UserAccountBean userAccountBean;  // Only need this one
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -48,26 +40,8 @@ public class TokenApprovalServlet extends HttpServlet {
             Long requestId = Long.parseLong(idParam);
 
             if ("approve".equals(action)) {
-                // Get the FULL request entity (not just DTO) to access password
-                com.internshipapp.entities.Request requestEntity =
-                        entityManager.find(com.internshipapp.entities.Request.class, requestId);
-
-                if (requestEntity == null) {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "Request not found");
-                    return;
-                }
-                // Use the ACTUAL password, not the token
-                String actualPassword = requestEntity.getPassword();
-
-                // Create company user account with ACTUAL password
-                userAccountBean.createCompanyUserFromRequest(
-                        requestEntity.getCompanyName(),
-                        requestEntity.getCompanyEmail(),
-                        actualPassword  // This should be "10Cristi2025"
-                );
-
-                //Approve the request
-                boolean approved = requestBean.approveRequest(requestId);
+                // Use UserAccountBean's method that handles everything
+                boolean approved = userAccountBean.approveRequestAndCreateAccount(requestId);
 
                 if (approved) {
                     response.setStatus(HttpServletResponse.SC_OK);
@@ -78,8 +52,8 @@ public class TokenApprovalServlet extends HttpServlet {
                 }
 
             } else if ("reject".equals(action)) {
-                // Just reject the request
-                boolean rejected = requestBean.rejectRequest(requestId);
+                // Use UserAccountBean's reject method
+                boolean rejected = userAccountBean.rejectRequest(requestId);
 
                 if (rejected) {
                     response.setStatus(HttpServletResponse.SC_OK);

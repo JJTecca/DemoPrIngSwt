@@ -1,9 +1,12 @@
 package com.internshipapp.ejb;
 
 import com.internshipapp.common.RequestDto;
+import com.internshipapp.entities.Permission;
 import com.internshipapp.entities.Request;
+import com.internshipapp.entities.UserAccount;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -15,6 +18,9 @@ import java.util.logging.Logger;
 @Stateless
 public class RequestBean {
     private static final Logger LOG = Logger.getLogger(RequestBean.class.getName());
+
+    @Inject
+    UserAccountBean userAccountBean;
 
     @PersistenceContext
     EntityManager entityManager;
@@ -176,12 +182,6 @@ public class RequestBean {
         }
     }
 
-    /**
-     * Rejects a request by updating its status
-     *
-     * @param requestId The ID of the request to reject
-     * @return true if successful, false otherwise
-     */
     public boolean rejectRequest(Long requestId) {
         LOG.info("Rejecting request with ID: " + requestId);
 
@@ -193,16 +193,36 @@ public class RequestBean {
                 return false;
             }
 
-            // Update request status to REJECTED
-            // Check how the status field is defined in Request entity
-            // If it's a String:
+            // Check if account was already created using your existing helper method
+            UserAccount existingUser = userAccountBean.findUserEntityByEmail(request.getCompanyEmail());
+            if (existingUser != null) {
+                LOG.info("Found existing user account - deleting it for: " + request.getCompanyEmail());
+
+                // Find and delete permission first (foreign key constraint)
+                TypedQuery<Permission> permissionQuery = entityManager.createQuery(
+                        "SELECT p FROM Permission p WHERE p.user = :user", Permission.class);
+                permissionQuery.setParameter("user", existingUser);
+                try {
+                    Permission permission = permissionQuery.getSingleResult();
+                    entityManager.remove(permission);
+                    LOG.info("Permission deleted");
+                } catch (Exception e) {
+                    LOG.info("No permission found for user");
+                }
+
+                // Delete company info if exists
+                if (existingUser.getCompanyInfo() != null) {
+                    entityManager.remove(existingUser.getCompanyInfo());
+                    LOG.info("CompanyInfo deleted");
+                }
+
+                // Delete user account
+                entityManager.remove(existingUser);
+                LOG.info("UserAccount deleted");
+            }
+
+            // Update request status to rejected
             request.setStatus(Request.RequestStatus.rejected);
-
-            // If it's an enum, you might need something like:
-            // request.setStatus(RequestStatus.REJECTED);
-            // or
-            // request.setStatus(StatusEnum.REJECTED);
-
             entityManager.merge(request);
 
             LOG.info("Request rejected successfully for: " + request.getCompanyEmail());
@@ -214,4 +234,5 @@ public class RequestBean {
             return false;
         }
     }
+
 }

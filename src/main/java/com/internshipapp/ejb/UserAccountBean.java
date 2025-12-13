@@ -289,14 +289,14 @@ public class UserAccountBean {
         }
     }
 
-    private UserAccount findUserEntityByEmail(String email) {
+    public UserAccount findUserEntityByEmail(String email) {
         try {
             TypedQuery<UserAccount> query = entityManager.createQuery(
                     "SELECT u FROM UserAccount u WHERE u.email = :email", UserAccount.class);
             query.setParameter("email", email);
             return query.getSingleResult();
         } catch (Exception ex) {
-            return null; // User not found
+            return null;
         }
     }
 }
