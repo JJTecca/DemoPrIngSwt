@@ -115,15 +115,103 @@ public class RequestBean {
 
             // Save to database
             entityManager.persist(requestEntity);
-            entityManager.flush(); // Ensure ID is generated
+            entityManager.flush();
 
-            // Return updated DTO with ID
             requestDto.setId(requestEntity.getId());
             return requestDto;
 
         } catch (Exception ex) {
             LOG.severe("Error creating request: " + ex.getMessage());
             throw ex;
+        }
+    }
+    public boolean approveRequest(Long requestId) {
+        LOG.info("=== START approveRequest for ID: " + requestId + " ===");
+
+        try {
+            // Find the request entity
+            LOG.info("Looking for request with ID: " + requestId);
+            Request request = entityManager.find(Request.class, requestId);
+
+            if (request == null) {
+                LOG.severe("❌ Request not found with ID: " + requestId);
+                LOG.info("=== END approveRequest (FAILED - not found) ===");
+                return false;
+            }
+
+            LOG.info("✅ Request found:");
+            LOG.info("  - Company: " + request.getCompanyName());
+            LOG.info("  - Email: " + request.getCompanyEmail());
+            LOG.info("  - Current status: " + request.getStatus());
+            LOG.info("  - Password: " + (request.getPassword() != null ? "[SET]" : "NULL"));
+
+            // Check if already approved
+            if (Request.RequestStatus.approved.equals(request.getStatus())) {
+                LOG.warning("⚠️ Request already approved");
+                LOG.info("=== END approveRequest (already approved) ===");
+                return true;
+            }
+
+            // Update request status
+            LOG.info("Setting status to: approved");
+            request.setStatus(Request.RequestStatus.approved);
+
+            LOG.info("Merging changes to database...");
+            entityManager.merge(request);
+
+            // Verify the update
+            Request updatedRequest = entityManager.find(Request.class, requestId);
+            LOG.info("✅ Status after update: " + updatedRequest.getStatus());
+
+            LOG.info("✅ Request approved successfully for: " + request.getCompanyEmail());
+            LOG.info("=== END approveRequest (SUCCESS) ===");
+            return true;
+
+        } catch (Exception e) {
+            LOG.severe("❌ ERROR approving request: " + e.getMessage());
+            LOG.severe("Exception type: " + e.getClass().getName());
+            e.printStackTrace();
+            LOG.info("=== END approveRequest (FAILED - exception) ===");
+            return false;
+        }
+    }
+
+    /**
+     * Rejects a request by updating its status
+     *
+     * @param requestId The ID of the request to reject
+     * @return true if successful, false otherwise
+     */
+    public boolean rejectRequest(Long requestId) {
+        LOG.info("Rejecting request with ID: " + requestId);
+
+        try {
+            // Find the request entity
+            Request request = entityManager.find(Request.class, requestId);
+            if (request == null) {
+                LOG.warning("Request not found with ID: " + requestId);
+                return false;
+            }
+
+            // Update request status to REJECTED
+            // Check how the status field is defined in Request entity
+            // If it's a String:
+            request.setStatus(Request.RequestStatus.rejected);
+
+            // If it's an enum, you might need something like:
+            // request.setStatus(RequestStatus.REJECTED);
+            // or
+            // request.setStatus(StatusEnum.REJECTED);
+
+            entityManager.merge(request);
+
+            LOG.info("Request rejected successfully for: " + request.getCompanyEmail());
+            return true;
+
+        } catch (Exception e) {
+            LOG.severe("Error rejecting request: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
 }

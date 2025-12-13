@@ -1,0 +1,15 @@
+/CompanyRegister
+/AdminDashboard
+/ApplyForInternship
+/CompanyDashboard
+/CompanyProfile
+/DeleteCV
+/DeleteProfilePicture
+/DownloadCV
+/InternshipPositions
+/ProfilePicture
+/StudentProfile
+/Students
+/UploadCV
+/UploadProfilePicture
+/UserLogin

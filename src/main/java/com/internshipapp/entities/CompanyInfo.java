@@ -2,9 +2,6 @@ package com.internshipapp.entities;
 
 import jakarta.persistence.*;
 
-//    NOTE:
-//    MySQL supports JSON as a type, but JPA doesn’t natively support JSON. You have a few options in Jakarta EE:
-//    You’ll need to manually serialize/deserialize objects using Jackson, Gson, or another library.
 @Entity
 @Table(name = "CompanyInfo")
 

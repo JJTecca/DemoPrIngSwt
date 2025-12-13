@@ -1,7 +1,14 @@
 package com.internshipapp.entities;
 
 import jakarta.persistence.*;
-
+/************************
+ *      FORMAT
+ *      1. Ids
+ *      2. Relationships (FKs)
+ *      3. Columns
+ *      4. Constructor
+ *      5. Getter & Setter
+ ************************/
 @Entity
 @Table(name = "Attachment")
 public class Attachment {

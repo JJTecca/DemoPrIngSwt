@@ -68,27 +68,32 @@ public class AddRequestServlet extends HttpServlet {
                 return;
             }
 
-            // SHA-512 token
+            // SHA-512 token (keep only for token, not for password)
             String timestamp = String.valueOf(System.currentTimeMillis());
             String token = sha512(companyEmail + timestamp);
-            String hashedPassword = sha512(password);
 
-            // Create and save request - Update to pass status correctly
+            // Store plain password - NO ENCRYPTION
+            String hashedPassword = password;  // Plain password
+
+            // Create and save request
             RequestDto requestDto = new RequestDto(
                     null, // id will be generated
                     companyName,
                     companyEmail,
                     companyAddress,
                     phoneNumber,
-                    hashedPassword,
+                    hashedPassword,  // Now contains plain password
                     token,
-                    "pending" // status as string
+                    "pending"
             );
 
             RequestDto savedRequest = requestBean.createRequest(requestDto);
 
             if (savedRequest.getId() != null) {
                 LOG.info("Company registration created: " + companyName);
+
+                // For security, don't log the password
+                LOG.info("Password stored as: [PLAIN TEXT - will be BCrypt encoded upon approval]");
 
                 // Set success attributes for the SAME PAGE
                 request.setAttribute("showSuccessModal", "true");

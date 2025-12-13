@@ -391,7 +391,7 @@
 <script>
     function approveRequest(requestId) {
         if (confirm('Are you sure you want to approve this request? This will grant the company access.')) {
-            fetch('AdminRequests?action=approve&id=' + requestId, {
+            fetch('TokenApproval?action=approve&id=' + requestId, {
                 method: 'POST'
             }).then(response => {
                 if (response.ok) {
@@ -405,7 +405,7 @@
 
     function rejectRequest(requestId) {
         if (confirm('Are you sure you want to reject this request? This action cannot be undone.')) {
-            fetch('AdminRequests?action=reject&id=' + requestId, {
+            fetch('TokenApproval?action=reject&id=' + requestId, {
                 method: 'POST'
             }).then(response => {
                 if (response.ok) {

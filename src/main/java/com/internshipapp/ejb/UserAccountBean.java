@@ -4,6 +4,9 @@ import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.entities.StudentInfo;
 import com.internshipapp.entities.UserAccount;
+import com.internshipapp.entities.CompanyInfo;
+import com.internshipapp.entities.Permission;
+import com.internshipapp.entities.Request;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -88,21 +91,20 @@ public class UserAccountBean {
 
         String storedPassword = user.getPassword();
 
-        // Handle BCrypt format: $2a$10$studpass1
-        // Remove the BCrypt prefix to get the actual password
-        if (storedPassword != null && storedPassword.startsWith("$2a$10$")) {
-            // Remove the "$2a$10$" prefix (7 characters)
-            String extractedPassword = storedPassword.substring(7);
-            LOG.info("Extracted password after removing BCrypt prefix: " + extractedPassword);
+        // Check if it's a real BCrypt hash (starts with $2a$...)
+        if (storedPassword != null && storedPassword.startsWith("$2a$")) {
+            if (storedPassword.startsWith("$2a$10$")) {
+                // Remove the "$2a$10$" prefix (7 characters)
+                String extractedPassword = storedPassword.substring(7);
+                LOG.info("Extracted password after removing BCrypt prefix: " + extractedPassword);
 
-            boolean match = password.equals(extractedPassword);
-            LOG.info("Password match after BCrypt extraction: " + match);
-            return match;
+                boolean match = password.equals(extractedPassword);
+                LOG.info("Password match after BCrypt extraction: " + match);
+                return match;
+            }
         }
 
-        // If not BCrypt format, do direct comparison
         boolean authenticated = password.equals(storedPassword);
-        LOG.info("Direct comparison result: " + authenticated);
         return authenticated;
     }
 
@@ -156,6 +158,145 @@ public class UserAccountBean {
             return copyUsersToDto(users);
         } catch (Exception ex) {
             throw new EJBException(ex);
+        }
+    }
+
+    public boolean createCompanyUserFromRequest(String companyName, String companyEmail, String password) {
+        LOG.info("Creating company user account for: " + companyEmail);
+
+        try {
+            // Check if user already exists
+            UserAccount existingUser = findUserEntityByEmail(companyEmail);
+            if (existingUser != null) {
+                LOG.warning("User already exists with email: " + companyEmail);
+                return false;
+            }
+
+            // Create CompanyInfo
+            CompanyInfo companyInfo = new CompanyInfo();
+            companyInfo.setName(companyName);
+            entityManager.persist(companyInfo);
+
+            // Create UserAccount
+            UserAccount userAccount = new UserAccount();
+            userAccount.setUsername(companyName.replaceAll("\\s+", "").toLowerCase());
+
+            // FIX: If password already has $2a$10$, DON'T add another!
+            String passwordToStore;
+            if (password.startsWith("$2a$10$")) {
+                // Remove the existing $2a$10$, then add our own
+                // So we have SINGLE $2a$10$ prefix
+                String withoutPrefix = password.substring(7); // Remove "$2a$10$"
+                passwordToStore = "$2a$10$" + withoutPrefix;
+                LOG.info("Removed existing BCrypt prefix, adding new one");
+            } else {
+                // Add prefix
+                passwordToStore = "$2a$10$" + password;
+            }
+
+            userAccount.setPassword(passwordToStore);
+            userAccount.setEmail(companyEmail);
+            userAccount.setCompanyInfo(companyInfo);
+
+            entityManager.persist(userAccount);
+
+            // Create Permission
+            Permission permission = new Permission();
+            permission.setUser(userAccount);
+            permission.setRole(Permission.Role.Company);
+            entityManager.persist(permission);
+
+            LOG.info("Company user account created successfully for: " + companyEmail);
+            LOG.info("Password stored as: " + passwordToStore.substring(0, Math.min(30, passwordToStore.length())) + "...");
+
+            return true;
+
+        } catch (Exception e) {
+            LOG.severe("Error creating company user account: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Approves a request by creating a company user account
+     * This is a wrapper method that combines finding the request and creating the account
+     *
+     * @param requestId The ID of the request to approve
+     * @return true if successful, false otherwise
+     */
+    public boolean approveRequestAndCreateAccount(Long requestId) {
+        LOG.info("Approving request and creating account for request ID: " + requestId);
+
+        try {
+            // Find the request entity
+            Request request = entityManager.find(Request.class, requestId);
+            if (request == null) {
+                LOG.warning("Request not found with ID: " + requestId);
+                return false;
+            }
+
+            // Create the company account
+            boolean accountCreated = createCompanyUserFromRequest(
+                    request.getCompanyName(),
+                    request.getCompanyEmail(),
+                    request.getPassword()
+            );
+
+            if (accountCreated) {
+                // Update request status to approved
+                request.setStatus(Request.RequestStatus.approved);
+                entityManager.merge(request);
+                LOG.info("Request approved and account created successfully for: " + request.getCompanyEmail());
+                return true;
+            } else {
+                LOG.warning("Failed to create account for request ID: " + requestId);
+                return false;
+            }
+
+        } catch (Exception e) {
+            LOG.severe("Error approving request: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**********************************************************************
+     *  Reject Request by admin to the company so no account will be created
+     **********************************************************************/
+    public boolean rejectRequest(Long requestId) {
+        LOG.info("Rejecting request with ID: " + requestId);
+
+        try {
+            // Find the request entity
+            Request request = entityManager.find(Request.class, requestId);
+            if (request == null) {
+                LOG.warning("Request not found with ID: " + requestId);
+                return false;
+            }
+
+            // Update request status to rejected
+            request.setStatus(Request.RequestStatus.rejected);
+            entityManager.merge(request);
+
+            LOG.info("Request rejected successfully for: " + request.getCompanyEmail());
+            return true;
+
+        } catch (Exception e) {
+            LOG.severe("Error rejecting request: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private UserAccount findUserEntityByEmail(String email) {
+        try {
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u WHERE u.email = :email", UserAccount.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (Exception ex) {
+            return null; // User not found
         }
     }
 }
