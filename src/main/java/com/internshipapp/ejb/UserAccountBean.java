@@ -2,7 +2,6 @@ package com.internshipapp.ejb;
 
 import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.UserAccountDto;
-import com.internshipapp.entities.StudentInfo;
 import com.internshipapp.entities.UserAccount;
 import com.internshipapp.entities.CompanyInfo;
 import com.internshipapp.entities.Permission;
@@ -18,6 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/*******************************************************************
+ *      Format of the Bean
+ *      1. User proper java EE annotations
+ *      2. Declare one log + entityManager
+ *      3. Functions which involve calling DTO's
+ *      4. CRUD Operations / Other SQL Statement Execution functions
+ *      NOTE:  Follow consistent naming conventions and code organization
+ *******************************************************************/
 @Stateless
 public class UserAccountBean {
     private static final Logger LOG = Logger.getLogger(UserAccountBean.class.getName());
@@ -28,6 +35,11 @@ public class UserAccountBean {
     @Inject
     private StudentInfoBean studentInfoBean;
 
+    /*******************************************************
+            *  Implement conversion methods between entities and DTOs
+     *  Write specific sentence about what each function does
+     *  Copy function example is standard
+     **********************************************************/
     public List<UserAccountDto> copyUsersToDto(List<UserAccount> users) {
         List<UserAccountDto> dtos = new ArrayList<>();
         for (UserAccount user : users) {

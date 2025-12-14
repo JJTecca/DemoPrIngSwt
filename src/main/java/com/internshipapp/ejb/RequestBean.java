@@ -140,12 +140,10 @@ public class RequestBean {
             Request request = entityManager.find(Request.class, requestId);
 
             if (request == null) {
-                LOG.severe("❌ Request not found with ID: " + requestId);
                 LOG.info("=== END approveRequest (FAILED - not found) ===");
                 return false;
             }
 
-            LOG.info("✅ Request found:");
             LOG.info("  - Company: " + request.getCompanyName());
             LOG.info("  - Email: " + request.getCompanyEmail());
             LOG.info("  - Current status: " + request.getStatus());
@@ -153,7 +151,6 @@ public class RequestBean {
 
             // Check if already approved
             if (Request.RequestStatus.approved.equals(request.getStatus())) {
-                LOG.warning("⚠️ Request already approved");
                 LOG.info("=== END approveRequest (already approved) ===");
                 return true;
             }
@@ -167,14 +164,10 @@ public class RequestBean {
 
             // Verify the update
             Request updatedRequest = entityManager.find(Request.class, requestId);
-            LOG.info("✅ Status after update: " + updatedRequest.getStatus());
-
-            LOG.info("✅ Request approved successfully for: " + request.getCompanyEmail());
             LOG.info("=== END approveRequest (SUCCESS) ===");
             return true;
 
         } catch (Exception e) {
-            LOG.severe("❌ ERROR approving request: " + e.getMessage());
             LOG.severe("Exception type: " + e.getClass().getName());
             e.printStackTrace();
             LOG.info("=== END approveRequest (FAILED - exception) ===");
