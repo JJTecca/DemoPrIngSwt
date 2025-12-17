@@ -140,7 +140,8 @@ public class StudentProfileServlet extends HttpServlet {
                         studentDto.getLastYearGrade(),
                         studentDto.getStatus(),
                         studentDto.getEnrolled(),
-                        newBiography
+                        newBiography,
+                        studentDto.getGradeVisibility()
                 );
 
                 // 4. Log the Activity (NEW)
@@ -152,6 +153,34 @@ public class StudentProfileServlet extends HttpServlet {
 
                 response.sendRedirect(request.getContextPath() + "/StudentProfile?update=bio_success");
 
+            } else if ("toggle_grade_visibility".equals(action)) {
+                String visibilityParam = request.getParameter("gradeVisibility");
+                boolean newVisibility = (visibilityParam != null);
+
+                // 1. Update the database via the monolith method
+                studentInfoBean.updateStudent(
+                        studentDto.getId(),
+                        studentDto.getFirstName(),
+                        studentDto.getMiddleName(),
+                        studentDto.getLastName(),
+                        studentDto.getStudyYear(),
+                        studentDto.getLastYearGrade(),
+                        studentDto.getStatus(),
+                        studentDto.getEnrolled(),
+                        studentDto.getBiography(),
+                        newVisibility
+                );
+
+                // 2. Conditional Logging Logic
+                if (!newVisibility) {
+                    // ONLY log HideStudyGrade if they are actually hiding it
+                    activityBean.logActivity(
+                            userDto.getUserId(),
+                            AccountActivity.Action.HideStudyGrade,
+                            "Student restricted grade visibility for companies."
+                    );
+                }
+                response.sendRedirect(request.getContextPath() + "/StudentProfile?update=visibility_success");
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized profile update action: " + action);
             }

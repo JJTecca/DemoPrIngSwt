@@ -461,16 +461,33 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="stat-card card-grade">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h2 class="stat-value"><%= student.getGradeFormatted() %>
-                                </h2>
-                                <span class="stat-label">Last Grade</span>
+                    <a href="${pageContext.request.contextPath}/StudentProfile" class="text-decoration-none">
+                        <div class="stat-card card-grade">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 class="stat-value">
+                                        <%= student.getGradeFormatted() %>
+                                        <%-- Small icon indicator next to the big number --%>
+                                        <span class="ms-1" style="font-size: 1rem;">
+                                            <% if (student.getGradeVisibility()) { %>
+                                                <i class="fa-solid fa-eye text-success opacity-25"></i>
+                                            <% } else { %>
+                                                <i class="fa-solid fa-eye-slash text-danger"></i>
+                                            <% } %>
+                                        </span>
+                                    </h2>
+                                    <span class="stat-label">Last Grade</span>
+
+                                    <% if (!student.getGradeVisibility()) { %>
+                                    <div class="text-danger fw-bold" style="font-size: 0.65rem; margin-top: 4px;">
+                                        <i class="fa-solid fa-circle-info me-1"></i> HIDDEN FROM COMPANIES
+                                    </div>
+                                    <% } %>
+                                </div>
+                                <i class="fa-solid fa-chart-line stat-icon"></i>
                             </div>
-                            <i class="fa-solid fa-chart-line stat-icon"></i>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="stat-card card-enroll">

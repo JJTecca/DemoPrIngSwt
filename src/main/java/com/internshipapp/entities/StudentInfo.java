@@ -49,6 +49,8 @@ public class StudentInfo {
     private Boolean enrolled = true; // default TRUE
     @Column(name = "biography", length = 255)
     private String biography;
+    @Column(name = "grade_visibility", nullable = false)
+    private boolean gradeVisibility;
 
     // Constructors
     public StudentInfo() {
@@ -138,4 +140,8 @@ public class StudentInfo {
     public String getBiography() { return this.biography; }
 
     public void setBiography(String biography) { this.biography = biography; }
+
+    public boolean getGradeVisibility() { return gradeVisibility; }
+
+    public void setGradeVisibility(boolean gradeVisibility) { this.gradeVisibility = gradeVisibility; }
 }

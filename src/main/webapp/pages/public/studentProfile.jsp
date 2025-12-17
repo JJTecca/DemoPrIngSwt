@@ -490,7 +490,69 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <div class="info-label">Last Year Grade</div>
-                                    <div class="info-value"><%= student.getGradeFormatted() %>
+
+                                    <div class="info-value">
+                                        <div class="d-flex align-items-center">
+                                            <%-- Case for Companies --%>
+                                            <% if ("Company".equals(sessionRole) && !student.getGradeVisibility()) { %>
+                                            <span class="text-muted fst-italic">
+                        <i class="fa-solid fa-lock me-1"></i> Private
+                    </span>
+                                            <% } else { %>
+                                            <%-- Case for Owner/Admin/Faculty --%>
+                                            <span class="fw-bold me-2"><%= student.getGradeFormatted() %></span>
+
+                                            <%-- Interactive Privacy Icon for Owner --%>
+                                            <% if (isOwner && "Student".equals(sessionRole)) { %>
+                                            <% if (student.getGradeVisibility()) { %>
+                                            <button type="button" class="btn btn-link p-0 text-primary border-0"
+                                                    data-bs-toggle="modal" data-bs-target="#confirmHideGradeModal">
+                                                <i class="fa-solid fa-eye" title="Visible to companies. Click to hide."></i>
+                                            </button>
+                                            <% } else { %>
+                                            <form action="StudentProfile" method="POST" class="d-inline">
+                                                <input type="hidden" name="action" value="toggle_grade_visibility">
+                                                <input type="hidden" name="gradeVisibility" value="on">
+                                                <button type="submit" class="btn btn-link p-0 text-muted border-0">
+                                                    <i class="fa-solid fa-eye-slash" title="Hidden from companies. Click to show."></i>
+                                                </button>
+                                            </form>
+                                            <% } %>
+                                            <% } %>
+                                            <% } %>
+                                        </div>
+
+                                        <%-- New Label: Only shown to Owner when hidden --%>
+                                        <% if (isOwner && !student.getGradeVisibility()) { %>
+                                        <div class="text-danger" style="font-size: 0.75rem; margin-top: -2px;">
+                                            <i class="fa-solid fa-circle-info me-1"></i> Hidden from companies
+                                        </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="confirmHideGradeModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-sm modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow">
+                                        <div class="modal-header border-0 pb-0">
+                                            <h5 class="modal-title fw-bold">Privacy Settings</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-center py-4">
+                                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                                                <i class="fa-solid fa-eye-slash fa-2x text-secondary"></i>
+                                            </div>
+                                            <h6 class="fw-bold">Hide Study Grade?</h6>
+                                            <p class="text-muted small mb-0">Companies will no longer see your WGPA during the application process.</p>
+                                        </div>
+                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                            <button type="button" class="btn btn-light btn-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="StudentProfile" method="POST">
+                                                <input type="hidden" name="action" value="toggle_grade_visibility">
+                                                <button type="submit" class="btn btn-danger btn-sm px-3">Confirm Hide</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

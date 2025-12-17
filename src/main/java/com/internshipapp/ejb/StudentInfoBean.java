@@ -106,7 +106,8 @@ public class StudentInfoBean {
                 username,
                 userId,
                 attachmentDto,
-                student.getBiography()
+                student.getBiography(),
+                student.getGradeVisibility()
         );
     }
 
@@ -224,7 +225,7 @@ public class StudentInfoBean {
 
     public void updateStudent(Long studentId, String firstName, String middleName, String lastName,
                               Integer studyYear, Float lastYearGrade, String status, Boolean enrolled,
-                              String biography) {
+                              String biography, boolean gradeVisibility) {
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null) {
@@ -235,8 +236,8 @@ public class StudentInfoBean {
                 student.setLastYearGrade(lastYearGrade);
                 student.setStatus(StudentInfo.StudentStatus.valueOf(status));
                 student.setEnrolled(enrolled);
-
                 student.setBiography(biography);
+                student.setGradeVisibility(gradeVisibility);
 
                 entityManager.merge(student);
             }
