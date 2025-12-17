@@ -37,15 +37,22 @@ public class UploadCVServlet extends HttpServlet {
             Part filePart = request.getPart("cvFile");
             if (filePart != null && filePart.getSize() > 0) {
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+                boolean alreadyHadCv = student.getAttachment().isCvAvailable();
 
                 String fileName = filePart.getSubmittedFileName();
                 String contentType = filePart.getContentType();
                 byte[] fileBytes = filePart.getInputStream().readAllBytes();
 
-                attachmentBean.updateCv(student.getId(), fileBytes, fileName, contentType);
+                attachmentBean.updateCvForStudent(student.getId(), fileBytes, fileName, contentType);
 
                 UserAccountDto user = userAccountBean.findByEmail(email);
-                if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.ChangeCV, null);
+                if (user != null) {
+                    AccountActivity.Action action = alreadyHadCv
+                            ? AccountActivity.Action.ChangeCV
+                            : AccountActivity.Action.UploadCV;
+
+                    activityBean.logActivity(user.getUserId(), action, null);
+                }
             }
             response.sendRedirect(request.getContextPath() + "/StudentProfile");
         } catch (Exception e) {

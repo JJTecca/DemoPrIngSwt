@@ -1,6 +1,7 @@
 package org.interndb.internshipapplication;
 
 import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
@@ -13,10 +14,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 @WebServlet(name = "UploadProfilePictureServlet", value = "/UploadProfilePicture")
 @MultipartConfig(maxFileSize = 1024 * 1024 * 5)
 public class UploadProfilePictureServlet extends HttpServlet {
+    private static final Logger LOG = Logger.getLogger(UploadProfilePictureServlet.class.getName());
+
     @Inject
     private AttachmentBean attachmentBean;
     @Inject
@@ -28,25 +32,72 @@ public class UploadProfilePictureServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String email = (String) session.getAttribute("userEmail");
+        String role = (String) session.getAttribute("userRole");
+
         if (email == null) {
             response.sendRedirect("UserLogin");
             return;
         }
 
+        String redirectUrl = role.equals("Company") ? "/CompanyProfile" : "/StudentProfile";
+
         try {
             Part filePart = request.getPart("file");
-            if (filePart != null && filePart.getSize() > 0) {
-                StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
-                byte[] fileBytes = filePart.getInputStream().readAllBytes();
-
-                attachmentBean.updateProfilePicture(student.getId(), fileBytes);
-
-                UserAccountDto user = userAccountBean.findByEmail(email);
-                if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.ChangePFP, null);
+            if (filePart == null || filePart.getSize() == 0) {
+                response.sendRedirect(request.getContextPath() + redirectUrl);
+                return;
             }
-            response.sendRedirect(request.getContextPath() + "/StudentProfile?t=" + System.currentTimeMillis());
+
+            Long profileId = null;
+            boolean alreadyHadPfp = false;
+            byte[] fileBytes = filePart.getInputStream().readAllBytes();
+
+            // --- Determine Profile ID, State, and call correct EJB method ---
+            if ("Student".equals(role)) {
+                StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+                if (student != null) {
+                    profileId = student.getId();
+                    alreadyHadPfp = (student.getAttachment() != null && student.getAttachment().isProfilePicAvailable());
+
+                    // CALLING RENAMED DEDICATED STUDENT METHOD
+                    attachmentBean.updatePfpForStudent(profileId, fileBytes);
+                }
+            } else if ("Company".equals(role)) {
+                CompanyInfoDto company = userAccountBean.getCompanyInfoByEmail(email);
+                if (company != null) {
+                    profileId = company.getId();
+                    alreadyHadPfp = (company.getAttachment() != null && company.hasProfilePic());
+
+                    // CALLING RENAMED DEDICATED COMPANY METHOD
+                    attachmentBean.updatePfpForCompany(profileId, fileBytes);
+                }
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Role not authorized for PFP upload.");
+                return;
+            }
+
+            if (profileId == null) {
+                LOG.warning("Profile ID not found for email: " + email);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Profile ID not found.");
+                return;
+            }
+
+            // --- Log Activity ---
+            UserAccountDto user = userAccountBean.findByEmail(email);
+            if (user != null) {
+                AccountActivity.Action action = alreadyHadPfp
+                        ? AccountActivity.Action.ChangePFP
+                        : AccountActivity.Action.UploadPFP;
+
+                activityBean.logActivity(user.getUserId(), action, "Uploaded/Changed Profile Picture.");
+            }
+
+            response.sendRedirect(request.getContextPath() + redirectUrl + "?t=" + System.currentTimeMillis());
+
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            LOG.severe("Failed to upload profile picture: " + e.getMessage());
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to upload profile picture. Check server logs for details.");
         }
     }
 }

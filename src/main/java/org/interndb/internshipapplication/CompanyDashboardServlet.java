@@ -19,7 +19,7 @@ public class CompanyDashboardServlet extends HttpServlet {
     UserAccountBean userAccountBean;
 
     @Inject
-    CompanyInfoBean companyInfoBean;
+    CompanyInfoBean companyDtoInfoBean;
 
     @Inject
     InternshipPositionBean positionBean;
@@ -57,9 +57,9 @@ public class CompanyDashboardServlet extends HttpServlet {
 
             // You need to implement this method in CompanyInfoBean
             // It should find the CompanyInfo entity linked to the UserAccount email
-            CompanyInfoDto company = companyInfoBean.findByUserEmail(email);
+            CompanyInfoDto companyDto = companyDtoInfoBean.findByUserEmail(email);
 
-            if (company == null) {
+            if (companyDto == null) {
                 // Handle case where account exists but CompanyInfo is missing
                 request.setAttribute("errorMessage", "Company profile not found.");
                 request.getRequestDispatcher("/pages/error.jsp").forward(request, response);
@@ -73,16 +73,16 @@ public class CompanyDashboardServlet extends HttpServlet {
 
             // B. Posted Positions
             // You need to implement this in InternshipPositionBean: findByCompanyId(Long companyId)
-            List<InternshipPositionDto> myPositions = positionBean.findByCompanyId(company.getId());
+            List<InternshipPositionDto> myPositions = positionBean.findByCompanyId(companyDto.getId());
 
             // C. Received Applications
             // You need to implement this in InternshipApplicationBean: findApplicationsByCompanyId(Long companyId)
             // This method must join Application -> Position -> Company to filter correctly
-            List<InternshipApplicationDto> applications = applicationBean.findApplicationsByCompanyId(company.getId());
+            List<InternshipApplicationDto> applications = applicationBean.findApplicationsByCompanyId(companyDto.getId());
 
             // 4. Set Attributes for JSP
             request.setAttribute("userAccount", userDto);
-            request.setAttribute("company", company);
+            request.setAttribute("company", companyDto);
             request.setAttribute("activities", activities);
             request.setAttribute("myPositions", myPositions);
             request.setAttribute("applications", applications);

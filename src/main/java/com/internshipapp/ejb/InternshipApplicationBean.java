@@ -110,6 +110,25 @@ public class InternshipApplicationBean {
         }
     }
 
+    public long countApplicationsByCompanyId(Long companyId) {
+        try {
+            // JPQL COUNT Query: Efficiently calculates the number of applications
+            TypedQuery<Long> query = entityManager.createQuery(
+                    "SELECT COUNT(a) FROM InternshipApplication a JOIN a.internshipPosition p " +
+                            "WHERE p.company.id = :companyId",
+                    Long.class
+            );
+            query.setParameter("companyId", companyId);
+
+            return query.getSingleResult();
+
+        } catch (Exception ex) {
+            // Log the exception, but return 0 gracefully.
+            // LOG.log(Level.SEVERE, "Error counting applications for company ID " + companyId, ex);
+            return 0L;
+        }
+    }
+
     public List<InternshipApplicationDto> findApplicationsByStudentId(Long studentId) {
         LOG.info("findApplicationsByStudentId: " + studentId);
         try {

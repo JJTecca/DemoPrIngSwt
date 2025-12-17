@@ -29,18 +29,20 @@ public class CompanyInfo {
     @JoinColumn(name = "id_attachment")
     private Attachment attachment;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false, length = 150)
     private String name;
-    @Column(name = "short_name", nullable = false, length = 255)
+    @Column(name = "short_name", length = 255)
     private String shortName;
-    @Column(name = "website", nullable = false, length = 510)
+    @Column(name = "website", length = 510)
     private String website;
-    @Column(name = "comp_description", nullable = false, length = 50)
+    @Column(name = "comp_description", length = 50)
     private String compDescription;
-    @Column(name = "opened_positions", nullable = false, length = 50)
+    @Column(name = "opened_positions", length = 50)
     private String openedPositions;
-    @Column(name = "students_applied", nullable = false)
+    @Column(name = "students_applied")
     private String studentsApplied;
+    @Column(name = "biography", length = 255)
+    private String biography;
 
     public CompanyInfo() {
     }
@@ -108,4 +110,8 @@ public class CompanyInfo {
     public void setStudentsApplied(String studentsApplied) {
         this.studentsApplied = studentsApplied;
     }
+
+    public String getBiography() { return this.biography; }
+
+    public void setBiography(String biography) { this.biography = biography; }
 }

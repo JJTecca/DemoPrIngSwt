@@ -1,12 +1,18 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.common.AttachmentDto;
 import com.internshipapp.common.CompanyInfoDto;
+import com.internshipapp.entities.Attachment;
 import com.internshipapp.entities.CompanyInfo;
+import com.internshipapp.entities.UserAccount;
+import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /*******************************************************************
@@ -22,30 +28,99 @@ import java.util.logging.Logger;
 public class CompanyInfoBean {
     private static final Logger LOG = Logger.getLogger(CompanyInfoBean.class.getName());
 
+    @Inject
+    private InternshipApplicationBean applicationBean;
+
     @PersistenceContext
     EntityManager entityManager;
+
+    private AttachmentDto getAttachmentDto(Attachment attachment) {
+        if (attachment == null) return null;
+        return new AttachmentDto(
+                attachment.getId(),
+                attachment.hasCv() != null && attachment.hasCv(),
+                attachment.hasProfilePic() != null && attachment.hasProfilePic()
+        );
+    }
 
     // --- CONVERTER METHOD ---
     public CompanyInfoDto copyToDto(CompanyInfo entity) {
         if (entity == null) return null;
 
+        String userEmail = null;
+        String username = null;
+        Long userId = null;
+
+        try {
+            // Find UserAccount linked to this CompanyInfo (ManyToOne from UserAccount to CompanyInfo)
+            TypedQuery<UserAccount> userQuery = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u WHERE u.companyInfo = :company",
+                    UserAccount.class
+            );
+            userQuery.setParameter("company", entity);
+            List<UserAccount> accounts = userQuery.getResultList();
+
+            if (!accounts.isEmpty()) {
+                userEmail = accounts.get(0).getEmail();
+                username = accounts.get(0).getUsername();
+                userId = accounts.get(0).getUserId();
+            }
+        } catch (Exception e) {
+            LOG.warning("Could not fetch UserAccount for Company: " + entity.getName());
+        }
+
+        Long totalApplications = applicationBean.countApplicationsByCompanyId(entity.getId());
+        String studentsAppliedString = String.valueOf(totalApplications);
+        // -----------------------------------------------------------------
+
         return new CompanyInfoDto(
                 entity.getId(),
-                entity.getAttachment() != null ? entity.getAttachment().getId() : null,
                 entity.getName(),
                 entity.getShortName(),
                 entity.getWebsite(),
                 entity.getCompDescription(),
                 entity.getOpenedPositions(),
-                entity.getStudentsApplied()
+                // FIX: Use the calculated count instead of the raw entity field
+                studentsAppliedString,
+                entity.getBiography(),
+                getAttachmentDto(entity.getAttachment()),
+                userEmail,
+                username,
+                userId
         );
     }
+
 
     /*******************************************************
      *  Implement conversion methods between entities and DTOs
      *  Write specific sentence about what each function does
      *  Copy function example is standard
      **********************************************************/
+
+    public void updateCompany(Long companyId, String name, String shortName, String website,
+                              String compDescription, String openedPositions, String studentsApplied,
+                              String biography) {
+        try {
+            CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
+            if (company != null) {
+                // Ensure name is updated, it is NOT NULL
+                company.setName(name);
+
+                // Update nullable fields
+                company.setShortName(shortName);
+                company.setWebsite(website);
+                company.setCompDescription(compDescription);
+                company.setOpenedPositions(openedPositions);
+                company.setStudentsApplied(studentsApplied);
+                company.setBiography(biography);
+
+                entityManager.merge(company);
+            }
+        } catch (Exception ex) {
+            LOG.severe("Error updating company ID " + companyId + ": " + ex.getMessage());
+            throw new EJBException(ex);
+        }
+    }
     // Update return type to DTO
     public CompanyInfoDto findByUserEmail(String email) {
         try {

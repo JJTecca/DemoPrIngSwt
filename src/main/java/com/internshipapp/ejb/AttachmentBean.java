@@ -3,6 +3,7 @@ package com.internshipapp.ejb;
 import com.internshipapp.common.AttachmentDto;
 import com.internshipapp.common.FileDto;
 import com.internshipapp.entities.Attachment;
+import com.internshipapp.entities.CompanyInfo;
 import com.internshipapp.entities.StudentInfo;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
@@ -55,9 +56,26 @@ public class AttachmentBean {
         return null;
     }
 
-    public FileDto getProfilePicture(Long studentId) {
+    public FileDto getPfpForStudent(Long studentId) {
         Attachment att = findAttachmentByStudentId(studentId);
+
+        // Use att.getProfilePic() to get byte data
         if (att != null && att.getProfilePic() != null && att.getProfilePic().length > 0) {
+            // FileDto signature: public FileDto(String fileName, String contentType, byte[] fileData)
+            return new FileDto("pfp.jpg", "image/jpeg", att.getProfilePic());
+        }
+        return null;
+    }
+
+    /**
+     * Retrieves the profile picture FileDto for a specific Company.
+     */
+    public FileDto getPfpForCompany(Long companyId) {
+        Attachment att = findAttachmentByCompanyId(companyId);
+
+        // Use att.getProfilePic() to get byte data
+        if (att != null && att.getProfilePic() != null && att.getProfilePic().length > 0) {
+            // FileDto signature: public FileDto(String fileName, String contentType, byte[] fileData)
             return new FileDto("pfp.jpg", "image/jpeg", att.getProfilePic());
         }
         return null;
@@ -65,7 +83,7 @@ public class AttachmentBean {
 
     // --- WRITE OPERATIONS ---
 
-    public void updateCv(Long studentId, byte[] fileData, String fileName, String contentType) {
+    public void updateCvForStudent(Long studentId, byte[] fileData, String fileName, String contentType) {
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
         if (student == null) throw new IllegalArgumentException("Student not found");
 
@@ -80,14 +98,14 @@ public class AttachmentBean {
         att.setCvFileName(fileName);
         att.setCvContentType(contentType);
 
-        // SET FLAG
         att.setHasCv(true);
 
         entityManager.merge(att);
         entityManager.merge(student);
     }
 
-    public void updateProfilePicture(Long studentId, byte[] fileData) {
+    // RENAMED from updateProfilePicture to updateProfilePictureForStudent
+    public void updatePfpForStudent(Long studentId, byte[] fileData) {
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
         if (student == null) throw new IllegalArgumentException("Student not found");
 
@@ -99,32 +117,47 @@ public class AttachmentBean {
         }
 
         att.setProfilePic(fileData);
-
-        // SET FLAG
         att.setHasProfilePic(true);
 
         entityManager.merge(att);
         entityManager.merge(student);
     }
 
-    // --- DELETE OPERATIONS (Updated to clear Flags) ---
+    // --- WRITE OPERATIONS: COMPANY (NEW) ---
 
-    public void deleteCv(Long studentId) {
+    // NEW: Update Profile Picture for Company
+    public void updatePfpForCompany(Long companyId, byte[] fileData) {
+        CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
+        if (company == null) throw new IllegalArgumentException("Company not found");
+
+        Attachment att = company.getAttachment();
+        if (att == null) {
+            att = new Attachment();
+            entityManager.persist(att);
+            company.setAttachment(att);
+        }
+
+        att.setProfilePic(fileData);
+        att.setHasProfilePic(true);
+
+        entityManager.merge(att);
+        entityManager.merge(company);
+    }
+
+    // --- DELETE OPERATIONS: STUDENT (Renamed and Logic remains) ---
+
+    public void deleteCvForStudent(Long studentId) {
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null && student.getAttachment() != null) {
                 Attachment att = student.getAttachment();
 
-                // Clear Data
                 att.setCv(null);
                 att.setCvFileName(null);
                 att.setCvContentType(null);
-
-                // UNSET FLAG
                 att.setHasCv(false);
 
-                // If both false, delete row. Else update.
-                if (!att.getHasProfilePic()) {
+                if (!att.hasProfilePic()) {
                     student.setAttachment(null);
                     entityManager.merge(student);
                     entityManager.remove(att);
@@ -133,24 +166,21 @@ public class AttachmentBean {
                 }
             }
         } catch (Exception e) {
-            // Log error
+            LOG.severe("Error deleting CV for student ID " + studentId + ": " + e.getMessage());
         }
     }
 
-    public void deleteProfilePicture(Long studentId) {
+    public void deletePfpForStudent(Long studentId) {
+        // ... (Logic same as old deleteProfilePicture, but uses StudentInfo) ...
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null && student.getAttachment() != null) {
                 Attachment att = student.getAttachment();
 
-                // Clear Data
                 att.setProfilePic(null);
-
-                // UNSET FLAG
                 att.setHasProfilePic(false);
 
-                // If both false, delete row
-                if (!att.getHasCv()) {
+                if (!att.hasCv()) {
                     student.setAttachment(null);
                     entityManager.merge(student);
                     entityManager.remove(att);
@@ -159,7 +189,32 @@ public class AttachmentBean {
                 }
             }
         } catch (Exception e) {
-            // Log error
+            LOG.severe("Error deleting PFP for student ID " + studentId + ": " + e.getMessage());
+        }
+    }
+
+    // --- DELETE OPERATIONS: COMPANY (NEW) ---
+
+    public void deletePfpForCompany(Long companyId) {
+        try {
+            CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
+            if (company != null && company.getAttachment() != null) {
+                Attachment att = company.getAttachment();
+
+                att.setProfilePic(null);
+                att.setHasProfilePic(false);
+
+                if (!att.hasCv()) { // Check if the company has a CV (should always be false)
+                    company.setAttachment(null);
+                    entityManager.merge(company);
+                    entityManager.remove(att);
+                } else {
+                    // This scenario shouldn't happen for a company, but we merge anyway
+                    entityManager.merge(att);
+                }
+            }
+        } catch (Exception e) {
+            LOG.severe("Error deleting PFP for company ID " + companyId + ": " + e.getMessage());
         }
     }
 
@@ -169,6 +224,18 @@ public class AttachmentBean {
             return entityManager.createQuery(
                             "SELECT a FROM StudentInfo s JOIN s.attachment a WHERE s.id = :sid", Attachment.class)
                     .setParameter("sid", studentId)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Attachment findAttachmentByCompanyId(Long companyId) {
+        try {
+            // Assumes CompanyInfo has a 'attachment' field linked to Attachment entity
+            return (Attachment) entityManager.createQuery(
+                            "SELECT c.attachment FROM CompanyInfo c WHERE c.id = :cid")
+                    .setParameter("cid", companyId)
                     .getSingleResult();
         } catch (Exception e) {
             return null;

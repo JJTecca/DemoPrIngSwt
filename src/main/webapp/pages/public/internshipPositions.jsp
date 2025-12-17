@@ -10,6 +10,18 @@
     // 2. Session Data
     String userRole = (String) session.getAttribute("userRole");
 
+    // 3. Dashboard Link Determination
+    String dashboardUrl;
+    if ("Student".equals(userRole)) {
+        dashboardUrl = request.getContextPath() + "/Students";
+    } else if ("Company".equals(userRole)) {
+        dashboardUrl = request.getContextPath() + "/CompanyDashboard";
+    } else if ("Admin".equals(userRole)) {
+        dashboardUrl = request.getContextPath() + "/AdminDashboard";
+    } else {
+        dashboardUrl = request.getContextPath() + "/index.jsp";
+    }
+
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
     int displayedCount = (positions != null) ? positions.size() : 0;
@@ -152,6 +164,29 @@
             background-color: var(--brand-blue-dark);
             color: white;
         }
+
+        .company-link {
+            color: #777; /* Default muted color for company name */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .company-link:hover {
+            color: var(--ulbs-red);
+            text-decoration: underline;
+        }
+
+        .position-title-link {
+            font-weight: bold;
+            color: var(--brand-blue-dark); /* Initial dark color */
+            text-decoration: none;
+            transition: color 0.3s ease; /* Smooth transition */
+            display: inline-block;
+        }
+        .position-title-link:hover {
+            color: var(--ulbs-red); /* Hover color */
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -165,38 +200,58 @@
             <% if ("Student".equals(userRole)) { %>
             <h5 class="sidebar-title"><i class="fa-solid fa-graduation-cap me-2"></i> Student Portal</h5>
             <div class="d-flex flex-column">
-                <a class="nav-link" href="${pageContext.request.contextPath}/Students"><i
-                        class="fa-solid fa-table-columns"></i> Dashboard</a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/StudentProfile"><i
-                        class="fa-regular fa-id-card"></i> My Profile</a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions"><i
-                        class="fa-solid fa-briefcase"></i> Internships</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-calendar-check"></i> Schedule</a>
+                <a class="nav-link" href="<%= dashboardUrl %>">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/StudentProfile">
+                    <i class="fa-regular fa-id-card"></i> My Profile
+                </a>
+                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
+                    <i class="fa-solid fa-briefcase"></i> Internships
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="fa-solid fa-calendar-check"></i> Schedule
+                </a>
             </div>
             <% } else if ("Company".equals(userRole)) { %>
             <h5 class="sidebar-title"><i class="fa-solid fa-building me-2"></i> Company Portal</h5>
             <div class="d-flex flex-column">
-                <a class="nav-link" href="${pageContext.request.contextPath}/CompanyDashboard"><i
-                        class="fa-solid fa-table-columns"></i> Dashboard</a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/CompanyProfile"><i
-                        class="fa-regular fa-id-card"></i> Company Profile</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-user-friends"></i> Enrolled Interns</a>
-                <a class="nav-link" href="#"><i class="fa-regular fa-comments"></i> Chats</a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions"><i
-                        class="fa-solid fa-briefcase"></i> Positions</a>
+                <a class="nav-link" href="<%= dashboardUrl %>">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/CompanyProfile">
+                    <i class="fa-regular fa-id-card"></i> Company Profile
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="fa-solid fa-user-friends"></i> Enrolled Interns
+                </a>
+                <a class="nav-link" href="#">
+                    <i class="fa-regular fa-comments"></i> Chats
+                </a>
+                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
+                    <i class="fa-solid fa-briefcase"></i> Positions
+                </a>
             </div>
             <% } else if ("Admin".equals(userRole)) { %>
             <h5 class="sidebar-title"><i class="fa-solid fa-shield-halved me-2"></i> Admin Portal</h5>
             <div class="d-flex flex-column">
-                <a class="nav-link" href="${pageContext.request.contextPath}/AdminDashboard"><i
-                        class="fa-solid fa-table-columns"></i> Dashboard</a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions"><i
-                        class="fa-solid fa-briefcase"></i> Manage Internships</a>
-                <a class="nav-link" href="#"><i class="fa-solid fa-users"></i> Manage Users</a>
+                <a class="nav-link" href="<%= dashboardUrl %>">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a class="nav-link" href="#users">
+                    <i class="fa-solid fa-users"></i> Manage Users
+                </a>
+                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
+                    <i class="fa-solid fa-briefcase"></i> Manage Internships
+                </a>
+                <a class="nav-link" href="#reports">
+                    <i class="fa-solid fa-file-pdf"></i> Reports
+                </a>
             </div>
             <% } %>
 
-            <div class="mt-auto border-top pt-3 px-3">
+            <%-- FIX: Reduced mt-5 to mt-3 for closer logout spacing --%>
+            <div class="mt-3 border-top pt-3">
                 <form action="${pageContext.request.contextPath}/Logout" method="post">
                     <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
                         <i class="fa-solid fa-right-from-bracket"></i> Logout
@@ -250,10 +305,15 @@
                                          class="company-logo-small" alt="<%= pos.getCompanyName() %>">
                                 </a>
                                 <div>
-                                    <h5 class="fw-bold mb-0 text-dark"><%= pos.getTitle() %>
-                                    </h5>
+                                    <%-- Position Title Link with Hover --%>
+                                    <a href="#" class="position-title-link"
+                                       data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                        <%= pos.getTitle() %>
+                                    </a>
+
+                                    <%-- Company Name Link with Hover --%>
                                     <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
-                                       class="text-muted small text-decoration-none">
+                                       class="company-link small text-decoration-none d-block">
                                         <i class="fa-solid fa-building me-1"></i> <%= pos.getCompanyName() %>
                                     </a>
                                 </div>
@@ -301,11 +361,24 @@
                             </div>
                             <div class="modal-body p-5 pt-0">
                                 <div class="text-center mb-4">
-                                    <img src="https://ui-avatars.com/api/?name=<%= pos.getCompanyName() %>&background=0E2B58&color=fff&size=80"
-                                         class="rounded-circle mb-3 border p-1" width="80">
-                                    <h3 class="fw-bold"><%= pos.getTitle() %>
+                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
+                                       title="View Company Profile" class="company-link">
+                                        <img src="https://ui-avatars.com/api/?name=<%= pos.getCompanyName() %>&background=0E2B58&color=fff&size=80"
+                                             class="rounded-circle mb-3 border p-1" width="80">
+                                    </a>
+                                    <h3 class="fw-bold">
+                                        <%-- Position Title Link inside Modal with Hover --%>
+                                        <a href="#" class="position-title-link"
+                                           data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                            <%= pos.getTitle() %>
+                                        </a>
                                     </h3>
-                                    <p class="text-muted"><%= pos.getCompanyName() %>
+                                    <p class="text-muted">
+                                        <%-- Company Name Link inside Modal with Hover --%>
+                                        <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
+                                           class="company-link text-muted">
+                                            <%= pos.getCompanyName() %>
+                                        </a>
                                     </p>
                                 </div>
 

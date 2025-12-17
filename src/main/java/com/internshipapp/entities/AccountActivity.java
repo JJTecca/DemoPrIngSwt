@@ -26,13 +26,18 @@ public class AccountActivity {
 
     // --- UPDATED ENUM ---
     public enum Action {
-        ChangeCV,
+        UploadCV,
         DeleteCV,
-        ChangePFP,
+        UploadPFP,
         DeletePFP,
+        ChangeCV,
+        ChangePFP,
         ChangePassword,
         ChangeDepartRepresentative,
-        AppliedForPosition
+        AppliedForPosition,
+        UpdateBiography,
+        UpdateDescription,
+        UpdateWebsiteURL
     }
 
     @Enumerated(EnumType.STRING)

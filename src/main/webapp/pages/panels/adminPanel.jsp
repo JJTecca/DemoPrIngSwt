@@ -30,7 +30,7 @@
         .sidebar-container {
             background-color: white;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: calc(100vh - 85px); /* approximate header height */
+            min-height: 100%; /* approximate header height */
         }
 
         .sidebar-title {

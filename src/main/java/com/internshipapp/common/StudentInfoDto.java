@@ -17,6 +17,8 @@ public class StudentInfoDto implements Serializable {
     private String username;
     private Long userId;
     private List<InternshipApplicationDto> internshipApplications;
+    private String biography;
+
 
     // Primary source of attachment data
     private AttachmentDto attachment;
@@ -62,7 +64,7 @@ public class StudentInfoDto implements Serializable {
     public StudentInfoDto(Long id, String firstName, String middleName, String lastName,
                           Integer studyYear, Float lastYearGrade, String status,
                           Boolean enrolled, String userEmail, String username, Long userId,
-                          AttachmentDto attachment) {
+                          AttachmentDto attachment, String biography) {
         this.id = id;
         this.firstName = firstName;
         this.middleName = middleName;
@@ -75,6 +77,7 @@ public class StudentInfoDto implements Serializable {
         this.username = username;
         this.userId = userId;
         this.attachment = attachment;
+        this.biography = biography;
     }
 
     public StudentInfoDto(Long id, Long aLong, String firstName, String middleName, String lastName, Integer studyYear, Float lastYearGrade, String string, Boolean enrolled, String email, String username, Long userId) {
@@ -187,11 +190,11 @@ public class StudentInfoDto implements Serializable {
     }
 
     // DTO Composition Getters for JSP (Correctly used in your JSP)
-    public boolean getHasCv() {
+    public boolean hasCv() {
         return attachment != null && attachment.isCvAvailable();
     }
 
-    public boolean getHasProfilePic() {
+    public boolean hasProfilePic() {
         return attachment != null && attachment.isProfilePicAvailable();
     }
 
@@ -229,5 +232,13 @@ public class StudentInfoDto implements Serializable {
 
     public boolean hasUserAccount() {
         return userId != null;
+    }
+
+    public String getBiography() {
+        return biography;
+    }
+
+    public void setBiography(String biography) {
+        this.biography = biography;
     }
 }

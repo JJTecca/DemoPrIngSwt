@@ -83,7 +83,7 @@ public class Attachment {
         return profilePic;
     }
 
-    public Boolean getHasCv() {
+    public Boolean hasCv() {
         return hasCv != null && hasCv;
     }
 
@@ -91,7 +91,7 @@ public class Attachment {
         this.hasCv = hasCv;
     }
 
-    public Boolean getHasProfilePic() {
+    public Boolean hasProfilePic() {
         return hasProfilePic != null && hasProfilePic;
     }
 
