@@ -36,16 +36,6 @@ public class UserLoginServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        // 1. Hardcoded admin check
-        if ("admin@ulbs.ro".equals(email) && "password123".equals(password)) {
-            System.out.println("Admin login successful");
-            HttpSession session = request.getSession();
-            session.setAttribute("userEmail", email);
-            session.setAttribute("userRole", "Admin");
-            response.sendRedirect("AdminDashboard");
-            return;
-        }
-
         // 2. Check if user exists and password matches
         boolean auth = userAccountBean.authenticate(email, password);
 

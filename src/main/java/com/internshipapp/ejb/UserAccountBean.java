@@ -93,12 +93,6 @@ public class UserAccountBean {
     public boolean authenticate(String email, String password) {
         LOG.info("authenticate: " + email);
 
-        // Hardcoded admin check
-        if ("admin@ulbs.ro".equals(email) && "password123".equals(password)) {
-            LOG.info("Hardcoded admin authentication successful");
-            return true;
-        }
-
         UserAccountDto user = findByEmail(email);
         if (user == null) {
             LOG.info("User not found: " + email);
