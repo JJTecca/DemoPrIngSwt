@@ -22,13 +22,57 @@
         return;
     }
 
-    // Calculate Profile Completeness
-    int completeness = 0;
-    if (student.getFirstName() != null) completeness += 20;
-    if (student.getLastName() != null) completeness += 20;
-    if (student.getStudyYear() != null) completeness += 20;
-    if (student.getLastYearGrade() != null) completeness += 20;
-    if (student.getUserEmail() != null) completeness += 20;
+    // --- Profile Completion Calculation (CV = 50% Weight) ---
+    double completenessValue = 0;
+
+    // Weighting: CV = 50%, Other 5 fields = 10% each
+    double standardScore = 10.0; // 50% / 5 fields
+
+    // 1. CV Uploaded (50% Weight)
+    if (student.hasCv()) {
+        completenessValue += 50.0;
+    }
+
+    // 2. First Name (10%)
+    if (student.getFirstName() != null && !student.getFirstName().trim().isEmpty()) completenessValue += standardScore;
+    // 3. Last Name (10%)
+    if (student.getLastName() != null && !student.getLastName().trim().isEmpty()) completenessValue += standardScore;
+    // 4. Study Year (10%)
+    if (student.getStudyYear() != null) completenessValue += standardScore;
+    // 5. Last Year Grade (10%)
+    if (student.getLastYearGrade() != null) completenessValue += standardScore;
+    // 6. Profile Picture Uploaded (10%)
+    if (student.hasProfilePic()) completenessValue += standardScore;
+
+    // Convert to integer percentage, capped at 100
+    int completeness = (int) Math.round(Math.min(completenessValue, 100.0));
+
+    // --- Determine Color Schemes (Consistent with Company Panel) ---
+    String completionText;
+    String completionBarClass;
+    String completionTextColor;
+
+    if (completeness == 100) {
+        completionText = "Complete";
+        completionBarClass = "bg-success";
+        completionTextColor = "text-success";
+    } else if (completeness > 75) {
+        completionText = "Excellent";
+        completionBarClass = "bg-success";
+        completionTextColor = "text-success";
+    } else if (completeness >= 50) {
+        completionText = "Good";
+        completionBarClass = "bg-warning";
+        completionTextColor = "text-warning";
+    } else {
+        completionText = "Needs Attention";
+        completionBarClass = "bg-danger";
+        completionTextColor = "text-danger";
+    }
+
+
+    // Calculate simple stats
+    int totalApplicationsCount = (myApplications != null) ? myApplications.size() : 0;
 %>
 
 <!DOCTYPE html>
@@ -48,6 +92,12 @@
             --bg-light: #f4f7f6;
         }
 
+        html, body {
+            height: auto;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             background-color: var(--bg-light);
             font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -56,11 +106,21 @@
             min-height: 100vh;
         }
 
-        /* Sidebar & Layout */
+        .container-fluid.flex-grow-1 {
+            height: auto;
+            min-height: auto;
+            flex-grow: 1;
+        }
+
+        .row.h-100 {
+            height: auto;
+            flex-grow: 1;
+        }
+
         .sidebar-container {
             background-color: white;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: calc(100vh - 85px);
+            min-height: 100%;
         }
 
         .sidebar-title {
@@ -100,6 +160,7 @@
 
         .main-content {
             padding: 2rem;
+            min-height: 100vh;
         }
 
         .page-title {
@@ -108,7 +169,6 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Stats Cards */
         .stat-card {
             background: white;
             border: none;
@@ -170,11 +230,10 @@
             right: 20px;
             bottom: 20px;
             font-size: 2.5rem;
-            opacity: 0.05;
-            color: black;
+            opacity: 0.3;
+            color: var(--brand-blue-dark);
         }
 
-        /* Cards & Lists */
         .custom-card {
             border: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -213,7 +272,6 @@
             text-align: right;
         }
 
-        /* Activity Timeline */
         .activity-timeline {
             padding: 1rem;
             max-height: 350px;
@@ -239,7 +297,6 @@
             border-radius: 50%;
         }
 
-        /* Buttons */
         .btn-action {
             text-align: left;
             padding: 1rem;
@@ -268,7 +325,6 @@
             color: white;
         }
 
-        /* Status Badges */
         .status-badge {
             font-size: 0.8rem;
             padding: 0.4em 0.8em;
@@ -299,6 +355,31 @@
             color: #055160;
             border: 1px solid #b6effb;
         }
+
+        /* --- NEW STYLES FOR TRANSITION AND HOVER --- */
+        .position-title-link {
+            font-weight: bold;
+            color: var(--brand-blue-dark); /* Initial dark color */
+            text-decoration: none;
+            transition: color 0.3s ease; /* Smooth transition */
+            display: inline-block;
+        }
+        .position-title-link:hover {
+            color: var(--ulbs-red); /* Hover color */
+            text-decoration: underline;
+        }
+
+        .company-link {
+            font-weight: 600;
+            color: #777; /* Set initial color to a neutral gray */
+            text-decoration: none;
+            transition: color 0.3s ease; /* Smooth transition */
+        }
+
+        .company-link:hover {
+            color: var(--ulbs-red); /* Hover color */
+        }
+        /* ------------------------------------------- */
     </style>
 </head>
 <body>
@@ -306,7 +387,7 @@
 <jsp:include page="../blocks/header.jsp"/>
 
 <div class="container-fluid flex-grow-1">
-    <div class="row h-100">
+    <div class="row">
 
         <div class="col-md-3 col-lg-2 p-0 sidebar-container d-none d-md-block">
             <h5 class="sidebar-title">
@@ -326,7 +407,7 @@
                     <i class="fa-solid fa-calendar-check"></i> Schedule
                 </a>
 
-                <div class="mt-5 border-top pt-3">
+                <div class="mt-3 border-top pt-3">
                     <form action="${pageContext.request.contextPath}/Logout" method="post" class="d-inline">
                         <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
@@ -343,7 +424,7 @@
                     <h1 class="h2 page-title">Welcome, <%= student.getFirstName() %>!</h1>
                     <p class="text-muted mb-0">
                         <i class="fa-solid fa-user-graduate me-1"></i>
-                        Student ID: <strong>#<%= student.getId() %>
+                        Student <strong>
                     </strong> | Year <%= student.getStudyYear() %>
                     </p>
                 </div>
@@ -380,16 +461,33 @@
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="stat-card card-grade">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <h2 class="stat-value"><%= student.getGradeFormatted() %>
-                                </h2>
-                                <span class="stat-label">Last Grade</span>
+                    <a href="${pageContext.request.contextPath}/StudentProfile" class="text-decoration-none">
+                        <div class="stat-card card-grade">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h2 class="stat-value">
+                                        <%= student.getGradeFormatted() %>
+                                        <%-- Small icon indicator next to the big number --%>
+                                        <span class="ms-1" style="font-size: 1rem;">
+                                            <% if (student.getGradeVisibility()) { %>
+                                                <i class="fa-solid fa-eye text-success opacity-25"></i>
+                                            <% } else { %>
+                                                <i class="fa-solid fa-eye-slash text-danger"></i>
+                                            <% } %>
+                                        </span>
+                                    </h2>
+                                    <span class="stat-label">Last Grade</span>
+
+                                    <% if (!student.getGradeVisibility()) { %>
+                                    <div class="text-danger fw-bold" style="font-size: 0.65rem; margin-top: 4px;">
+                                        <i class="fa-solid fa-circle-info me-1"></i> HIDDEN FROM COMPANIES
+                                    </div>
+                                    <% } %>
+                                </div>
+                                <i class="fa-solid fa-chart-line stat-icon"></i>
                             </div>
-                            <i class="fa-solid fa-chart-line stat-icon"></i>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="stat-card card-enroll">
@@ -438,17 +536,17 @@
                                     </div>
                                     <div class="info-list-item">
                                         <span class="info-label">CV Uploaded</span>
-                                        <span class="badge <%= student.getHasCv() ? "bg-success" : "bg-warning text-dark" %>">
-                                            <%= student.getHasCv() ? "Yes" : "Missing" %>
+                                        <span class="badge <%= student.hasCv() ? "bg-success" : "bg-danger text-white" %>">
+                                            <%= student.hasCv() ? "Yes" : "Missing" %>
                                         </span>
                                     </div>
                                     <div class="mt-4">
                                         <div class="d-flex justify-content-between small mb-1">
                                             <span class="text-muted">Profile Completion</span>
-                                            <span class="fw-bold text-primary"><%= completeness %>%</span>
+                                            <span class="fw-bold <%= completionTextColor %>"><%= completeness %>% (<%= completionText %>)</span>
                                         </div>
                                         <div class="progress" style="height: 6px;">
-                                            <div class="progress-bar bg-success" role="progressbar"
+                                            <div class="progress-bar <%= completionBarClass %>" role="progressbar"
                                                  style="width: <%= completeness %>%;"></div>
                                         </div>
                                     </div>
@@ -461,7 +559,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fa-solid fa-file-signature me-2"></i> My Internship Applications</span>
                             <% if (myApplications != null) { %>
-                            <span class="badge bg-light text-primary border"><%= myApplications.size() %> total</span>
+                            <span class="badge bg-light text-primary border"><%= totalApplicationsCount %> total</span>
                             <% } %>
                         </div>
                         <div class="card-body p-0">
@@ -490,10 +588,16 @@
                                     %>
                                     <tr>
                                         <td class="ps-4">
-                                            <div class="fw-bold text-dark"><%= app.getPositionTitle() %>
-                                            </div>
-                                            <div class="small text-muted"><i
-                                                    class="fa-regular fa-building me-1"></i> <%= app.getCompanyName() %>
+                                            <a href="#" class="position-title-link"
+                                               data-bs-toggle="modal" data-bs-target="#detailsModal_<%= app.getId() %>">
+                                                <%= app.getPositionTitle() %>
+                                            </a>
+                                            <div class="small">
+                                                <i class="fa-regular fa-building me-1 text-muted"></i>
+                                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                   class="company-link text-decoration-none">
+                                                    <%= app.getCompanyName() %>
+                                                </a>
                                             </div>
                                         </td>
                                         <td class="small text-muted"><%= appliedDate %>
@@ -529,8 +633,12 @@
                                                             <div class="text-center mb-4">
                                                                 <h4 class="fw-bold text-primary mb-1"><%= app.getPositionTitle() %>
                                                                 </h4>
-                                                                <p class="text-muted fw-bold"><i
-                                                                        class="fa-solid fa-building me-2"></i> <%= app.getCompanyName() %>
+                                                                <p class="text-muted fw-bold">
+                                                                    <i class="fa-solid fa-building me-2"></i>
+                                                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                                       class="company-link text-muted text-decoration-none">
+                                                                        <%= app.getCompanyName() %>
+                                                                    </a>
                                                                 </p>
                                                                 <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
                                                             </div>
@@ -599,7 +707,7 @@
                                 <button type="button"
                                         class="btn btn-action rounded-0 border-start-0 border-end-0 text-start w-100"
                                         data-bs-toggle="modal" data-bs-target="#uploadCvModal">
-                                    <i class="fa-solid fa-upload me-2"></i> Update CV / Documents
+                                    <i class="fa-solid <%= student.hasCv() ? "fa-file-arrow-up" : "fa-upload" %> me-2"></i> Update CV
                                 </button>
 
                                 <a href="#"
@@ -652,13 +760,14 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title fw-bold">
-                    <%= student.getHasCv() ? "Manage Curriculum Vitae" : "Upload Curriculum Vitae" %>
+                    <%= student.hasCv() ? "Manage Curriculum Vitae" : "Upload Curriculum Vitae" %>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-                <% if (student.getHasProfilePic()) { %>
+
+                <% if (student.hasCv()) { %>
                 <div class="text-center p-3 mb-4 bg-light border rounded">
                     <i class="fa-regular fa-file-pdf text-danger fa-3x mb-2"></i>
                     <h6 class="fw-bold text-dark mb-1">Current CV is Available</h6>
@@ -669,7 +778,8 @@
                            class="btn btn-sm btn-outline-primary bg-white">
                             <i class="fa-solid fa-download me-1"></i> Download
                         </a>
-                        <button onclick="confirmDeleteCV()" class="btn btn-sm btn-outline-danger bg-white">
+                        <button type="button" class="btn btn-sm btn-outline-danger bg-white"
+                                data-bs-toggle="modal" data-bs-target="#confirmDeleteCvModal">
                             <i class="fa-solid fa-trash me-1"></i> Delete
                         </button>
                     </div>
@@ -678,17 +788,20 @@
                 <p class="small fw-bold text-muted mb-2">Update / Replace File:</p>
                 <% } %>
 
-                <form action="UploadCV" method="POST" enctype="multipart/form-data">
+                <form id="cvUploadForm" action="${pageContext.request.contextPath}/UploadCV" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label small text-muted text-uppercase fw-bold">Select PDF File</label>
-                        <input type="file" name="cvFile" class="form-control" accept=".pdf" required>
+                        <input type="file" name="cvFile" id="cvFileInput" class="form-control" accept=".pdf" required>
+                        <div id="cvErrorLabel" class="text-danger small mt-1" style="display:none;">
+                            Please select a CV file before proceeding.
+                        </div>
                         <div class="form-text">Accepted format: PDF. Max size: 5MB.</div>
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-brand">
+                        <button type="button" id="submitCvButton" class="btn btn-brand">
                             <i class="fa-solid fa-cloud-arrow-up me-2"></i>
-                            <%= student.getHasCv() ? "Replace CV" : "Upload CV" %>
+                            <%= student.hasCv() ? "Replace CV" : "Upload CV" %>
                         </button>
                     </div>
                 </form>
@@ -697,11 +810,110 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmReplaceCvModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Replacement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-0">Are you sure you want to **replace** your current CV with the new file?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning text-dark btn-sm" onclick="submitCvReplacement()">
+                    Replace CV
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteCvModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-trash-can me-2"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="mb-0">Are you sure you want to **permanently delete** your CV? This cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <a href="${pageContext.request.contextPath}/DeleteCV" class="btn btn-danger btn-sm" onclick="hideAllModals()">
+                    Delete Permanently
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
-    function confirmDeleteCV() {
-        if (confirm("Are you sure you want to delete your current CV? This action cannot be undone.")) {
-            // Redirect to the DeleteCV servlet
-            window.location.href = "${pageContext.request.contextPath}/DeleteCV?id=<%= student.getId() %>";
+    // Initialize modals for manual control/hiding
+    var uploadModal, replaceConfirmModal, deleteConfirmModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Bootstrap Modals
+        uploadModal = new bootstrap.Modal(document.getElementById('uploadCvModal'), {});
+        replaceConfirmModal = new bootstrap.Modal(document.getElementById('confirmReplaceCvModal'), {});
+        deleteConfirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteCvModal'), {});
+
+        const hasCv = <%= student.hasCv() %>;
+        const submitCvButton = document.getElementById('submitCvButton');
+        const cvFileInput = document.getElementById('cvFileInput');
+        const cvErrorLabel = document.getElementById('cvErrorLabel');
+
+        if (submitCvButton) {
+            submitCvButton.addEventListener('click', function() {
+                // Check if a file is selected
+                if (cvFileInput.files.length === 0) {
+                    // Display red error label instead of alert()
+                    cvErrorLabel.style.display = 'block';
+                    // Re-add required class visually
+                    cvFileInput.classList.add('is-invalid');
+                    return;
+                } else {
+                    // Hide error label if validation passes
+                    cvErrorLabel.style.display = 'none';
+                    cvFileInput.classList.remove('is-invalid');
+                }
+
+                if (hasCv) {
+                    // 1. Hide main upload modal
+                    uploadModal.hide();
+                    // 2. Show replacement confirmation modal
+                    replaceConfirmModal.show();
+                } else {
+                    // If CV does not exist, submit the form directly
+                    document.getElementById('cvUploadForm').submit();
+                }
+            });
+        }
+    });
+
+    // Function executed upon confirmation of CV replacement
+    function submitCvReplacement() {
+        // 1. Hide all modals (crucial for clean redirect)
+        hideAllModals();
+        // 2. Submit the form (which triggers the server-side redirect)
+        document.getElementById('cvUploadForm').submit();
+    }
+
+    // Helper function to hide all modals (used before redirects to prevent JS errors)
+    function hideAllModals() {
+        // Use hide() method safely
+        if (uploadModal) uploadModal.hide();
+        if (replaceConfirmModal) replaceConfirmModal.hide();
+        if (deleteConfirmModal) deleteConfirmModal.hide();
+
+        // This is necessary because hide() only sets classes, we ensure backdrop is gone before navigation
+        document.body.classList.remove('modal-open');
+        const backdrops = document.getElementsByClassName('modal-backdrop');
+        while(backdrops.length > 0){
+            backdrops[0].parentNode.removeChild(backdrops[0]);
         }
     }
 </script>

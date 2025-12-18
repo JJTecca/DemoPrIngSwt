@@ -5,13 +5,8 @@
     // 1. Retrieve Data
     CompanyInfoDto company = (CompanyInfoDto) request.getAttribute("company");
     UserAccountDto userAccount = (UserAccountDto) request.getAttribute("userAccount");
-
-    // 2. Retrieve Lists (NOW CORRECTLY TYPED AS DTOs)
     List<AccountActivityDto> activities = (List<AccountActivityDto>) request.getAttribute("activities");
-
-    // FIX: Changed from InternshipPosition (Entity) to InternshipPositionDto
     List<InternshipPositionDto> myPositions = (List<InternshipPositionDto>) request.getAttribute("myPositions");
-
     List<InternshipApplicationDto> applications = (List<InternshipApplicationDto>) request.getAttribute("applications");
 
     // Session Data
@@ -21,6 +16,37 @@
     if (company == null) {
         response.sendRedirect(request.getContextPath() + "/UserLogin");
         return;
+    }
+
+    // --- Profile Completion Calculation ---
+    int completionScore = 0;
+    if (company.getName() != null && !company.getName().trim().isEmpty()) completionScore += 20;
+    if (company.getWebsite() != null && !company.getWebsite().trim().isEmpty() && !company.getWebsite().equals("N/A")) completionScore += 20;
+    if (company.getCompDescription() != null && !company.getCompDescription().trim().isEmpty()) completionScore += 20;
+    if (company.getBiography() != null && !company.getBiography().trim().isEmpty()) completionScore += 20;
+    if (company.hasProfilePic()) completionScore += 20;
+
+    // --- Determine Color Schemes ---
+    String completionText;
+    String completionBarClass;
+    String completionTextColor;
+
+    if (completionScore == 100) {
+        completionText = "Complete";
+        completionBarClass = "bg-success";
+        completionTextColor = "text-success";
+    } else if (completionScore > 75) {
+        completionText = "Excellent";
+        completionBarClass = "bg-success";
+        completionTextColor = "text-success";
+    } else if (completionScore >= 50) {
+        completionText = "Good";
+        completionBarClass = "bg-warning";
+        completionTextColor = "text-warning";
+    } else {
+        completionText = "Needs Attention";
+        completionBarClass = "bg-danger";
+        completionTextColor = "text-danger";
     }
 
     // Calculate simple stats
@@ -53,11 +79,10 @@
             min-height: 100vh;
         }
 
-        /* --- Sidebar --- */
         .sidebar-container {
             background-color: white;
             box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: calc(100vh - 85px);
+            min-height: 100%;
         }
 
         .sidebar-title {
@@ -105,7 +130,6 @@
             margin-bottom: 0.5rem;
         }
 
-        /* --- Stats Cards --- */
         .stat-card {
             background: white;
             border: none;
@@ -163,11 +187,10 @@
             right: 20px;
             bottom: 20px;
             font-size: 2.5rem;
-            opacity: 0.05;
+            opacity: 0.3;
             color: black;
         }
 
-        /* --- Custom Cards & Lists --- */
         .custom-card {
             border: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -187,7 +210,6 @@
             align-items: center;
         }
 
-        /* Scrollable List Container */
         .scrollable-list {
             padding: 0;
             max-height: 350px;
@@ -208,7 +230,6 @@
             border-radius: 4px;
         }
 
-        /* Position Item Style */
         .position-item {
             padding: 1rem;
             border-bottom: 1px solid #f0f0f0;
@@ -234,7 +255,6 @@
             color: #777;
         }
 
-        /* Activity Timeline Items */
         .timeline-item {
             padding: 10px 15px;
             border-left: 2px solid var(--ulbs-red);
@@ -254,7 +274,6 @@
             border-radius: 50%;
         }
 
-        /* Student Application Table */
         .student-avatar-small {
             width: 35px;
             height: 35px;
@@ -289,7 +308,6 @@
             background-color: #bbdefb;
         }
 
-        /* Status Badges */
         .status-badge {
             font-size: 0.75rem;
             padding: 0.3em 0.7em;
@@ -310,6 +328,13 @@
         .status-accepted {
             background-color: #d1e7dd;
             color: #0f5132;
+        }
+
+        .profile-progress {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--brand-blue-dark);
+            margin-bottom: 0.5rem;
         }
     </style>
 </head>
@@ -341,7 +366,7 @@
                     <i class="fa-solid fa-briefcase"></i> Positions
                 </a>
 
-                <div class="mt-5 border-top pt-3">
+                <div class="mt-3 border-top pt-3">
                     <form action="${pageContext.request.contextPath}/Logout" method="post" class="d-inline">
                         <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
@@ -357,7 +382,7 @@
                 <div>
                     <h1 class="h2 page-title">Welcome, <%= company.getName() %>!</h1>
                     <p class="text-muted mb-0">
-                        <i class="fa-solid fa-globe me-1"></i> <%= company.getWebsite() %>
+                        <i class="fa-solid fa-industry me-1"></i> Company
                     </p>
                 </div>
                 <div class="d-none d-md-block text-end">
@@ -411,15 +436,47 @@
                     <div class="card custom-card mb-4">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-8">
-                                    <h5 class="fw-bold text-dark">Company Profile</h5>
-                                    <p class="text-muted small"><%= company.getCompDescription() %>
+                                <div class="col-md-9">
+                                    <h5 class="fw-bold text-dark mb-2">Company Profile Overview</h5>
+
+                                    <p class="text-muted small mb-3">
+                                        <%= company.getCompDescription() != null ? company.getCompDescription() : "Set a short description in your profile." %>
                                     </p>
+
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-sm-6">
+                                            <p class="text-muted small mb-0">
+                                                <i class="fa-solid fa-envelope me-1 text-secondary"></i>
+                                                <span class="fw-bold">Email:</span> <%= userAccount.getEmail() %>
+                                            </p>
+                                        </div>
+
+                                        <div class="col-sm-6">
+                                            <p class="text-muted small mb-0">
+                                                <i class="fa-solid fa-link me-1 text-secondary"></i>
+                                                <span class="fw-bold">Website:</span>
+                                                <a href="<%= company.getWebsite() %>" target="_blank" class="text-decoration-none">
+                                                    <%= company.getWebsite() != null ? company.getWebsite() : "Not Set" %>
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-progress d-flex justify-content-between align-items-center">
+                                        <span>Profile Completion:</span>
+                                        <span class="fw-bold <%= completionTextColor %>">
+                                            <%= completionText %> (<%= completionScore %>%)
+                                        </span>
+                                    </div>
+                                    <div class="progress mb-3" role="progressbar" aria-label="Profile Completion" aria-valuenow="<%= completionScore %>" aria-valuemin="0" aria-valuemax="100" style="height: 10px;">
+                                        <div class="progress-bar <%= completionBarClass %>" style="width: <%= completionScore %>%"></div>
+                                    </div>
+
                                 </div>
-                                <div class="col-md-4 text-end">
-                                    <button class="btn btn-outline-primary btn-sm">
-                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Details
-                                    </button>
+                                <div class="col-md-3 text-end d-flex flex-column justify-content-center">
+                                    <a href="${pageContext.request.contextPath}/CompanyProfile" class="btn btn-outline-primary btn-sm mt-3 mt-md-0">
+                                        <i class="fa-solid fa-pen-to-square me-1"></i> Edit Profile
+                                    </a>
                                 </div>
                             </div>
                         </div>

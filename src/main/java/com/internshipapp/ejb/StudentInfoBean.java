@@ -81,8 +81,8 @@ public class StudentInfoBean {
             if (att != null) {
                 // DIRECTLY READ THE FLAGS from your Entity
                 // This avoids all complex SQL queries and syntax errors.
-                boolean hasCv = (att.getHasCv() != null && att.getHasCv());
-                boolean hasPfp = (att.getHasProfilePic() != null && att.getHasProfilePic());
+                boolean hasCv = (att.hasCv() != null && att.hasCv());
+                boolean hasPfp = (att.hasProfilePic() != null && att.hasProfilePic());
 
                 attachmentDto = new com.internshipapp.common.AttachmentDto(
                         att.getId(),
@@ -105,7 +105,9 @@ public class StudentInfoBean {
                 userEmail,
                 username,
                 userId,
-                attachmentDto
+                attachmentDto,
+                student.getBiography(),
+                student.getGradeVisibility()
         );
     }
 
@@ -222,7 +224,8 @@ public class StudentInfoBean {
     }
 
     public void updateStudent(Long studentId, String firstName, String middleName, String lastName,
-                              Integer studyYear, Float lastYearGrade, String status, Boolean enrolled) {
+                              Integer studyYear, Float lastYearGrade, String status, Boolean enrolled,
+                              String biography, boolean gradeVisibility) {
         try {
             StudentInfo student = entityManager.find(StudentInfo.class, studentId);
             if (student != null) {
@@ -233,6 +236,9 @@ public class StudentInfoBean {
                 student.setLastYearGrade(lastYearGrade);
                 student.setStatus(StudentInfo.StudentStatus.valueOf(status));
                 student.setEnrolled(enrolled);
+                student.setBiography(biography);
+                student.setGradeVisibility(gradeVisibility);
+
                 entityManager.merge(student);
             }
         } catch (Exception ex) {

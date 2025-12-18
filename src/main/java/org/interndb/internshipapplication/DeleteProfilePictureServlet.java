@@ -1,6 +1,7 @@
 package org.interndb.internshipapplication;
 
 import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
@@ -12,9 +13,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 @WebServlet(name = "DeleteProfilePictureServlet", value = "/DeleteProfilePicture")
 public class DeleteProfilePictureServlet extends HttpServlet {
+    private static final Logger LOG = Logger.getLogger(DeleteProfilePictureServlet.class.getName());
+
     @Inject
     private AttachmentBean attachmentBean;
     @Inject
@@ -26,22 +30,54 @@ public class DeleteProfilePictureServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String email = (String) session.getAttribute("userEmail");
+        String role = (String) session.getAttribute("userRole");
+
         if (email == null) {
             response.sendRedirect("UserLogin");
             return;
         }
 
+        String redirectUrl = role.equals("Company") ? "/CompanyProfile" : "/StudentProfile";
+
         try {
-            StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+            Long profileId = null;
 
-            attachmentBean.deleteProfilePicture(student.getId());
+            // --- Determine Profile ID and call correct EJB method ---
+            if ("Student".equals(role)) {
+                StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+                if (student != null) {
+                    profileId = student.getId();
+                    // CALLING RENAMED DEDICATED STUDENT METHOD
+                    attachmentBean.deletePfpForStudent(profileId);
+                }
+            } else if ("Company".equals(role)) {
+                CompanyInfoDto company = userAccountBean.getCompanyInfoByEmail(email);
+                if (company != null) {
+                    profileId = company.getId();
+                    // CALLING RENAMED DEDICATED COMPANY METHOD
+                    attachmentBean.deletePfpForCompany(profileId);
+                }
+            } else {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Role not authorized for PFP deletion.");
+                return;
+            }
 
+            if (profileId == null) {
+                LOG.warning("Profile ID not found for email: " + email);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Profile ID not found.");
+                return;
+            }
+
+            // --- Log Activity ---
             UserAccountDto user = userAccountBean.findByEmail(email);
-            if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.DeletePFP, null);
+            if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.DeletePFP, "Deleted Profile Picture.");
 
-            response.sendRedirect(request.getContextPath() + "/StudentProfile?t=" + System.currentTimeMillis());
+            response.sendRedirect(request.getContextPath() + redirectUrl + "?t=" + System.currentTimeMillis());
+
         } catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            LOG.severe("Failed to delete profile picture: " + e.getMessage());
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete profile picture. Check server logs for details.");
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.entities.UserAccount;
@@ -34,6 +35,9 @@ public class UserAccountBean {
 
     @Inject
     private StudentInfoBean studentInfoBean;
+
+    @Inject
+    private CompanyInfoBean companyInfoBean;
 
     /*******************************************************
             *  Implement conversion methods between entities and DTOs
@@ -158,6 +162,29 @@ public class UserAccountBean {
             return null;
         } catch (Exception ex) {
             LOG.info("Student info not found for email: " + email + " - Error: " + ex.getMessage());
+            return null;
+        }
+    }
+
+    public CompanyInfoDto getCompanyInfoByEmail(String email) {
+        LOG.info("getCompanyInfoByEmail: " + email);
+        try {
+            // Retrieve UserAccount, eagerly fetching companyInfo
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u LEFT JOIN FETCH u.companyInfo WHERE u.email = :email",
+                    UserAccount.class
+            );
+            query.setParameter("email", email);
+            UserAccount user = query.getSingleResult();
+
+            if (user != null && user.getCompanyInfo() != null) {
+                // Delegate the complex mapping (including the AttachmentDto logic)
+                // to the CompanyInfoBean
+                return companyInfoBean.copyToDto(user.getCompanyInfo());
+            }
+            return null;
+        } catch (Exception ex) {
+            LOG.info("Company info not found for email: " + email + " - Error: " + ex.getMessage());
             return null;
         }
     }

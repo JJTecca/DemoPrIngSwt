@@ -35,7 +35,7 @@ public class DeleteCVServlet extends HttpServlet {
             // Get student by Session Email (Secure)
             StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
 
-            attachmentBean.deleteCv(student.getId());
+            attachmentBean.deleteCvForStudent(student.getId());
 
             UserAccountDto user = userAccountBean.findByEmail(email);
             if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.DeleteCV, null);

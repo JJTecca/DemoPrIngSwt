@@ -17,6 +17,7 @@ public class StudentInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
     @OneToOne(mappedBy = "studentInfo")
     private UserAccount userAccount;
@@ -46,6 +47,10 @@ public class StudentInfo {
     private StudentStatus status = StudentStatus.Available; // default
     @Column(name = "enrolled")
     private Boolean enrolled = true; // default TRUE
+    @Column(name = "biography", length = 255)
+    private String biography;
+    @Column(name = "grade_visibility", nullable = false)
+    private boolean gradeVisibility;
 
     // Constructors
     public StudentInfo() {
@@ -131,4 +136,12 @@ public class StudentInfo {
     public void setEnrolled(Boolean enrolled) {
         this.enrolled = enrolled;
     }
+
+    public String getBiography() { return this.biography; }
+
+    public void setBiography(String biography) { this.biography = biography; }
+
+    public boolean getGradeVisibility() { return gradeVisibility; }
+
+    public void setGradeVisibility(boolean gradeVisibility) { this.gradeVisibility = gradeVisibility; }
 }

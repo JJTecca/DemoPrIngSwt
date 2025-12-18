@@ -4,7 +4,7 @@
     .main-footer {
         background-color: var(--brand-blue-dark);
         color: white;
-        padding: 3rem 0;
+        padding: 2rem 0;
         margin-top: auto; /* Pushes footer to bottom if flex container used */
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -18,12 +18,10 @@
     }
 
     .footer-logo {
-        height: 80px;
+        height: 160px;
         width: auto;
         margin-bottom: 1.5rem;
         /* Optional: Add white background container if logo needs it */
-        background: white;
-        padding: 5px;
         border-radius: 4px;
     }
 
@@ -60,7 +58,7 @@
         <p class="copyright-text">
             &copy;
             <script>document.write(new Date().getFullYear())</script>
-            **CSEE ULBS** - Computer Science and Electrical Engineering. All rights reserved.
+            CSEE ULBS - Computer Science and Electrical Engineering. All rights reserved.
         </p>
     </div>
 </footer>

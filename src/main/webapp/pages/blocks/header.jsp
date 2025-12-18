@@ -8,11 +8,18 @@
         --ulbs-red: #A30B0B;
     }
 
+    header.sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        width: 100%;
+    }
+
     .main-header {
         background-color: var(--brand-blue);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        padding: 0.8rem 2rem;
-        border-bottom: 4px solid var(--ulbs-red); /* The Red accent */
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        padding: 0.7rem 2rem;
+        border-bottom: 4px solid var(--ulbs-red);
     }
 
     .header-content {
@@ -28,7 +35,7 @@
     }
 
     .header-logo {
-        height: 60px; /* Adjust based on actual aspect ratio */
+        height: 75px; /* Adjust based on actual aspect ratio */
         width: auto;
     }
 
@@ -63,7 +70,7 @@
     }
 </style>
 
-<header class="container-fluid p-0">
+<header class="container-fluid p-0 sticky-header">
     <div class="main-header">
         <div class="header-content">
             <div class="brand-area">
