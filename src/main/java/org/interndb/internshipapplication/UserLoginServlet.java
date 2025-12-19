@@ -69,7 +69,7 @@ public class UserLoginServlet extends HttpServlet {
         if ("Admin".equals(role)) {
             response.sendRedirect("AdminDashboard");
         } else if ("Student".equals(role)) {
-            response.sendRedirect("Students");
+            response.sendRedirect("StudentDashboard");
         } else if ("Company".equals(role)) {
             response.sendRedirect("CompanyDashboard");
         } else if ("Faculty".equals(role)) {

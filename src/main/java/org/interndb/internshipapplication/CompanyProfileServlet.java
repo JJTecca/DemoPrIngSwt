@@ -187,6 +187,24 @@ public class CompanyProfileServlet extends HttpServlet {
                 logAction = AccountActivity.Action.UpdateWebsiteURL; // USING THE NEW ENUM
                 logDetails = "Updated company website URL.";
 
+            } else if ("update_shortname".equals(action)) {
+                String newShortName = request.getParameter("shortName");
+
+                // Validation: Usually short names are brief (e.g., "ULBS" or "Google")
+                if (newShortName != null) {
+                    newShortName = newShortName.trim();
+                    // Enforce the new 10-character limit
+                    if (newShortName.length() > 10) {
+                        newShortName = newShortName.substring(0, 10);
+                    }
+                } else {
+                    newShortName = "N/A";
+                }
+                finalShortName = newShortName;
+
+                logAction = AccountActivity.Action.UpdateShortName; // USING THE NEW ENUM
+                logDetails = "Updated company short name.";
+
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized company update action: " + action);
                 return;

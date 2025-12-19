@@ -2,24 +2,35 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <style>
-    :root {
-        --brand-blue: #0E2B58;
-        --brand-blue-dark: #071a38;
-        --ulbs-red: #A30B0B;
-    }
-
     header.sticky-header {
         position: sticky;
         top: 0;
         z-index: 1020;
         width: 100%;
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .header-logo {
+        height: 75px;
+        width: auto;
+        background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
+        /* This filter makes the logo entirely white and transparent-ish */
+        /* It works by removing all color (grayscale), inverting it to white,
+           and boosting brightness */
+        opacity: 0.95; /* Makes it look slightly integrated into the gradient */
+        transition: all 0.3s ease;
+        border-radius: 15%;
+    }
+
+    .header-logo:hover {
+        opacity: 1;
+        transform: scale(1.02);
     }
 
     .main-header {
-        background-color: var(--brand-blue);
+        background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         padding: 0.7rem 2rem;
-        border-bottom: 4px solid var(--ulbs-red);
     }
 
     .header-content {

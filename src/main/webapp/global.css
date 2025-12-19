@@ -1,0 +1,36 @@
+:root {
+    --brand-blue: #0E2B58;
+    --brand-blue-dark: #071a38;
+    --ulbs-red: #A30B0B;
+    --bg-light: #f4f7f6;
+    --brand-gradient: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
+}
+
+html, body {
+    height: auto;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container-fluid.flex-grow-1 {
+    height: auto;
+    min-height: auto;
+    flex-grow: 1;
+}
+
+.main-content {
+    padding: 2rem;
+}
+
+.dashboard-fixed-height {
+    height: 400px;
+    overflow-y: auto;
+}

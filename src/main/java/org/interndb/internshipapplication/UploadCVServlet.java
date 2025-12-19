@@ -37,7 +37,10 @@ public class UploadCVServlet extends HttpServlet {
             Part filePart = request.getPart("cvFile");
             if (filePart != null && filePart.getSize() > 0) {
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
-                boolean alreadyHadCv = student.getAttachment().isCvAvailable();
+                boolean alreadyHadCv = false;
+                if (student.getAttachment() != null) {
+                    alreadyHadCv = student.getAttachment().isCvAvailable();
+                }
 
                 String fileName = filePart.getSubmittedFileName();
                 String contentType = filePart.getContentType();

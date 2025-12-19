@@ -8,15 +8,15 @@
     String error = (String) request.getAttribute("error");
 
     // 2. Session Data
-    String userRole = (String) session.getAttribute("userRole");
+    String sessionRole = (String) session.getAttribute("userRole");
 
     // 3. Dashboard Link Determination
     String dashboardUrl;
-    if ("Student".equals(userRole)) {
+    if ("Student".equals(sessionRole)) {
         dashboardUrl = request.getContextPath() + "/Students";
-    } else if ("Company".equals(userRole)) {
+    } else if ("Company".equals(sessionRole)) {
         dashboardUrl = request.getContextPath() + "/CompanyDashboard";
-    } else if ("Admin".equals(userRole)) {
+    } else if ("Admin".equals(sessionRole)) {
         dashboardUrl = request.getContextPath() + "/AdminDashboard";
     } else {
         dashboardUrl = request.getContextPath() + "/index.jsp";
@@ -35,70 +35,10 @@
     <title>Internship Positions - CSEE ULBS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-            --bg-light: #f4f7f6;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- Sidebar --- */
-        .sidebar-container {
-            background-color: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: calc(100vh - 85px);
-        }
-
-        .sidebar-title {
-            color: var(--brand-blue);
-            font-weight: 800;
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link {
-            color: #555 !important;
-            font-weight: 500;
-            padding: 0.8rem 1.5rem;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-link:hover {
-            background-color: #f8f9fa;
-            color: var(--brand-blue) !important;
-            border-left-color: var(--brand-blue);
-        }
-
-        .nav-link.active {
-            background-color: rgba(14, 43, 88, 0.05);
-            color: var(--brand-blue) !important;
-            border-left-color: var(--ulbs-red);
-            font-weight: 700;
-        }
-
-        .nav-link i {
-            width: 25px;
-            text-align: center;
-            margin-right: 10px;
-        }
-
-        .main-content {
-            padding: 2rem;
-        }
-
-        /* --- Header Stats --- */
+        /* --- Header Stats (Unique to this page) --- */
         .header-stat {
             background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
             color: white;
@@ -120,7 +60,7 @@
             opacity: 0.1;
         }
 
-        /* --- Cards --- */
+        /* --- Position Cards (Unique to this page) --- */
         .position-card {
             background: white;
             border: none;
@@ -154,19 +94,9 @@
             border: 1px solid #bbdefb;
         }
 
-        .btn-brand {
-            background-color: var(--brand-blue);
-            color: white;
-            border: none;
-        }
-
-        .btn-brand:hover {
-            background-color: var(--brand-blue-dark);
-            color: white;
-        }
-
+        /* --- Action Links --- */
         .company-link {
-            color: #777; /* Default muted color for company name */
+            color: #777;
             text-decoration: none;
             transition: color 0.3s ease;
         }
@@ -178,14 +108,26 @@
 
         .position-title-link {
             font-weight: bold;
-            color: var(--brand-blue-dark); /* Initial dark color */
+            color: var(--brand-blue-dark);
             text-decoration: none;
-            transition: color 0.3s ease; /* Smooth transition */
+            transition: color 0.3s ease;
             display: inline-block;
         }
+
         .position-title-link:hover {
-            color: var(--ulbs-red); /* Hover color */
+            color: var(--ulbs-red);
             text-decoration: underline;
+        }
+
+        .btn-brand {
+            background-color: var(--brand-blue);
+            color: white;
+            border: none;
+        }
+
+        .btn-brand:hover {
+            background-color: var(--brand-blue-dark);
+            color: white;
         }
     </style>
 </head>
@@ -195,71 +137,13 @@
 
 <div class="container-fluid flex-grow-1">
     <div class="row h-100">
-
-        <div class="col-md-3 col-lg-2 p-0 sidebar-container d-none d-md-block">
-            <% if ("Student".equals(userRole)) { %>
-            <h5 class="sidebar-title"><i class="fa-solid fa-graduation-cap me-2"></i> Student Portal</h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link" href="<%= dashboardUrl %>">
-                    <i class="fa-solid fa-table-columns"></i> Dashboard
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/StudentProfile">
-                    <i class="fa-regular fa-id-card"></i> My Profile
-                </a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
-                    <i class="fa-solid fa-briefcase"></i> Internships
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-solid fa-calendar-check"></i> Schedule
-                </a>
-            </div>
-            <% } else if ("Company".equals(userRole)) { %>
-            <h5 class="sidebar-title"><i class="fa-solid fa-building me-2"></i> Company Portal</h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link" href="<%= dashboardUrl %>">
-                    <i class="fa-solid fa-table-columns"></i> Dashboard
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/CompanyProfile">
-                    <i class="fa-regular fa-id-card"></i> Company Profile
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-solid fa-user-friends"></i> Enrolled Interns
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-regular fa-comments"></i> Chats
-                </a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
-                    <i class="fa-solid fa-briefcase"></i> Positions
-                </a>
-            </div>
-            <% } else if ("Admin".equals(userRole)) { %>
-            <h5 class="sidebar-title"><i class="fa-solid fa-shield-halved me-2"></i> Admin Portal</h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link" href="<%= dashboardUrl %>">
-                    <i class="fa-solid fa-table-columns"></i> Dashboard
-                </a>
-                <a class="nav-link" href="#users">
-                    <i class="fa-solid fa-users"></i> Manage Users
-                </a>
-                <a class="nav-link active" href="${pageContext.request.contextPath}/InternshipPositions">
-                    <i class="fa-solid fa-briefcase"></i> Manage Internships
-                </a>
-                <a class="nav-link" href="#reports">
-                    <i class="fa-solid fa-file-pdf"></i> Reports
-                </a>
-            </div>
-            <% } %>
-
-            <%-- FIX: Reduced mt-5 to mt-3 for closer logout spacing --%>
-            <div class="mt-3 border-top pt-3">
-                <form action="${pageContext.request.contextPath}/Logout" method="post">
-                    <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </button>
-                </form>
-            </div>
-        </div>
-
+        <% if ("Student".equals(sessionRole)) { %>
+        <jsp:include page="../blocks/studentSidebar.jsp"/>
+        <% } else if ("Company".equals(sessionRole)) { %>
+        <jsp:include page="../blocks/companySidebar.jsp"/>
+        <% } else if ("Admin".equals(sessionRole)) { %>
+        <jsp:include page="../blocks/adminSidebar.jsp"/>
+        <% } %>
         <div class="col-md-9 col-lg-10 main-content">
 
             <% if (error != null) { %>
@@ -335,7 +219,7 @@
                                 <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
                             </small>
 
-                            <% if ("Student".equals(userRole)) { %>
+                            <% if ("Student".equals(sessionRole)) { %>
                             <button class="btn btn-brand btn-sm px-4 rounded-pill"
                                     data-bs-toggle="modal"
                                     data-bs-target="#applyModal<%= pos.getId() %>">
@@ -401,7 +285,7 @@
                             <div class="modal-footer border-0 justify-content-center pb-4">
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
 
-                                <% if ("Student".equals(userRole)) { %>
+                                <% if ("Student".equals(sessionRole)) { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">
                                     <button type="submit" class="btn btn-brand px-5">
