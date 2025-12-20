@@ -6,7 +6,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
+
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -39,7 +39,8 @@ public class UploadProfilePictureServlet extends HttpServlet {
             return;
         }
 
-        String redirectUrl = role.equals("Company") ? "/CompanyProfile" : "/StudentProfile";
+        // Updated redirect logic: Faculty also goes to CompanyProfile (Department view)
+        String redirectUrl = (role.equals("Company") || role.equals("Faculty")) ? "/CompanyProfile" : "/StudentProfile";
 
         try {
             Part filePart = request.getPart("file");
@@ -58,17 +59,15 @@ public class UploadProfilePictureServlet extends HttpServlet {
                 if (student != null) {
                     profileId = student.getId();
                     alreadyHadPfp = (student.getAttachment() != null && student.getAttachment().isProfilePicAvailable());
-
-                    // CALLING RENAMED DEDICATED STUDENT METHOD
                     attachmentBean.updatePfpForStudent(profileId, fileBytes);
                 }
-            } else if ("Company".equals(role)) {
+            }
+            // UPDATED: Allowed Faculty to follow the Company/Department logic path
+            else if ("Company".equals(role) || "Faculty".equals(role)) {
                 CompanyInfoDto company = userAccountBean.getCompanyInfoByEmail(email);
                 if (company != null) {
                     profileId = company.getId();
                     alreadyHadPfp = (company.getAttachment() != null && company.hasProfilePic());
-
-                    // CALLING RENAMED DEDICATED COMPANY METHOD
                     attachmentBean.updatePfpForCompany(profileId, fileBytes);
                 }
             } else {
@@ -82,14 +81,11 @@ public class UploadProfilePictureServlet extends HttpServlet {
                 return;
             }
 
-            // --- Log Activity ---
+            // --- Log Activity (Layer-Safe using String key) ---
             UserAccountDto user = userAccountBean.findByEmail(email);
             if (user != null) {
-                AccountActivity.Action action = alreadyHadPfp
-                        ? AccountActivity.Action.ChangePFP
-                        : AccountActivity.Action.UploadPFP;
-
-                activityBean.logActivity(user.getUserId(), action, "Uploaded/Changed Profile Picture.");
+                String actionKey = alreadyHadPfp ? "ChangePFP" : "UploadPFP";
+                activityBean.logActivity(user.getUserId(), actionKey, "Uploaded/Changed Profile Picture.");
             }
 
             response.sendRedirect(request.getContextPath() + redirectUrl + "?t=" + System.currentTimeMillis());
@@ -97,7 +93,7 @@ public class UploadProfilePictureServlet extends HttpServlet {
         } catch (Exception e) {
             LOG.severe("Failed to upload profile picture: " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to upload profile picture. Check server logs for details.");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to upload profile picture.");
         }
     }
 }

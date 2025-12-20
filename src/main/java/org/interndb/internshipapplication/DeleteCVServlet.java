@@ -5,7 +5,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
+
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -38,7 +38,11 @@ public class DeleteCVServlet extends HttpServlet {
             attachmentBean.deleteCvForStudent(student.getId());
 
             UserAccountDto user = userAccountBean.findByEmail(email);
-            if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.DeleteCV, null);
+
+            // FIX: Pass "DeleteCV" as a String key instead of using the AccountActivity.Action Enum
+            if (user != null) {
+                activityBean.logActivity(user.getUserId(), "DeleteCV", null);
+            }
 
             response.sendRedirect(request.getContextPath() + "/StudentProfile");
         } catch (Exception e) {

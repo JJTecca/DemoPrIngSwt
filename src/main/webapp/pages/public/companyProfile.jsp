@@ -8,6 +8,13 @@
     String sessionEmail = (String) session.getAttribute("userEmail");
     String sessionRole = (String) session.getAttribute("userRole");
 
+    // Dynamic label logic
+    boolean isFaculty = "Faculty".equals(sessionRole);
+    String mainLabel = isFaculty ? "Faculty" : "Company";
+    String deptLabel = isFaculty ? "Department" : "Company";
+    String positionLabel = isFaculty ? "Tutoring Positions" : "Internship Positions";
+    String postBtnLabel = isFaculty ? "New Tutoring Post" : "Post Internship";
+
     boolean isOwner = (sessionEmail != null && company != null && sessionEmail.equals(company.getUserEmail())) || "Admin".equals(sessionRole);
     if (company == null) {
         response.sendRedirect(request.getContextPath() + "/index.jsp");
@@ -23,12 +30,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= company.getName() %> - Company Profile</title>
+    <title><%= company.getName() %> - <%= mainLabel %> Profile</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
+        /* Existing CSS maintained */
         .profile-card {
             background: white;
             border-radius: 8px;
@@ -112,10 +120,6 @@
             transform: scale(1.2);
         }
 
-        .profile-img-overlay:not(:has(.delete-side)) {
-            gap: 0;
-        }
-
         .positions-scroll-wrapper::-webkit-scrollbar {
             width: 6px;
         }
@@ -131,12 +135,6 @@
 
         .positions-scroll-wrapper::-webkit-scrollbar-thumb:hover {
             background: var(--brand-blue);
-        }
-
-        /* Ensure items don't look cramped */
-        .position-list-item {
-            padding: 12px 8px;
-            border-bottom: 1px solid #f0f0f0;
         }
 
         .info-label {
@@ -158,8 +156,28 @@
             transition: background 0.2s;
         }
 
+        .position-list-item:hover {
+            background-color: #fafafa;
+        }
+
+        .btn-gray-modern {
+            background-color: #f1f3f5;
+            color: #475467;
+            border: 1px solid #ced4da;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .btn-gray-modern:hover {
+            background-color: #e9ecef;
+            color: #1d2939;
+            border-color: #adb5bd;
+            transform: translateY(-1px);
+        }
+
         .btn-brand {
-            background: var(--brand-blue); /* Or use the gradient: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%) */
+            background: var(--brand-blue);
             color: white;
             border: none;
             font-weight: 600;
@@ -190,6 +208,8 @@
         <jsp:include page="../blocks/companySidebar.jsp"/>
         <% } else if ("Admin".equals(sessionRole)) { %>
         <jsp:include page="../blocks/adminSidebar.jsp"/>
+        <% } else if ("Faculty".equals(sessionRole)) { %>
+        <jsp:include page="../blocks/facultySidebar.jsp"/>
         <% } %>
 
         <div class="col-md-9 col-lg-10 main-content">
@@ -221,6 +241,7 @@
                         </h3>
                         <p class="text-muted small"><%= company.getWebsite() != null ? company.getWebsite() : "No website listed" %>
                         </p>
+
                         <div class="mb-4">
                             <span class="badge rounded-pill bg-primary px-3 py-2">Short Name: <%= company.getShortName() %></span>
                             <% if (isOwner) { %>
@@ -235,18 +256,14 @@
                                 <button class="btn btn-sm btn-link p-0 float-end" data-bs-toggle="modal"
                                         data-bs-target="#editBioModal"><i class="fa-solid fa-pen fa-xs"></i></button>
                                 <% } %></h6>
-                            <div class="text-dark small"><%= company.getBiography() != null ? company.getBiography() : "No bio." %>
+                            <div class="text-dark small"><%= company.getBiography() != null ? company.getBiography() : "No biography provided." %>
                             </div>
                         </div>
 
                         <div class="d-grid gap-2 mt-auto">
                             <% if (isOwner) { %>
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
+                            <button class="btn btn-gray-modern btn-sm px-3" data-bs-toggle="modal"
                                     data-bs-target="#changePasswordModal">Change Password
-                            </button>
-                            <% } else { %>
-                            <button type="button" class="btn btn-brand btn-sm px-4" data-bs-toggle="modal" data-bs-target="#contactCompanyModal">
-                                <i class="fa-solid fa-paper-plane me-2"></i> Contact Us
                             </button>
                             <% } %>
                         </div>
@@ -255,11 +272,15 @@
 
                 <div class="col-lg-8">
                     <div class="profile-card p-4 mb-4">
-                        <h5 class="fw-bold mb-4 text-primary"><i class="fa-solid fa-globe me-2"></i> Company Info</h5>
+                        <h5 class="fw-bold mb-4 text-primary"><i
+                                class="<%= isFaculty ? "fa-solid fa-building-columns" : "fa-solid fa-globe" %> me-2"></i> <%= deptLabel %>
+                            Info</h5>
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="info-label">Email</div>
-                                <div class="info-value"><%= company.getUserEmail() %>
+                                <div class="info-label">Contact Email <% if (isOwner) { %><i
+                                        class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
+                                        data-bs-target="#editContactEmailModal"></i><% } %></div>
+                                <div class="info-value"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "N/A" %>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -267,14 +288,14 @@
                                         class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
                                         data-bs-target="#editWebsiteModal"></i><% } %></div>
                                 <div class="info-value"><a href="<%= company.getWebsite() %>"
-                                                           target="_blank"><%= company.getWebsite() %>
+                                                           target="_blank"><%= company.getWebsite() != null ? company.getWebsite() : "N/A" %>
                                 </a></div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="info-label">Company Description<% if (isOwner) { %><i
+                            <div class="col-md-12">
+                                <div class="info-label"><%= deptLabel %> Description<% if (isOwner) { %><i
                                         class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
                                         data-bs-target="#editDescModal"></i><% } %></div>
-                                <div class="info-value"><%= company.getCompDescription() %>
+                                <div class="info-value"><%= company.getCompDescription() != null ? company.getCompDescription() : "No description set." %>
                                 </div>
                             </div>
                         </div>
@@ -283,29 +304,35 @@
                     <div class="profile-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="fw-bold m-0 text-primary">
-                                <i class="fa-solid fa-briefcase me-2"></i> Internship Positions
+                                <i class="<%= isFaculty ? "fa-solid fa-chalkboard-user" : "fa-solid fa-briefcase" %> me-2"></i> <%= positionLabel %>
                             </h5>
                             <% if (isOwner) { %>
                             <button class="btn btn-sm btn-brand" data-bs-toggle="modal"
-                                    data-bs-target="#postPositionModal">New Post
+                                    data-bs-target="#postPositionModal"><%= postBtnLabel %>
                             </button>
                             <% } %>
                         </div>
 
-                        <div class="positions-scroll-wrapper" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
+                        <div class="positions-scroll-wrapper"
+                             style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
                             <div class="list-group list-group-flush">
                                 <% if (myPositions != null && !myPositions.isEmpty()) { %>
                                 <% for (InternshipPositionDto pos : myPositions) { %>
                                 <div class="position-list-item d-flex justify-content-between align-items-center">
                                     <div>
-                                        <div class="fw-bold"><%= pos.getTitle() %></div>
-                                        <div class="small text-muted">Deadline: <%= pos.getDeadline() %></div>
+                                        <div class="fw-bold"><%= pos.getTitle() %>
+                                        </div>
+                                        <div class="small text-muted">Deadline: <%= pos.getDeadline() %>
+                                        </div>
                                     </div>
                                     <span class="badge bg-light text-primary border"><%= pos.getMaxSpots() %> Spots</span>
                                 </div>
                                 <% } %>
                                 <% } else { %>
-                                <div class="text-center py-4 text-muted">No active positions.</div>
+                                <div class="text-center py-5 d-flex flex-column align-items-center">
+                                    <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
+                                    <p class="text-muted small">No <%= positionLabel.toLowerCase() %> found.</p>
+                                </div>
                                 <% } %>
                             </div>
                         </div>
@@ -318,12 +345,33 @@
 
 <jsp:include page="../blocks/footer.jsp"/>
 
-<%-- RESTORED CRUD MODALS --%>
+<%-- CRUD MODALS --%>
 <% if (isOwner) { %>
+
+<div class="modal fade" id="editContactEmailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Contact Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST">
+                <input type="hidden" name="action" value="update_contact_email">
+                <div class="modal-body">
+                    <input type="email" name="contactEmail" class="form-control"
+                           value="<%= company.getContactEmail() != null ? company.getContactEmail() : "" %>" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-brand">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="editWebsiteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Website</h5>
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit URL</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST"><input type="hidden"
@@ -361,7 +409,7 @@
 <div class="modal fade" id="editShortNameModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Short Name</h5>
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Short Reference</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST"><input type="hidden"
@@ -378,15 +426,15 @@
 </div>
 
 <div class="modal fade" id="editDescModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-sm">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Company Description</h5>
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit <%= deptLabel %> Description</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST"><input type="hidden"
                                                                                                   name="action"
                                                                                                   value="update_description">
-                <div class="modal-body"><input type="text" name="compDescription" class="form-control" maxlength="50"
+                <div class="modal-body"><input type="text" name="compDescription" class="form-control" maxlength="100"
                                                value="<%= company.getCompDescription() %>" required></div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-brand">Save</button>
@@ -400,7 +448,7 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content text-center">
             <div class="modal-body p-4"><i class="fa-solid fa-trash-can fa-3x text-danger mb-3"></i>
-                <p>Remove company logo?</p>
+                <p>Remove image?</p>
                 <div class="d-flex gap-2 justify-content-center mt-3">
                     <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
                     <a href="${pageContext.request.contextPath}/DeleteProfilePicture" class="btn btn-danger btn-sm">Confirm</a>
@@ -436,11 +484,11 @@
 <div class="modal fade" id="postPositionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Post Internship</h5>
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Post New Role</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center py-5"><i class="fa-solid fa-tools fa-2x text-muted mb-3"></i>
-                <p class="text-muted">Job creation form coming soon.</p></div>
+                <p class="text-muted">Post creation form coming soon.</p></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>

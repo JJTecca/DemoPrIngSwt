@@ -146,6 +146,22 @@
             margin-bottom: 1rem;
         }
 
+        .btn-gray-modern {
+            background-color: #f1f3f5;
+            color: #475467; /* A professional slate gray */
+            border: 1px solid #ced4da;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .btn-gray-modern:hover {
+            background-color: #e9ecef;
+            color: #1d2939;
+            border-color: #adb5bd;
+            transform: translateY(-1px);
+        }
+
         .btn-brand {
             background: var(--brand-blue); /* Or use the gradient: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%) */
             color: white;
@@ -178,6 +194,8 @@
         <jsp:include page="../blocks/companySidebar.jsp"/>
         <% } else if ("Admin".equals(sessionRole)) { %>
         <jsp:include page="../blocks/adminSidebar.jsp"/>
+        <% } else if ("Faculty".equals(sessionRole)) { %>
+        <jsp:include page="../blocks/facultySidebar.jsp"/>
         <% } %>
 
         <div class="col-md-9 col-lg-10 main-content">
@@ -223,12 +241,10 @@
 
                         <div class="d-grid gap-2">
                             <% if (isOwner) { %>
-                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2"></i> Password
+                            <button class="btn btn-gray-modern btn-sm px-3" data-bs-toggle="modal"
+                                    data-bs-target="#changePasswordModal">
+                                <i class="fa-solid fa-key me-2 text-secondary"></i> Change Password
                             </button>
-                            <% } else { %>
-                            <a href="mailto:<%= student.getUserEmail() %>" class="btn btn-brand btn-sm"><i
-                                    class="fa-solid fa-envelope me-2"></i> Contact</a>
                             <% } %>
                         </div>
                     </div>
@@ -255,10 +271,16 @@
                             <div class="col-md-4">
                                 <div class="info-label">Study Year</div>
                                 <div class="info-value">Year <%= student.getStudyYear() %>
+                                    <% if ("Faculty".equals(sessionRole)) { %>
+                                    <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
+                                            data-bs-target="#editStudyYearModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="info-label">Last Year's Grade</div>
+                                <div class="info-label">Study Grade</div>
                                 <div class="info-value">
                                     <% if ("Company".equals(sessionRole) && !student.getGradeVisibility()) { %><span
                                         class="text-muted small fst-italic">Private</span><% } else { %>
@@ -267,6 +289,11 @@
                                     <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
                                             data-bs-target="#confirmHideGradeModal">
                                         <i class="fa-solid <%= student.getGradeVisibility() ? "fa-eye text-primary" : "fa-eye-slash text-muted" %>"></i>
+                                    </button>
+                                    <% } else if ("Faculty".equals(sessionRole)) { %>
+                                    <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
+                                            data-bs-target="#editStudyGradeModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <% } %>
                                     <% } %>
@@ -299,7 +326,7 @@
                             <i class="fa-solid fa-cloud-arrow-up cv-icon opacity-25"></i>
                             <h5>No CV Uploaded</h5>
                             <% if (isOwner) { %>
-                            <button class="btn btn-outline-brand mt-3" data-bs-toggle="modal"
+                            <button class="btn btn-brand mt-3 px-4 py-2" data-bs-toggle="modal"
                                     data-bs-target="#uploadCvModal">Upload Now
                             </button>
                             <% } %>
@@ -351,7 +378,7 @@
                         type="password" name="confirmPassword" class="form-control" placeholder="Confirm New Password"
                         required></div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-brand">Update Password</button>
+                    <button type="submit" class="btn btn-brand">Change Password</button>
                 </div>
             </form>
         </div>
@@ -436,6 +463,55 @@
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<% if ("Faculty".equals(sessionRole)) { %>
+<div class="modal fade" id="editStudyYearModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Edit Study Year</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="${pageContext.request.contextPath}/StudentProfile" method="POST">
+                <input type="hidden" name="action" value="update_student_year">
+                <input type="hidden" name="studentId" value="<%= student.getId() %>">
+                <div class="modal-body">
+                    <select name="studyYear" class="form-select">
+                        <% for(int i=2; i<=3; i++) { %>
+                        <option value="<%= i %>" <%= student.getStudyYear() == i ? "selected" : "" %>>Year <%= i %></option>
+                        <% } %>
+                    </select>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-brand w-100">Save Year</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editStudyGradeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Edit Study Grade</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="${pageContext.request.contextPath}/StudentProfile" method="POST">
+                <input type="hidden" name="action" value="update_student_grade">
+                <input type="hidden" name="studentId" value="<%= student.getId() %>">
+                <div class="modal-body">
+                    <input type="number" name="studyGrade" class="form-control" step="0.01" min="1" max="10" maxlength="4"
+                           value="<%= student.getLastYearGrade() %>" required>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-brand w-100">Save Grade</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

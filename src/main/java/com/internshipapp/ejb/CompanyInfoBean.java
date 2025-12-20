@@ -2,6 +2,7 @@ package com.internshipapp.ejb;
 
 import com.internshipapp.common.AttachmentDto;
 import com.internshipapp.common.CompanyInfoDto;
+import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.entities.Attachment;
 import com.internshipapp.entities.CompanyInfo;
 import com.internshipapp.entities.UserAccount;
@@ -84,6 +85,7 @@ public class CompanyInfoBean {
                 studentsAppliedString,
                 entity.getBiography(),
                 getAttachmentDto(entity.getAttachment()),
+                entity.getContactEmail(),
                 userEmail,
                 username,
                 userId
@@ -99,7 +101,7 @@ public class CompanyInfoBean {
 
     public void updateCompany(Long companyId, String name, String shortName, String website,
                               String compDescription, String openedPositions, String studentsApplied,
-                              String biography) {
+                              String biography, String contactEmail) {
         try {
             CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
             if (company != null) {
@@ -113,6 +115,7 @@ public class CompanyInfoBean {
                 company.setOpenedPositions(openedPositions);
                 company.setStudentsApplied(studentsApplied);
                 company.setBiography(biography);
+                company.setContactEmail(contactEmail);
 
                 entityManager.merge(company);
             }

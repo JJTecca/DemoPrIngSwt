@@ -5,7 +5,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.StudentInfoBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
+
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -52,7 +52,6 @@ public class StudentProfileServlet extends HttpServlet {
                 if ("Student".equals(role)) {
                     student = userAccountBean.getStudentInfoByEmail(loggedInEmail);
                 } else {
-                    // Non-students without an ID param get redirected
                     if ("Company".equals(role)) {
                         response.sendRedirect("pages/panels/companyPanel.jsp");
                         return;
@@ -63,16 +62,11 @@ public class StudentProfileServlet extends HttpServlet {
             }
 
             if (student == null) {
-                // Handle case where profile doesn't exist
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Student profile not found");
-                request.getRequestDispatcher("/pages/error.jsp").forward(request, response);
                 return;
             }
 
             request.setAttribute("student", student);
-
-            // --- UPDATED PATH HERE ---
-            // Points to: webapp/pages/profiles/studentProfile.jsp
             request.getRequestDispatcher("/pages/public/studentProfile.jsp").forward(request, response);
 
         } catch (NumberFormatException e) {
@@ -92,24 +86,27 @@ public class StudentProfileServlet extends HttpServlet {
         String role = (String) session.getAttribute("userRole");
         String action = request.getParameter("action");
 
-        // 1. GENERIC SECURITY CHECK
-        if (loggedInEmail == null || !"Student".equals(role) || action == null) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied or missing action parameter.");
+        if (loggedInEmail == null || action == null || (!"Student".equals(role) && !"Faculty".equals(role))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied.");
             return;
         }
 
         try {
-            // 2. GENERIC DATA FETCH
-            StudentInfoDto studentDto = userAccountBean.getStudentInfoByEmail(loggedInEmail);
+            StudentInfoDto studentDto;
+            String studentIdParam = request.getParameter("studentId");
+
+            if ("Faculty".equals(role) && studentIdParam != null) {
+                studentDto = studentInfoBean.findById(Long.parseLong(studentIdParam));
+            } else {
+                studentDto = userAccountBean.getStudentInfoByEmail(loggedInEmail);
+            }
 
             if (studentDto == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Student profile not found.");
                 return;
             }
 
-            // Fetch UserAccount data for logging purposes
             UserAccountDto userDto = userAccountBean.findByEmail(loggedInEmail);
-
             if (userDto == null) {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "User account data missing.");
                 return;
@@ -117,10 +114,8 @@ public class StudentProfileServlet extends HttpServlet {
 
             // 3. ACTION DISPATCHER
             if ("update_bio".equals(action)) {
-
                 String newBiography = request.getParameter("biography");
 
-                // Data Cleaning and Validation for Biography (Max 255 chars)
                 if (newBiography != null) {
                     newBiography = newBiography.trim();
                     if (newBiography.length() > 255) {
@@ -130,7 +125,6 @@ public class StudentProfileServlet extends HttpServlet {
                     newBiography = "";
                 }
 
-                // Call EJB method with ALL fields
                 studentInfoBean.updateStudent(
                         studentDto.getId(),
                         studentDto.getFirstName(),
@@ -144,11 +138,11 @@ public class StudentProfileServlet extends HttpServlet {
                         studentDto.getGradeVisibility()
                 );
 
-                // 4. Log the Activity (NEW)
+                // 4. Log the Activity (Layer-Safe using String key)
                 activityBean.logActivity(
                         userDto.getUserId(),
-                        AccountActivity.Action.UpdateBiography, // USING the new enum value
-                        "Updated profile biography." // Dynamic data, or null/fixed string
+                        "UpdateBiography",
+                        "Updated profile biography."
                 );
 
                 response.sendRedirect(request.getContextPath() + "/StudentProfile?update=bio_success");
@@ -157,7 +151,6 @@ public class StudentProfileServlet extends HttpServlet {
                 String visibilityParam = request.getParameter("gradeVisibility");
                 boolean newVisibility = (visibilityParam != null);
 
-                // 1. Update the database via the monolith method
                 studentInfoBean.updateStudent(
                         studentDto.getId(),
                         studentDto.getFirstName(),
@@ -171,16 +164,44 @@ public class StudentProfileServlet extends HttpServlet {
                         newVisibility
                 );
 
-                // 2. Conditional Logging Logic
                 if (!newVisibility) {
-                    // ONLY log HideStudyGrade if they are actually hiding it
+                    // FIX: Pass "HideStudyGrade" as a String key
                     activityBean.logActivity(
                             userDto.getUserId(),
-                            AccountActivity.Action.HideStudyGrade,
+                            "HideStudyGrade",
                             "Student restricted grade visibility for companies."
                     );
                 }
                 response.sendRedirect(request.getContextPath() + "/StudentProfile?update=visibility_success");
+            }else if ("update_student_grade".equals(action) && "Faculty".equals(role)) {
+                // Action 1: Update only the grade
+                String newGradeStr = request.getParameter("studyGrade");
+                if (newGradeStr != null) {
+                    Float newGrade = Float.parseFloat(newGradeStr);
+                    studentInfoBean.updateStudent(
+                            studentDto.getId(), studentDto.getFirstName(), studentDto.getMiddleName(),
+                            studentDto.getLastName(), studentDto.getStudyYear(), newGrade,
+                            studentDto.getStatus(), studentDto.getEnrolled(),
+                            studentDto.getBiography(), studentDto.getGradeVisibility()
+                    );
+                    // No activity log saved as requested
+                }
+                response.sendRedirect(request.getContextPath() + "/StudentProfile?id=" + studentDto.getId() + "&update=grade_success");
+
+            } else if ("update_student_year".equals(action) && "Faculty".equals(role)) {
+                // Action 2: Update only the year
+                String newYearStr = request.getParameter("studyYear");
+                if (newYearStr != null) {
+                    Integer newYear = Integer.parseInt(newYearStr);
+                    studentInfoBean.updateStudent(
+                            studentDto.getId(), studentDto.getFirstName(), studentDto.getMiddleName(),
+                            studentDto.getLastName(), newYear, studentDto.getLastYearGrade(),
+                            studentDto.getStatus(), studentDto.getEnrolled(),
+                            studentDto.getBiography(), studentDto.getGradeVisibility()
+                    );
+                    // No activity log saved as requested
+                }
+                response.sendRedirect(request.getContextPath() + "/StudentProfile?id=" + studentDto.getId() + "&update=year_success");
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized profile update action: " + action);
             }

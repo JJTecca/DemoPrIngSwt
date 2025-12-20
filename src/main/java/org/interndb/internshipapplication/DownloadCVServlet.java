@@ -8,7 +8,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 @WebServlet(name = "DownloadCVServlet", value = "/DownloadCV")
 public class DownloadCVServlet extends HttpServlet {

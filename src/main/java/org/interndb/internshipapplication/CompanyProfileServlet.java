@@ -7,7 +7,6 @@ import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.CompanyInfoBean;
 import com.internshipapp.ejb.InternshipPositionBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -60,14 +59,23 @@ public class CompanyProfileServlet extends HttpServlet {
                 // SCENARIO B: Viewing "My Profile"
                 if ("Company".equals(role)) {
                     company = companyInfoBean.findByUserEmail(loggedInEmail);
-                } else {
-                    response.sendRedirect("Students");
+                }
+                // ADDED: Condition for Faculty Role
+                else if ("Faculty".equals(role)) {
+                    UserAccountDto user = userAccountBean.findByEmail(loggedInEmail);
+                    if (user != null && user.getCompanyId() != null) {
+                        company = companyInfoBean.findById(user.getCompanyId());
+                    } else {
+                        company = companyInfoBean.findByUserEmail(loggedInEmail);
+                    }
+                }
+                else {
+                    response.sendRedirect(request.getContextPath() + "/StudentDashboard");
                     return;
                 }
             }
 
             if (company == null) {
-                // Critical data error: profile expected but not found
                 request.setAttribute("errorMessage", "Company profile data could not be loaded. This is a system error. Please contact administration.");
                 request.getRequestDispatcher("/pages/error.jsp").forward(request, response);
                 return;
@@ -97,16 +105,20 @@ public class CompanyProfileServlet extends HttpServlet {
         String role = (String) session.getAttribute("userRole");
         String action = request.getParameter("action");
 
-        // 1. SECURITY CHECK
-        if (loggedInEmail == null || !"Company".equals(role) || action == null) {
+        if (loggedInEmail == null || action == null || (!"Company".equals(role) && !"Faculty".equals(role))) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied or missing action parameter.");
             return;
         }
 
         try {
-            // Fetch ALL existing data to pass back to the bulk update EJB method
-            CompanyInfoDto companyDto = companyInfoBean.findByUserEmail(loggedInEmail);
             UserAccountDto userDto = userAccountBean.findByEmail(loggedInEmail);
+            CompanyInfoDto companyDto = null;
+
+            if (userDto != null && userDto.getCompanyId() != null) {
+                companyDto = companyInfoBean.findById(userDto.getCompanyId());
+            } else {
+                companyDto = companyInfoBean.findByUserEmail(loggedInEmail);
+            }
 
             if (companyDto == null || userDto == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Company or User profile not found.");
@@ -114,8 +126,6 @@ public class CompanyProfileServlet extends HttpServlet {
             }
 
             // --- Initialization for Bulk Update ---
-            // These variables hold the current (old) values, and will be updated
-            // only if the corresponding action is triggered.
             String finalName = companyDto.getName();
             String finalShortName = companyDto.getShortName();
             String finalWebsite = companyDto.getWebsite();
@@ -123,17 +133,14 @@ public class CompanyProfileServlet extends HttpServlet {
             String finalOpenedPositions = companyDto.getOpenedPositions();
             String finalStudentsApplied = companyDto.getStudentsApplied();
             String finalBiography = companyDto.getBiography();
+            String finalContactEmail = companyDto.getContactEmail();
 
-            AccountActivity.Action logAction = null;
+            // FIX: Use String keys instead of Entity Enums
+            String logActionKey = null;
             String logDetails = "";
 
-
-            // 2. ACTION DISPATCHER & DATA CLEANING/MAPPING
             if ("update_biography".equals(action)) {
-
                 String newBiography = request.getParameter("biography");
-
-                // Validation and Cleaning (Max 255 chars)
                 if (newBiography != null) {
                     newBiography = newBiography.trim();
                     if (newBiography.length() > 255) {
@@ -142,17 +149,12 @@ public class CompanyProfileServlet extends HttpServlet {
                 } else {
                     newBiography = "";
                 }
-
                 finalBiography = newBiography;
-
-                logAction = AccountActivity.Action.UpdateBiography;
+                logActionKey = "UpdateBiography";
                 logDetails = "Updated profile biography.";
 
             } else if ("update_description".equals(action)) {
-
                 String newCompDescription = request.getParameter("compDescription");
-
-                // Validation and Cleaning (Max 50 chars)
                 if (newCompDescription != null) {
                     newCompDescription = newCompDescription.trim();
                     if (newCompDescription.length() > 50) {
@@ -161,17 +163,12 @@ public class CompanyProfileServlet extends HttpServlet {
                 } else {
                     newCompDescription = "";
                 }
-
                 finalCompDescription = newCompDescription;
-
-                logAction = AccountActivity.Action.UpdateDescription;
-                logDetails = "Updated company short description.";
+                logActionKey = "UpdateDescription";
+                logDetails = "Updated short description.";
 
             } else if ("update_website".equals(action)) {
-
                 String newWebsite = request.getParameter("website");
-
-                // Validation and Cleaning (Max 510 chars as per entity definition)
                 if (newWebsite != null) {
                     newWebsite = newWebsite.trim();
                     if (newWebsite.length() > 510) {
@@ -180,20 +177,14 @@ public class CompanyProfileServlet extends HttpServlet {
                 } else {
                     newWebsite = "";
                 }
-
                 finalWebsite = newWebsite;
-
-                // LOGGING THE NEW ACTION
-                logAction = AccountActivity.Action.UpdateWebsiteURL; // USING THE NEW ENUM
-                logDetails = "Updated company website URL.";
+                logActionKey = "UpdateWebsiteURL";
+                logDetails = "Updated website URL.";
 
             } else if ("update_shortname".equals(action)) {
                 String newShortName = request.getParameter("shortName");
-
-                // Validation: Usually short names are brief (e.g., "ULBS" or "Google")
                 if (newShortName != null) {
                     newShortName = newShortName.trim();
-                    // Enforce the new 10-character limit
                     if (newShortName.length() > 10) {
                         newShortName = newShortName.substring(0, 10);
                     }
@@ -201,31 +192,43 @@ public class CompanyProfileServlet extends HttpServlet {
                     newShortName = "N/A";
                 }
                 finalShortName = newShortName;
+                logActionKey = "UpdateShortName";
+                logDetails = "Updated short name.";
 
-                logAction = AccountActivity.Action.UpdateShortName; // USING THE NEW ENUM
-                logDetails = "Updated company short name.";
+            } else if ("update_contact_email".equals(action)) {
+                String newContactEmail = request.getParameter("contactEmail");
+                if (newContactEmail != null) {
+                    newContactEmail = newContactEmail.trim();
+                    if (newContactEmail.length() > 255) {
+                        newContactEmail = newContactEmail.substring(0, 255);
+                    }
+                } else {
+                    newContactEmail = "";
+                }
+                finalContactEmail = newContactEmail;
+                logActionKey = "UpdateContactEmail";
+                logDetails = "Updated contact email.";
 
             } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized company update action: " + action);
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized action: " + action);
                 return;
             }
 
-            // 3. BULK EJB CALL: Pass ALL fields (updated field + current/unchanged fields)
-            //
             companyInfoBean.updateCompany(
                     companyDto.getId(),
                     finalName,
                     finalShortName,
-                    finalWebsite, // Pass finalWebsite
+                    finalWebsite,
                     finalCompDescription,
                     finalOpenedPositions,
                     finalStudentsApplied,
-                    finalBiography
+                    finalBiography,
+                    finalContactEmail
             );
 
-            // 4. LOG ACTIVITY
-            if (logAction != null) {
-                activityBean.logActivity(userDto.getUserId(), logAction, logDetails);
+            // 4. LOG ACTIVITY (Layer-Safe Call using the new String overload)
+            if (logActionKey != null) {
+                activityBean.logActivity(userDto.getUserId(), logActionKey, logDetails);
             }
 
             response.sendRedirect(request.getContextPath() + "/CompanyProfile?update=success");
@@ -233,7 +236,7 @@ public class CompanyProfileServlet extends HttpServlet {
         } catch (Exception e) {
             LOG.severe("Error in CompanyProfileServlet doPost: " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Company profile update failed.");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Profile update failed.");
         }
     }
 }

@@ -479,20 +479,31 @@
 
                                             String appliedDate = app.getAppliedAt() != null ? app.getAppliedAt().toString().substring(0, 10) : "N/A";
                                             String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
+
+                                            // Company Logo Logic
+                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getInternshipPositionId() + "&targetRole=Company";
+                                            String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
                                         %>
                                         <tr>
                                             <td class="ps-4">
-                                                <a href="#" class="position-title-link"
-                                                   data-bs-toggle="modal"
-                                                   data-bs-target="#detailsModal_<%= app.getId() %>">
-                                                    <%= app.getPositionTitle() %>
-                                                </a>
-                                                <div class="small">
-                                                    <i class="fa-regular fa-building me-1 text-muted"></i>
-                                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
-                                                       class="company-link text-decoration-none">
-                                                        <%= app.getCompanyName() %>
-                                                    </a>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <img src="<%= companyLogoUrl %>"
+                                                         onerror="this.onerror=null;this.src='<%= companyFallback %>';"
+                                                         class="student-avatar-small border"
+                                                         style="width: 32px; height: 32px; border-radius: 4px; object-fit: contain; padding: 2px; background: white;">
+                                                    <div>
+                                                        <a href="#" class="position-title-link"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#detailsModal_<%= app.getId() %>">
+                                                            <%= app.getPositionTitle() %>
+                                                        </a>
+                                                        <div class="small">
+                                                            <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                               class="company-link text-decoration-none" style="font-size: 0.85rem;">
+                                                                <%= app.getCompanyName() %>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td class="small text-muted"><%= appliedDate %>

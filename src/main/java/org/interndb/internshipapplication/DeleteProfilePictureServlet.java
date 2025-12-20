@@ -6,7 +6,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
+
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,7 +37,8 @@ public class DeleteProfilePictureServlet extends HttpServlet {
             return;
         }
 
-        String redirectUrl = role.equals("Company") ? "/CompanyProfile" : "/StudentProfile";
+        // UPDATED: Redirect Faculty to CompanyProfile (Department view)
+        String redirectUrl = (role.equals("Company") || role.equals("Faculty")) ? "/CompanyProfile" : "/StudentProfile";
 
         try {
             Long profileId = null;
@@ -47,14 +48,14 @@ public class DeleteProfilePictureServlet extends HttpServlet {
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
                 if (student != null) {
                     profileId = student.getId();
-                    // CALLING RENAMED DEDICATED STUDENT METHOD
                     attachmentBean.deletePfpForStudent(profileId);
                 }
-            } else if ("Company".equals(role)) {
+            }
+            // UPDATED: Allowed Faculty to follow the Company/Department logic path
+            else if ("Company".equals(role) || "Faculty".equals(role)) {
                 CompanyInfoDto company = userAccountBean.getCompanyInfoByEmail(email);
                 if (company != null) {
                     profileId = company.getId();
-                    // CALLING RENAMED DEDICATED COMPANY METHOD
                     attachmentBean.deletePfpForCompany(profileId);
                 }
             } else {
@@ -68,16 +69,18 @@ public class DeleteProfilePictureServlet extends HttpServlet {
                 return;
             }
 
-            // --- Log Activity ---
+            // --- Log Activity (Layer-Safe using String key) ---
             UserAccountDto user = userAccountBean.findByEmail(email);
-            if (user != null) activityBean.logActivity(user.getUserId(), AccountActivity.Action.DeletePFP, "Deleted Profile Picture.");
+            if (user != null) {
+                activityBean.logActivity(user.getUserId(), "DeletePFP", "Deleted Profile Picture.");
+            }
 
             response.sendRedirect(request.getContextPath() + redirectUrl + "?t=" + System.currentTimeMillis());
 
         } catch (Exception e) {
             LOG.severe("Failed to delete profile picture: " + e.getMessage());
             e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete profile picture. Check server logs for details.");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to delete profile picture.");
         }
     }
 }

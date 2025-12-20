@@ -39,7 +39,8 @@ public class AccountActivity {
         UpdateDescription,
         UpdateWebsiteURL,
         HideStudyGrade,
-        UpdateShortName
+        UpdateShortName,
+        UpdateContactEmail
     }
 
     @Enumerated(EnumType.STRING)

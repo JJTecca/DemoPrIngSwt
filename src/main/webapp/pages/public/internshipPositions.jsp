@@ -10,21 +10,8 @@
     // 2. Session Data
     String sessionRole = (String) session.getAttribute("userRole");
 
-    // 3. Dashboard Link Determination
-    String dashboardUrl;
-    if ("Student".equals(sessionRole)) {
-        dashboardUrl = request.getContextPath() + "/Students";
-    } else if ("Company".equals(sessionRole)) {
-        dashboardUrl = request.getContextPath() + "/CompanyDashboard";
-    } else if ("Admin".equals(sessionRole)) {
-        dashboardUrl = request.getContextPath() + "/AdminDashboard";
-    } else {
-        dashboardUrl = request.getContextPath() + "/index.jsp";
-    }
-
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
-    int displayedCount = (positions != null) ? positions.size() : 0;
 %>
 
 <!DOCTYPE html>
@@ -38,7 +25,7 @@
     <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        /* --- Header Stats (Unique to this page) --- */
+        /* CSS maintained exactly as provided */
         .header-stat {
             background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
             color: white;
@@ -60,7 +47,6 @@
             opacity: 0.1;
         }
 
-        /* --- Position Cards (Unique to this page) --- */
         .position-card {
             background: white;
             border: none;
@@ -94,7 +80,6 @@
             border: 1px solid #bbdefb;
         }
 
-        /* --- Action Links --- */
         .company-link {
             color: #777;
             text-decoration: none;
@@ -144,8 +129,8 @@
         <% } else if ("Admin".equals(sessionRole)) { %>
         <jsp:include page="../blocks/adminSidebar.jsp"/>
         <% } %>
-        <div class="col-md-9 col-lg-10 main-content">
 
+        <div class="col-md-9 col-lg-10 main-content">
             <% if (error != null) { %>
             <div class="alert alert-danger"><%= error %>
             </div>
@@ -156,10 +141,8 @@
                     <div class="col-md-8">
                         <h2 class="fw-bold mb-1"><i class="fa-solid fa-briefcase me-2"></i> Internship Opportunities
                         </h2>
-                        <p class="mb-0 opacity-75">
-                            Browse <strong><%= totalPositions %>
-                        </strong> available positions from our partner companies.
-                        </p>
+                        <p class="mb-0 opacity-75">Browse <strong><%= totalPositions %>
+                        </strong> available positions.</p>
                     </div>
                     <div class="col-md-4">
                         <div class="bg-white rounded p-1 shadow-sm">
@@ -167,7 +150,7 @@
                                 <span class="input-group-text bg-transparent border-0"><i
                                         class="fa-solid fa-magnifying-glass text-muted"></i></span>
                                 <input type="text" id="searchInput" class="form-control border-0 shadow-none"
-                                       placeholder="Search by title or company...">
+                                       placeholder="Search...">
                             </div>
                         </div>
                     </div>
@@ -176,36 +159,36 @@
 
             <div class="row g-4" id="positionsGrid">
                 <% if (positions != null && !positions.isEmpty()) { %>
-                <% for (InternshipPositionDto pos : positions) { %>
+                <% for (InternshipPositionDto pos : positions) {
+                    // Dynamic Profile Logic
+                    String companyPfp = request.getContextPath() + "/ProfilePicture?id=" + pos.getCompanyId() + "&targetRole=Company";
+                    String fallbackAvatar = "https://ui-avatars.com/api/?name=" + pos.getCompanyName() + "&background=0E2B58&color=fff&size=100";
+                %>
                 <div class="col-xl-6 position-item"
-                     data-search="<%= pos.getTitle().toLowerCase() %> <%= pos.getCompanyName() != null ? pos.getCompanyName().toLowerCase() : "" %>">
+                     data-search="<%= pos.getTitle().toLowerCase() %> <%= pos.getCompanyName().toLowerCase() %>">
                     <div class="position-card p-4">
-
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="d-flex gap-3 align-items-center">
-                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
-                                   title="View Company Profile">
-                                    <img src="https://ui-avatars.com/api/?name=<%= pos.getCompanyName() %>&background=0E2B58&color=fff&size=64"
-                                         class="company-logo-small" alt="<%= pos.getCompanyName() %>">
+                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>">
+                                    <img src="<%= companyPfp %>"
+                                         onerror="this.onerror=null;this.src='<%= fallbackAvatar %>';"
+                                         class="company-logo-small" alt="Logo">
                                 </a>
                                 <div>
-                                    <%-- Position Title Link with Hover --%>
-                                    <a href="#" class="position-title-link"
-                                       data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                    <a href="#" class="position-title-link" data-bs-toggle="modal"
+                                       data-bs-target="#applyModal<%= pos.getId() %>">
                                         <%= pos.getTitle() %>
                                     </a>
-
-                                    <%-- Company Name Link with Hover --%>
                                     <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
                                        class="company-link small text-decoration-none d-block">
                                         <i class="fa-solid fa-building me-1"></i> <%= pos.getCompanyName() %>
                                     </a>
                                 </div>
                             </div>
-                            <span class="badge badge-spots rounded-pill" title="Filled / Total Spots">
-                                    <i class="fa-solid fa-users me-1"></i>
-                                    <%= (pos.getFilledSpots() != null ? pos.getFilledSpots() : 0) %> / <%= pos.getMaxSpots() %>
-                                </span>
+                            <span class="badge badge-spots rounded-pill">
+                                <i class="fa-solid fa-users me-1"></i>
+                                <%= (pos.getFilledSpots() != null ? pos.getFilledSpots() : 0) %> / <%= pos.getMaxSpots() %>
+                            </span>
                         </div>
 
                         <p class="text-muted small mb-4 flex-grow-1">
@@ -214,29 +197,23 @@
                         </p>
 
                         <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                            <small class="text-muted">
-                                <i class="fa-regular fa-clock me-1"></i> Deadline:
-                                <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
+                            <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>
+                                Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
                             </small>
-
                             <% if ("Student".equals(sessionRole)) { %>
-                            <button class="btn btn-brand btn-sm px-4 rounded-pill"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#applyModal<%= pos.getId() %>">
-                                Apply Now
+                            <button class="btn btn-brand btn-sm px-4 rounded-pill" data-bs-toggle="modal"
+                                    data-bs-target="#applyModal<%= pos.getId() %>">Apply Now
                             </button>
                             <% } else { %>
-                            <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#applyModal<%= pos.getId() %>">
-                                View Details
+                            <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill" data-bs-toggle="modal"
+                                    data-bs-target="#applyModal<%= pos.getId() %>">View Details
                             </button>
                             <% } %>
                         </div>
-
                     </div>
                 </div>
 
+                <%-- Application Modal --%>
                 <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
@@ -245,24 +222,15 @@
                             </div>
                             <div class="modal-body p-5 pt-0">
                                 <div class="text-center mb-4">
-                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
-                                       title="View Company Profile" class="company-link">
-                                        <img src="https://ui-avatars.com/api/?name=<%= pos.getCompanyName() %>&background=0E2B58&color=fff&size=80"
-                                             class="rounded-circle mb-3 border p-1" width="80">
+                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>">
+                                        <img src="<%= companyPfp %>"
+                                             onerror="this.onerror=null;this.src='<%= fallbackAvatar %>';"
+                                             class="rounded-circle mb-3 border p-1" width="80" height="80"
+                                             style="object-fit: cover;">
                                     </a>
-                                    <h3 class="fw-bold">
-                                        <%-- Position Title Link inside Modal with Hover --%>
-                                        <a href="#" class="position-title-link"
-                                           data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
-                                            <%= pos.getTitle() %>
-                                        </a>
+                                    <h3 class="fw-bold"><%= pos.getTitle() %>
                                     </h3>
-                                    <p class="text-muted">
-                                        <%-- Company Name Link inside Modal with Hover --%>
-                                        <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
-                                           class="company-link text-muted">
-                                            <%= pos.getCompanyName() %>
-                                        </a>
+                                    <p class="text-muted"><%= pos.getCompanyName() %>
                                     </p>
                                 </div>
 
@@ -284,12 +252,11 @@
                             </div>
                             <div class="modal-footer border-0 justify-content-center pb-4">
                                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-
                                 <% if ("Student".equals(sessionRole)) { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">
-                                    <button type="submit" class="btn btn-brand px-5">
-                                        <i class="fa-solid fa-paper-plane me-2"></i> Confirm Application
+                                    <button type="submit" class="btn btn-brand px-5"><i
+                                            class="fa-solid fa-paper-plane me-2"></i> Confirm Application
                                     </button>
                                 </form>
                                 <% } %>
@@ -305,30 +272,20 @@
                 </div>
                 <% } %>
             </div>
-
         </div>
     </div>
 </div>
 
 <jsp:include page="../blocks/footer.jsp"/>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Search Filter Logic
     document.getElementById('searchInput').addEventListener('keyup', function () {
         let filter = this.value.toLowerCase();
         let cards = document.querySelectorAll('.position-item');
-
-        cards.forEach(function (card) {
-            let text = card.getAttribute('data-search');
-            if (text.includes(filter)) {
-                card.classList.remove('d-none');
-            } else {
-                card.classList.add('d-none');
-            }
+        cards.forEach(card => {
+            card.classList.toggle('d-none', !card.getAttribute('data-search').includes(filter));
         });
     });
 </script>
-
 </body>
 </html>

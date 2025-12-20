@@ -181,8 +181,7 @@
         }
 
         .scrollable-list {
-            /* Set height to fit roughly 1.5 - 2 items */
-            height: 160px;
+            height: 360px;
             overflow-y: auto;
             position: relative;
             border-bottom-left-radius: 8px;
@@ -359,8 +358,7 @@
                         </div>
                         <div class="card-body p-0">
                             <% if (applications != null && !applications.isEmpty()) { %>
-                            <%-- This wrapper controls the 400px height and vertical scrolling --%>
-                            <div class="applications-scroll-area" style="height: 400px; overflow-y: auto; position: relative;">
+                            <div class="applications-scroll-area" style="height: 500px; overflow-y: auto; position: relative;">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle mb-0">
                                         <%-- sticky-top keeps the header visible while you scroll --%>
@@ -389,7 +387,6 @@
                                         <tr>
                                             <td class="ps-4">
                                                 <a href="<%= profileLink %>" class="student-link">
-                                                    <%-- onerror handles the fallback if the servlet returns a 404 or broken image --%>
                                                     <img src="<%= pfpUrl %>"
                                                          onerror="this.onerror=null;this.src='<%= fallbackUrl %>';"
                                                          alt="Avatar" class="student-avatar-small">
@@ -417,8 +414,7 @@
                                 </div>
                             </div>
                             <% } else { %>
-                            <%-- Matches the 400px height for empty states to keep the layout consistent --%>
-                            <div class="text-center py-5 d-flex flex-column justify-content-center" style="height: 500px;">
+                            <div class="text-center py-5 d-flex flex-column justify-content-center" style="height: 700px;">
                                 <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
                                 <p class="text-muted">No applications received yet.</p>
                             </div>
