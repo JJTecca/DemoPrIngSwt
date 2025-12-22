@@ -8,78 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        /* Shared Roots matching Login */
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-            --bg-light: #f4f7f6;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- Sidebar Styling --- */
-        .sidebar-container {
-            background-color: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: 100%; /* approximate header height */
-        }
-
-        .sidebar-title {
-            color: var(--brand-blue);
-            font-weight: 800;
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link {
-            color: #555 !important;
-            font-weight: 500;
-            padding: 0.8rem 1.5rem;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-link:hover {
-            background-color: #f8f9fa;
-            color: var(--brand-blue) !important;
-            border-left-color: var(--brand-blue);
-        }
-
-        .nav-link.active {
-            background-color: rgba(14, 43, 88, 0.05);
-            color: var(--brand-blue) !important;
-            border-left-color: var(--ulbs-red); /* Red accent for active */
-            font-weight: 700;
-        }
-
-        .nav-link i {
-            width: 25px;
-            text-align: center;
-            margin-right: 10px;
-        }
-
-        /* --- Content Styling --- */
-        .main-content {
-            padding: 2rem;
-        }
-
-        .page-title {
-            color: var(--brand-blue-dark);
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        /* --- Modern Stats Cards --- */
+        /* --- Admin Dashboard Specific Stats --- */
         .stat-card {
             background: white;
             border: none;
@@ -103,7 +35,6 @@
             height: 4px;
         }
 
-        /* Card Accent Colors */
         .card-users::before {
             background-color: var(--brand-blue);
         }
@@ -112,7 +43,6 @@
             background-color: #008080;
         }
 
-        /* Teal */
         .card-companies::before {
             background-color: #444;
         }
@@ -145,7 +75,7 @@
             color: black;
         }
 
-        /* --- Tables --- */
+        /* --- Admin Table Styles --- */
         .custom-card {
             border: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -166,7 +96,7 @@
             border: none;
         }
 
-        /* Action Buttons */
+        /* Approval & Rejection Colors */
         .btn-approve {
             background-color: #28a745;
             color: white;
@@ -189,7 +119,6 @@
             color: #856404;
             border: 1px solid #ffeeba;
         }
-
     </style>
 </head>
 <body>
@@ -199,40 +128,7 @@
 <div class="container-fluid flex-grow-1">
     <div class="row h-100">
 
-        <div class="col-md-3 col-lg-2 p-0 sidebar-container d-none d-md-block">
-            <h5 class="sidebar-title">
-                <i class="fa-solid fa-screwdriver-wrench me-2"></i> Admin Panel
-            </h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link active" href="AdminDashboard">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard
-                </a>
-                <a class="nav-link" href="#users">
-                    <i class="fa-solid fa-users"></i> Manage Users
-                </a>
-                <a class="nav-link" href="#companies">
-                    <i class="fa-solid fa-building"></i> Manage Companies
-                </a>
-                <a class="nav-link" href="AdminRequests">
-                    <i class="fa-solid fa-envelope-open-text"></i> Requests
-                    <c:if test="${pendingRequestsCount > 0}">
-                        <span class="badge rounded-pill bg-danger float-end">${pendingRequestsCount}</span>
-                    </c:if>
-                </a>
-                <a class="nav-link" href="#positions">
-                    <i class="fa-solid fa-briefcase"></i> Internships
-                </a>
-                <a class="nav-link" href="#reports">
-                    <i class="fa-solid fa-file-pdf"></i> Reports
-                </a>
-
-                <div class="mt-5 border-top pt-3">
-                    <a class="nav-link text-danger" href="${pageContext.request.contextPath}/UserLogin">
-                        <i class="fa-solid fa-right-from-bracket"></i> Logout
-                    </a>
-                </div>
-            </div>
-        </div>
+        <jsp:include page="../blocks/adminSidebar.jsp"/>
 
         <div class="col-md-9 col-lg-10 main-content">
 

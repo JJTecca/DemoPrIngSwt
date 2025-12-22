@@ -9,52 +9,35 @@
     <title>Register Company - Internship Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        /* ALL YOUR ORIGINAL STYLES HERE - KEEP THEM EXACTLY AS BEFORE */
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-        }
-
         .register-container {
             display: flex;
             min-height: 100vh;
         }
 
+        /* --- Left Side: Form Area --- */
         .register-form-area {
             position: relative;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             padding: 2rem;
-
             background-image: url('images/background1.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
+        /* Background Overlay */
         .register-form-area::before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(
-                    to bottom,
-                    rgba(14, 43, 88, 0.50),
-                    rgba(14, 43, 88, 0.65)
-            );
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
             z-index: 1;
         }
 
@@ -74,7 +57,8 @@
         }
 
         .form-box-header {
-            background-color: var(--brand-blue);
+            /* FIXED: Added Branding Gradient */
+            background: var(--brand-gradient);
             padding: 2.5rem 2.5rem 1rem 2.5rem;
             color: white;
         }
@@ -123,7 +107,8 @@
         }
 
         .btn-main-register {
-            background-color: var(--brand-blue);
+            /* FIXED: Added Branding Gradient */
+            background: var(--brand-gradient);
             border: none;
             color: white;
             font-weight: 700;
@@ -134,12 +119,13 @@
         }
 
         .btn-main-register:hover {
-            background-color: var(--brand-blue-dark);
+            filter: brightness(1.1);
             transform: translateY(-2px);
             box-shadow: 0 8px 15px rgba(14, 43, 88, 0.3);
             color: white;
         }
 
+        /* --- Right Side: Info Sidebar --- */
         .register-info-area {
             background: #fff;
             color: var(--brand-blue);
@@ -149,13 +135,23 @@
             flex-direction: column;
             text-align: center;
             padding: 3rem;
-            border-left: 10px solid var(--brand-blue);
             position: relative;
             z-index: 5;
         }
 
+        /* FIX: Gradient Vertical Bar with no white gap */
+        .register-info-area::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 100%;
+            background: var(--brand-gradient);
+        }
+
         .ulbs-logo {
-            max-width: 250px;
+            max-width: 100%;
             height: auto;
             margin-bottom: 2rem;
         }
@@ -167,38 +163,22 @@
             line-height: 1.6;
         }
 
-        .highlight-text {
-            color: var(--brand-blue);
-            font-weight: 800;
-        }
+        .highlight-text { color: var(--brand-blue); font-weight: 800; }
 
-        /* Success Modal Styles - Minimal addition */
-        .success-icon {
-            color: #28a745;
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
+        /* Success Modal Styles */
+        .success-icon { color: #28a745; font-size: 4rem; margin-bottom: 1rem; }
         .modal-success-header {
-            background-color: var(--brand-blue);
+            background: var(--brand-gradient);
             color: white;
             border-bottom: none;
         }
-
-        .modal-success-header .btn-close {
-            filter: invert(1) grayscale(100%) brightness(200%);
-        }
-
+        .modal-success-header .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
         .modal-success-btn {
-            background-color: var(--brand-blue);
-            border-color: var(--brand-blue);
+            background: var(--brand-gradient);
+            border: none;
             color: white;
         }
-
-        .modal-success-btn:hover {
-            background-color: var(--brand-blue-dark);
-            border-color: var(--brand-blue-dark);
-        }
+        .modal-success-btn:hover { filter: brightness(1.1); color: white; }
     </style>
 </head>
 <body>
@@ -410,6 +390,6 @@
         window.location.href = '${pageContext.request.contextPath}/UserLogin';
     }
 </script>
-
+<jsp:include page="../blocks/footer.jsp"/>
 </body>
 </html>

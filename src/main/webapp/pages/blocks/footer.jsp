@@ -2,7 +2,7 @@
 
 <style>
     .main-footer {
-        background-color: var(--brand-blue-dark);
+        background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
         color: white;
         padding: 2rem 0;
         margin-top: auto; /* Pushes footer to bottom if flex container used */
@@ -22,7 +22,8 @@
         width: auto;
         margin-bottom: 1.5rem;
         /* Optional: Add white background container if logo needs it */
-        border-radius: 4px;
+        transition: all 0.3s ease;
+        border-radius: 8%;
     }
 
     .footer-links {

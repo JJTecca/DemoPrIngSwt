@@ -10,8 +10,8 @@
     List<InternshipApplicationDto> applications = (List<InternshipApplicationDto>) request.getAttribute("applications");
 
     // Session Data
-    String userEmail = (String) session.getAttribute("userEmail");
-    String userRole = (String) session.getAttribute("userRole");
+    String sessionEmail = (String) session.getAttribute("userEmail");
+    String sessionRole = (String) session.getAttribute("userRole");
 
     if (company == null) {
         response.sendRedirect(request.getContextPath() + "/UserLogin");
@@ -62,74 +62,10 @@
     <title>Company Dashboard - CSEE ULBS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-            --bg-light: #f4f7f6;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .sidebar-container {
-            background-color: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: 100%;
-        }
-
-        .sidebar-title {
-            color: var(--brand-blue);
-            font-weight: 800;
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link {
-            color: #555 !important;
-            font-weight: 500;
-            padding: 0.8rem 1.5rem;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-link:hover {
-            background-color: #f8f9fa;
-            color: var(--brand-blue) !important;
-            border-left-color: var(--brand-blue);
-        }
-
-        .nav-link.active {
-            background-color: rgba(14, 43, 88, 0.05);
-            color: var(--brand-blue) !important;
-            border-left-color: var(--ulbs-red);
-            font-weight: 700;
-        }
-
-        .nav-link i {
-            width: 25px;
-            text-align: center;
-            margin-right: 10px;
-        }
-
-        .main-content {
-            padding: 2rem;
-        }
-
-        .page-title {
-            color: var(--brand-blue-dark);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
+        /* --- Stat Cards (Unique to Dashboard) --- */
         .stat-card {
             background: white;
             border: none;
@@ -191,89 +127,7 @@
             color: black;
         }
 
-        .custom-card {
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border-radius: 8px;
-            background: white;
-            margin-bottom: 2rem;
-        }
-
-        .custom-card .card-header {
-            background-color: white;
-            border-bottom: 1px solid #eee;
-            padding: 1.2rem;
-            font-weight: 700;
-            color: var(--brand-blue);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .scrollable-list {
-            padding: 0;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .scrollable-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .scrollable-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .scrollable-list::-webkit-scrollbar-thumb {
-            background: var(--brand-blue);
-            border-radius: 4px;
-        }
-
-        .position-item {
-            padding: 1rem;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.2s;
-        }
-
-        .position-item:last-child {
-            border-bottom: none;
-        }
-
-        .position-item:hover {
-            background-color: #fafafa;
-        }
-
-        .position-title {
-            font-weight: 600;
-            color: var(--brand-blue-dark);
-            display: block;
-        }
-
-        .position-meta {
-            font-size: 0.85rem;
-            color: #777;
-        }
-
-        .timeline-item {
-            padding: 10px 15px;
-            border-left: 2px solid var(--ulbs-red);
-            margin: 15px;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: "";
-            position: absolute;
-            left: -6px;
-            top: 15px;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border: 2px solid var(--ulbs-red);
-            border-radius: 50%;
-        }
-
+        /* --- Application Table & Candidates --- */
         .student-avatar-small {
             width: 35px;
             height: 35px;
@@ -304,10 +158,6 @@
             font-weight: 600;
         }
 
-        .btn-chat:hover {
-            background-color: #bbdefb;
-        }
-
         .status-badge {
             font-size: 0.75rem;
             padding: 0.3em 0.7em;
@@ -330,6 +180,54 @@
             color: #0f5132;
         }
 
+        .scrollable-list {
+            height: 360px;
+            overflow-y: auto;
+            position: relative;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Custom Scrollbar for the Positions List */
+        .scrollable-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        .scrollable-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .scrollable-list::-webkit-scrollbar-thumb:hover {
+            background: var(--brand-blue);
+        }
+
+        /* --- Positions Mini-List --- */
+        .position-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .position-item:hover {
+            background-color: #fafafa;
+        }
+
+        .position-title {
+            font-weight: 600;
+            color: var(--brand-blue-dark);
+            display: block;
+        }
+
+        .position-meta {
+            font-size: 0.85rem;
+            color: #777;
+        }
+
         .profile-progress {
             font-size: 0.8rem;
             font-weight: 600;
@@ -345,36 +243,7 @@
 <div class="container-fluid flex-grow-1">
     <div class="row h-100">
 
-        <div class="col-md-3 col-lg-2 p-0 sidebar-container d-none d-md-block">
-            <h5 class="sidebar-title">
-                <i class="fa-solid fa-building me-2"></i> Company Portal
-            </h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link active" href="${pageContext.request.contextPath}/CompanyDashboard">
-                    <i class="fa-solid fa-table-columns"></i> Dashboard
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/CompanyProfile">
-                    <i class="fa-regular fa-id-card"></i> Company Profile
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-solid fa-user-friends"></i> Enrolled Interns
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-regular fa-comments"></i> Chats
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-solid fa-briefcase"></i> Positions
-                </a>
-
-                <div class="mt-3 border-top pt-3">
-                    <form action="${pageContext.request.contextPath}/Logout" method="post" class="d-inline">
-                        <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <jsp:include page="../blocks/companySidebar.jsp"/>
 
         <div class="col-md-9 col-lg-10 main-content">
 
@@ -483,59 +352,69 @@
                     </div>
 
                     <div class="card custom-card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fa-solid fa-user-check me-2"></i> Received Applications</span>
                             <span class="badge bg-light text-primary border"><%= totalAppsCount %> Pending</span>
                         </div>
                         <div class="card-body p-0">
                             <% if (applications != null && !applications.isEmpty()) { %>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                    <tr>
-                                        <th class="ps-4">Candidate</th>
-                                        <th>Position Applied</th>
-                                        <th>Status</th>
-                                        <th class="text-end pe-4">Actions</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <% for (InternshipApplicationDto app : applications) {
-                                        String badgeClass = "status-pending";
-                                        if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
-                                        else if ("Interview".equals(app.getStatus())) badgeClass = "status-interview";
+                            <div class="applications-scroll-area" style="height: 500px; overflow-y: auto; position: relative;">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <%-- sticky-top keeps the header visible while you scroll --%>
+                                        <thead class="bg-light sticky-top" style="z-index: 5; top: 0;">
+                                        <tr>
+                                            <th class="ps-4">Candidate</th>
+                                            <th>Position Applied</th>
+                                            <th>Status</th>
+                                            <th class="text-end pe-4">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <% for (InternshipApplicationDto app : applications) {
+                                            String badgeClass = "status-pending";
+                                            if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
+                                            else if ("Interview".equals(app.getStatus())) badgeClass = "status-interview";
 
-                                        String profileLink = "StudentProfile?id=" + app.getStudentId();
-                                        String avatarUrl = "https://ui-avatars.com/api/?name=Student+" + app.getStudentId() + "&background=random&size=100";
-                                    %>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <a href="<%= profileLink %>" class="student-link">
-                                                <img src="<%= avatarUrl %>" alt="Avatar" class="student-avatar-small">
-                                                <div>
-                                                    Student #<%= app.getStudentId() %>
-                                                </div>
-                                            </a>
-                                        </td>
-                                        <td class="small text-muted fw-bold">
-                                            <%= app.getPositionTitle() %>
-                                        </td>
-                                        <td>
-                                            <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button class="btn btn-sm btn-chat rounded-pill px-3"
-                                                    onclick="alert('Opening chat with Student #<%= app.getStudentId() %>')">
-                                                <i class="fa-regular fa-comments me-1"></i> Chat
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                    </tbody>
-                                </table>
+                                            String profileLink = "StudentProfile?id=" + app.getStudentId();
+
+                                            // DYNAMIC PROFILE PICTURE LOGIC:
+                                            // 1. Path to your ProfilePicture servlet
+                                            String pfpUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getStudentId() + "&targetRole=Student";
+                                            // 2. UI-Avatar fallback if the student doesn't have a picture
+                                            String fallbackUrl = "https://ui-avatars.com/api/?name=Student+" + app.getStudentId() + "&background=0E2B58&color=fff";
+                                        %>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <a href="<%= profileLink %>" class="student-link">
+                                                    <img src="<%= pfpUrl %>"
+                                                         onerror="this.onerror=null;this.src='<%= fallbackUrl %>';"
+                                                         alt="Avatar" class="student-avatar-small">
+                                                    <div>
+                                                        Student #<%= app.getStudentId() %>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                            <td class="small text-muted fw-bold">
+                                                <%= app.getPositionTitle() %>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3"
+                                                        onclick="alert('Opening chat with Student #<%= app.getStudentId() %>')">
+                                                    <i class="fa-regular fa-comments me-1"></i> Chat
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             <% } else { %>
-                            <div class="text-center py-5">
+                            <div class="text-center py-5 d-flex flex-column justify-content-center" style="height: 700px;">
                                 <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
                                 <p class="text-muted">No applications received yet.</p>
                             </div>
@@ -580,38 +459,9 @@
                         </div>
                     </div>
 
-                    <div class="card custom-card">
-                        <div class="card-header">
-                            <i class="fa-solid fa-clock-rotate-left me-2"></i> Account Activity
-                        </div>
-                        <div class="scrollable-list">
-                            <% if (activities != null && !activities.isEmpty()) { %>
-                            <% for (AccountActivityDto activity : activities) { %>
-                            <div class="timeline-item">
-                                <%
-                                    String rawAction = activity.getAction();
-                                    String prettyAction = rawAction.replaceAll("(?<=[a-z])(?=[A-Z])", " ");
-                                %>
-                                <div class="fw-bold text-dark small"><%= prettyAction %>
-                                </div>
-                                <div class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="fa-regular fa-clock me-1"></i>
-                                    <%= activity.getActionTime() != null ?
-                                            activity.getActionTime().toString().substring(0, 16) : "Just now" %>
-                                </div>
-                            </div>
-                            <% } %>
-                            <% } else { %>
-                            <div class="text-center py-4 text-muted small">
-                                <p>No recent activity found.</p>
-                            </div>
-                            <% } %>
-                        </div>
-                    </div>
-
+                    <jsp:include page="../blocks/activitySidebar.jsp" />
                 </div>
             </div>
-
         </div>
     </div>
 </div>

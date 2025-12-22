@@ -43,6 +43,8 @@ public class CompanyInfo {
     private String studentsApplied;
     @Column(name = "biography", length = 255)
     private String biography;
+    @Column(name = "contact_email", length = 255)
+    private String contactEmail;
 
     public CompanyInfo() {
     }
@@ -114,4 +116,8 @@ public class CompanyInfo {
     public String getBiography() { return this.biography; }
 
     public void setBiography(String biography) { this.biography = biography; }
+
+    public String getContactEmail() { return this.contactEmail; }
+
+    public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
 }

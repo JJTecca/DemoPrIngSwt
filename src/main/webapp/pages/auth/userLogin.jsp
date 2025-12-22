@@ -9,55 +9,35 @@
     <title>Log In - Internship Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-        }
-
-        .login-form-area {
-            position: relative !important;
-        }
-
         .login-container {
             display: flex;
             min-height: 100vh;
         }
 
+        /* --- Left Side: Form Area --- */
         .login-form-area {
             position: relative;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
             padding: 2rem;
-
             background-image: url('images/background0.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
+        /* Background Overlay */
         .login-form-area::before {
             content: "";
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(
-                    to bottom,
-                    rgba(14, 43, 88, 0.50),
-                    rgba(14, 43, 88, 0.65)
-            );
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
             z-index: 1;
         }
 
@@ -77,7 +57,8 @@
         }
 
         .form-box-header {
-            background-color: var(--brand-blue);
+            /* FIXED: Added Branding Gradient */
+            background: var(--brand-gradient);
             padding: 3rem 3rem 1rem 3rem;
             color: white;
         }
@@ -113,7 +94,8 @@
         }
 
         .btn-main-login {
-            background-color: var(--brand-blue);
+            /* FIXED: Added Branding Gradient */
+            background: var(--brand-gradient);
             border: none;
             color: white;
             font-weight: 700;
@@ -124,9 +106,10 @@
         }
 
         .btn-main-login:hover {
-            background-color: var(--brand-blue-dark);
+            filter: brightness(1.1);
             transform: translateY(-2px);
             box-shadow: 0 8px 15px rgba(14, 43, 88, 0.3);
+            color: white;
         }
 
         .btn-contact-us {
@@ -138,10 +121,12 @@
         }
 
         .btn-contact-us:hover {
-            background-color: var(--brand-blue);
+            background: var(--brand-gradient);
+            border-color: transparent;
             color: white;
         }
 
+        /* --- Right Side: Info Sidebar --- */
         .login-info-area {
             background: #fff;
             color: var(--brand-blue);
@@ -151,24 +136,29 @@
             flex-direction: column;
             text-align: center;
             padding: 3rem;
-            border-left: 10px solid var(--brand-blue);
             position: relative;
             z-index: 5;
         }
 
+        /* FIX: Gradient Vertical Bar with no white gap */
+        .login-info-area::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 12px;
+            height: 100%;
+            background: var(--brand-gradient);
+        }
+
         .ulbs-logo {
-            max-width: 280px;
+            max-width: 100%;
             height: auto;
             margin-bottom: 2rem;
         }
 
-        .login-info-area h1 {
-            color: var(--brand-blue);
-        }
-
-        .login-info-area h2 {
-            color: #555;
-        }
+        .login-info-area h1 { color: var(--brand-blue); }
+        .login-info-area h2 { color: #555; }
 
         .info-lead-text {
             color: #444;
@@ -177,16 +167,8 @@
             line-height: 1.6;
         }
 
-        .info-small-text {
-            color: #555;
-            font-weight: 600;
-        }
-
-        .highlight-text {
-            color: var(--brand-blue);
-            font-weight: 800;
-        }
-
+        .info-small-text { color: #555; font-weight: 600; }
+        .highlight-text { color: var(--brand-blue); font-weight: 800; }
     </style>
 </head>
 <body>
@@ -261,6 +243,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<jsp:include page="../blocks/footer.jsp"/>
 
 </body>
 </html>

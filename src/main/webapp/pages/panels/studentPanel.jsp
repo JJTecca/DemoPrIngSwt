@@ -14,8 +14,8 @@
     List<InternshipApplicationDto> myApplications = (List<InternshipApplicationDto>) request.getAttribute("myApplications");
 
     // Session Data
-    String userEmail = (String) session.getAttribute("userEmail");
-    String userRole = (String) session.getAttribute("userRole");
+    String sessionEmail = (String) session.getAttribute("userEmail");
+    String sessionRole = (String) session.getAttribute("userRole");
 
     if (student == null) {
         response.sendRedirect(request.getContextPath() + "/UserLogin");
@@ -83,92 +83,17 @@
     <title>Student Dashboard - CSEE ULBS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
-        :root {
-            --brand-blue: #0E2B58;
-            --brand-blue-dark: #071a38;
-            --ulbs-red: #A30B0B;
-            --bg-light: #f4f7f6;
-        }
-
-        html, body {
-            height: auto;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            font-family: 'Segoe UI', Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .container-fluid.flex-grow-1 {
-            height: auto;
-            min-height: auto;
-            flex-grow: 1;
-        }
-
-        .row.h-100 {
-            height: auto;
-            flex-grow: 1;
-        }
-
-        .sidebar-container {
-            background-color: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            min-height: 100%;
-        }
-
-        .sidebar-title {
-            color: var(--brand-blue);
-            font-weight: 800;
-            padding: 1.5rem 1rem;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 1rem;
-        }
-
-        .nav-link {
-            color: #555 !important;
-            font-weight: 500;
-            padding: 0.8rem 1.5rem;
-            transition: all 0.3s;
-            border-left: 4px solid transparent;
-        }
-
-        .nav-link:hover {
-            background-color: #f8f9fa;
-            color: var(--brand-blue) !important;
-            border-left-color: var(--brand-blue);
-        }
-
-        .nav-link.active {
-            background-color: rgba(14, 43, 88, 0.05);
-            color: var(--brand-blue) !important;
-            border-left-color: var(--ulbs-red);
-            font-weight: 700;
-        }
-
-        .nav-link i {
-            width: 25px;
-            text-align: center;
-            margin-right: 10px;
-        }
-
-        .main-content {
-            padding: 2rem;
-            min-height: 100vh;
-        }
-
+        /* --- Dashboard Specific Styles --- */
         .page-title {
             color: var(--brand-blue-dark);
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
 
+        /* --- Stat Cards --- */
         .stat-card {
             background: white;
             border: none;
@@ -234,6 +159,7 @@
             color: var(--brand-blue-dark);
         }
 
+        /* --- Dashboard Custom Cards --- */
         .custom-card {
             border: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -272,31 +198,7 @@
             text-align: right;
         }
 
-        .activity-timeline {
-            padding: 1rem;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .timeline-item {
-            border-left: 2px solid var(--ulbs-red);
-            padding-left: 15px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: "";
-            position: absolute;
-            left: -6px;
-            top: 5px;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border: 2px solid var(--ulbs-red);
-            border-radius: 50%;
-        }
-
+        /* --- Action Buttons --- */
         .btn-action {
             text-align: left;
             padding: 1rem;
@@ -310,7 +212,6 @@
         .btn-action:hover {
             background: var(--brand-blue);
             color: white;
-            border-color: var(--brand-blue);
             transform: translateX(5px);
         }
 
@@ -325,6 +226,7 @@
             color: white;
         }
 
+        /* --- Table Badges --- */
         .status-badge {
             font-size: 0.8rem;
             padding: 0.4em 0.8em;
@@ -356,30 +258,46 @@
             border: 1px solid #b6effb;
         }
 
-        /* --- NEW STYLES FOR TRANSITION AND HOVER --- */
         .position-title-link {
             font-weight: bold;
-            color: var(--brand-blue-dark); /* Initial dark color */
+            color: var(--brand-blue-dark);
             text-decoration: none;
-            transition: color 0.3s ease; /* Smooth transition */
-            display: inline-block;
+            transition: color 0.3s ease;
         }
+
         .position-title-link:hover {
-            color: var(--ulbs-red); /* Hover color */
+            color: var(--ulbs-red);
             text-decoration: underline;
         }
 
         .company-link {
             font-weight: 600;
-            color: #777; /* Set initial color to a neutral gray */
+            color: #777;
             text-decoration: none;
-            transition: color 0.3s ease; /* Smooth transition */
+            transition: color 0.3s ease;
         }
 
         .company-link:hover {
-            color: var(--ulbs-red); /* Hover color */
+            color: var(--ulbs-red);
         }
-        /* ------------------------------------------- */
+
+        .applications-scroll-container {
+            height: 400px; /* Adjust this value to your liking */
+            overflow-y: auto;
+        }
+
+        /* Custom scrollbar for the table (matching the activity sidebar) */
+        .applications-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .applications-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .applications-scroll-container::-webkit-scrollbar-thumb {
+            background: var(--brand-blue);
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -389,33 +307,7 @@
 <div class="container-fluid flex-grow-1">
     <div class="row">
 
-        <div class="col-md-3 col-lg-2 p-0 sidebar-container d-none d-md-block">
-            <h5 class="sidebar-title">
-                <i class="fa-solid fa-graduation-cap me-2"></i> Student Portal
-            </h5>
-            <div class="d-flex flex-column">
-                <a class="nav-link active" href="${pageContext.request.contextPath}/Students">
-                    <i class="fa-solid fa-table-columns"></i> Dashboard
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/StudentProfile">
-                    <i class="fa-regular fa-id-card"></i> My Profile
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/InternshipPositions">
-                    <i class="fa-solid fa-briefcase"></i> Internships
-                </a>
-                <a class="nav-link" href="#">
-                    <i class="fa-solid fa-calendar-check"></i> Schedule
-                </a>
-
-                <div class="mt-3 border-top pt-3">
-                    <form action="${pageContext.request.contextPath}/Logout" method="post" class="d-inline">
-                        <button type="submit" class="nav-link text-danger bg-transparent border-0 w-100 text-start">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <jsp:include page="../blocks/studentSidebar.jsp"/>
 
         <div class="col-md-9 col-lg-10 main-content">
 
@@ -532,7 +424,7 @@
                                     <h6 class="text-uppercase text-muted small fw-bold mb-3">Academic & Account</h6>
                                     <div class="info-list-item">
                                         <span class="info-label">Account Role</span>
-                                        <span class="badge bg-primary text-white"><%= userRole %></span>
+                                        <span class="badge bg-primary text-white"><%= sessionRole %></span>
                                     </div>
                                     <div class="info-list-item">
                                         <span class="info-label">CV Uploaded</span>
@@ -563,131 +455,146 @@
                             <% } %>
                         </div>
                         <div class="card-body p-0">
-                            <% if (myApplications != null && !myApplications.isEmpty()) { %>
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                    <tr>
-                                        <th class="ps-4">Position / Company</th>
-                                        <th>Applied Date</th>
-                                        <th>Status</th>
-                                        <th>Grade</th>
-                                        <th class="text-end pe-4">Actions</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <% for (InternshipApplicationDto app : myApplications) {
-                                        String badgeClass = "bg-secondary";
-                                        if ("Pending".equals(app.getStatus())) badgeClass = "status-pending";
-                                        else if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
-                                        else if ("Rejected".equals(app.getStatus())) badgeClass = "status-rejected";
-                                        else if ("Interview".equals(app.getStatus())) badgeClass = "status-interview";
+                            <div class="applications-scroll-container">
+                                <% if (myApplications != null && !myApplications.isEmpty()) { %>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-4">Position / Company</th>
+                                            <th>Applied Date</th>
+                                            <th>Status</th>
+                                            <th>Grade</th>
+                                            <th class="text-end pe-4">Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <% for (InternshipApplicationDto app : myApplications) {
+                                            String badgeClass = "bg-secondary";
+                                            if ("Pending".equals(app.getStatus())) badgeClass = "status-pending";
+                                            else if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
+                                            else if ("Rejected".equals(app.getStatus())) badgeClass = "status-rejected";
+                                            else if ("Interview".equals(app.getStatus()))
+                                                badgeClass = "status-interview";
 
-                                        String appliedDate = app.getAppliedAt() != null ? app.getAppliedAt().toString().substring(0, 10) : "N/A";
-                                        String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
-                                    %>
-                                    <tr>
-                                        <td class="ps-4">
-                                            <a href="#" class="position-title-link"
-                                               data-bs-toggle="modal" data-bs-target="#detailsModal_<%= app.getId() %>">
-                                                <%= app.getPositionTitle() %>
-                                            </a>
-                                            <div class="small">
-                                                <i class="fa-regular fa-building me-1 text-muted"></i>
-                                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
-                                                   class="company-link text-decoration-none">
-                                                    <%= app.getCompanyName() %>
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td class="small text-muted"><%= appliedDate %>
-                                        </td>
-                                        <td>
-                                            <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
-                                        </td>
-                                        <td>
-                                            <% if (app.getGrade() != null) { %>
-                                            <span class="fw-bold text-dark"><%= app.getGrade() %></span>
-                                            <% } else { %>
-                                            <span class="text-muted">-</span>
-                                            <% } %>
-                                        </td>
-                                        <td class="text-end pe-4">
-                                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#detailsModal_<%= app.getId() %>"
-                                                    title="View Details">
-                                                <i class="fa-regular fa-eye"></i>
-                                            </button>
+                                            String appliedDate = app.getAppliedAt() != null ? app.getAppliedAt().toString().substring(0, 10) : "N/A";
+                                            String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
 
-                                            <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>"
-                                                 tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header bg-light">
-                                                            <h5 class="modal-title fw-bold">Application Details</h5>
-                                                            <button type="button" class="btn-close"
-                                                                    data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body p-4">
-                                                            <div class="text-center mb-4">
-                                                                <h4 class="fw-bold text-primary mb-1"><%= app.getPositionTitle() %>
-                                                                </h4>
-                                                                <p class="text-muted fw-bold">
-                                                                    <i class="fa-solid fa-building me-2"></i>
-                                                                    <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
-                                                                       class="company-link text-muted text-decoration-none">
-                                                                        <%= app.getCompanyName() %>
-                                                                    </a>
-                                                                </p>
-                                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <small class="text-uppercase text-muted fw-bold">Applied
-                                                                    On</small>
-                                                                <div class="text-dark"><i
-                                                                        class="fa-regular fa-calendar-check me-2"></i> <%= appliedDate %>
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <small class="text-uppercase text-muted fw-bold">Description</small>
-                                                                <div class="bg-light p-3 rounded text-secondary small"><%= app.getDescription() %>
-                                                                </div>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <small class="text-uppercase text-muted fw-bold">Requirements</small>
-                                                                <div class="bg-light p-3 rounded text-secondary small"><%= app.getRequirements() %>
-                                                                </div>
-                                                            </div>
-                                                            <div class="alert alert-light border d-flex justify-content-between m-0">
-                                                                <span class="small fw-bold text-muted">Deadline:</span>
-                                                                <span class="fw-bold text-danger"><%= deadlineDate %></span>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer border-0">
-                                                            <button type="button" class="btn btn-secondary btn-sm"
-                                                                    data-bs-dismiss="modal">Close
-                                                            </button>
+                                            // Company Logo Logic
+                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getInternshipPositionId() + "&targetRole=Company";
+                                            String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
+                                        %>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <img src="<%= companyLogoUrl %>"
+                                                         onerror="this.onerror=null;this.src='<%= companyFallback %>';"
+                                                         class="student-avatar-small border"
+                                                         style="width: 32px; height: 32px; border-radius: 4px; object-fit: contain; padding: 2px; background: white;">
+                                                    <div>
+                                                        <a href="#" class="position-title-link"
+                                                           data-bs-toggle="modal"
+                                                           data-bs-target="#detailsModal_<%= app.getId() %>">
+                                                            <%= app.getPositionTitle() %>
+                                                        </a>
+                                                        <div class="small">
+                                                            <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                               class="company-link text-decoration-none" style="font-size: 0.85rem;">
+                                                                <%= app.getCompanyName() %>
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                                    </tbody>
-                                </table>
+                                            </td>
+                                            <td class="small text-muted"><%= appliedDate %>
+                                            </td>
+                                            <td>
+                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+                                            </td>
+                                            <td>
+                                                <% if (app.getGrade() != null) { %>
+                                                <span class="fw-bold text-dark"><%= app.getGrade() %></span>
+                                                <% } else { %>
+                                                <span class="text-muted">-</span>
+                                                <% } %>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#detailsModal_<%= app.getId() %>"
+                                                        title="View Details">
+                                                    <i class="fa-regular fa-eye"></i>
+                                                </button>
+
+                                                <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>"
+                                                     tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-light">
+                                                                <h5 class="modal-title fw-bold">Application Details</h5>
+                                                                <button type="button" class="btn-close"
+                                                                        data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body p-4">
+                                                                <div class="text-center mb-4">
+                                                                    <h4 class="fw-bold text-primary mb-1"><%= app.getPositionTitle() %>
+                                                                    </h4>
+                                                                    <p class="text-muted fw-bold">
+                                                                        <i class="fa-solid fa-building me-2"></i>
+                                                                        <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                                           class="company-link text-muted text-decoration-none">
+                                                                            <%= app.getCompanyName() %>
+                                                                        </a>
+                                                                    </p>
+                                                                    <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <small class="text-uppercase text-muted fw-bold">Applied
+                                                                        On</small>
+                                                                    <div class="text-dark"><i
+                                                                            class="fa-regular fa-calendar-check me-2"></i> <%= appliedDate %>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <small class="text-uppercase text-muted fw-bold">Description</small>
+                                                                    <div class="bg-light p-3 rounded text-secondary small"><%= app.getDescription() %>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <small class="text-uppercase text-muted fw-bold">Requirements</small>
+                                                                    <div class="bg-light p-3 rounded text-secondary small"><%= app.getRequirements() %>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="alert alert-light border d-flex justify-content-between m-0">
+                                                                    <span class="small fw-bold text-muted">Deadline:</span>
+                                                                    <span class="fw-bold text-danger"><%= deadlineDate %></span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer border-0">
+                                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                                        data-bs-dismiss="modal">Close
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <% } else { %>
+                                <div class="text-center py-5">
+                                    <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
+                                    <p class="text-muted">You haven't applied to any internships yet.</p>
+                                    <a href="${pageContext.request.contextPath}/InternshipPositions"
+                                       class="btn btn-primary btn-sm mt-2">
+                                        <i class="fa-solid fa-magnifying-glass me-2"></i> Browse Positions
+                                    </a>
+                                </div>
+                                <% } %>
                             </div>
-                            <% } else { %>
-                            <div class="text-center py-5">
-                                <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
-                                <p class="text-muted">You haven't applied to any internships yet.</p>
-                                <a href="${pageContext.request.contextPath}/InternshipPositions"
-                                   class="btn btn-primary btn-sm mt-2">
-                                    <i class="fa-solid fa-magnifying-glass me-2"></i> Browse Positions
-                                </a>
-                            </div>
-                            <% } %>
                         </div>
                     </div>
                 </div>
@@ -718,34 +625,7 @@
                         </div>
                     </div>
 
-                    <div class="card custom-card">
-                        <div class="card-header">
-                            <i class="fa-solid fa-clock-rotate-left me-2"></i> Recent Activity
-                        </div>
-                        <div class="card-body activity-timeline">
-                            <% if (activities != null && !activities.isEmpty()) { %>
-                            <% for (AccountActivityDto activity : activities) { %>
-                            <div class="timeline-item">
-                                <%
-                                    String rawAction = activity.getAction();
-                                    String prettyAction = rawAction.replaceAll("(?<=[a-z])(?=[A-Z])", " ");
-                                %>
-                                <div class="fw-bold text-dark small"><%= prettyAction %>
-                                </div>
-                                <div class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="fa-regular fa-clock me-1"></i>
-                                    <%= activity.getActionTime() != null ? activity.getActionTime().toString().substring(0, 16) : "Just now" %>
-                                </div>
-                            </div>
-                            <% } %>
-                            <% } else { %>
-                            <div class="text-center py-4 text-muted small">
-                                <i class="fa-solid fa-bed fa-2x mb-2 opacity-25"></i>
-                                <p>No recent activity found.</p>
-                            </div>
-                            <% } %>
-                        </div>
-                    </div>
+                    <jsp:include page="../blocks/activitySidebar.jsp" />
                 </div>
             </div>
 

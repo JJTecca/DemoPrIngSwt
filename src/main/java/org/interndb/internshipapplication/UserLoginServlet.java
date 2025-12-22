@@ -48,18 +48,6 @@ public class UserLoginServlet extends HttpServlet {
         // 3. Get role from database
         String role = userAccountBean.getUserRoleByEmail(email);
 
-        // If role is null, determine from email
-        if (role == null) {
-            if (email.toLowerCase().endsWith("@ulbs.ro")) {
-                role = "Admin";
-            } else if (email.toLowerCase().endsWith("@ulbsibiu.ro") || email.toLowerCase().contains("student")) {
-                role = "Student";
-            } else {
-                role = "Company";
-            }
-            System.out.println("Determined role from email: " + role);
-        }
-
         // 4. Create session
         HttpSession session = request.getSession();
         session.setAttribute("userEmail", email);
@@ -69,7 +57,7 @@ public class UserLoginServlet extends HttpServlet {
         if ("Admin".equals(role)) {
             response.sendRedirect("AdminDashboard");
         } else if ("Student".equals(role)) {
-            response.sendRedirect("Students");
+            response.sendRedirect("StudentDashboard");
         } else if ("Company".equals(role)) {
             response.sendRedirect("CompanyDashboard");
         } else if ("Faculty".equals(role)) {

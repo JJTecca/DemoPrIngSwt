@@ -2,8 +2,6 @@ package org.interndb.internshipapplication;
 
 import com.internshipapp.common.*;
 import com.internshipapp.ejb.*;
-import com.internshipapp.entities.CompanyInfo;
-import com.internshipapp.entities.InternshipPosition;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

@@ -1,9 +1,6 @@
 package org.interndb.internshipapplication;
 
-import com.internshipapp.common.InternshipApplicationDto;
-import com.internshipapp.common.StudentInfoDto;
-import com.internshipapp.common.AccountActivityDto;
-import com.internshipapp.common.UserAccountDto;
+import com.internshipapp.common.*;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -26,8 +23,8 @@ import java.util.*;
  *  -doGet :  Set User Attributes we want to display 
  *  -doPost : TODO
  ****************************************************************************/
-@WebServlet(name = "StudentsServlet", value = "/Students")
-public class StudentsServlet extends HttpServlet {
+@WebServlet(name = "StudentDashboardServlet", value = "/StudentDashboard")
+public class StudentDashboardServlet extends HttpServlet {
     /**************************************************************
      * Inject Java Beans that performs CRUD OPERATIONS and filtering
      *************************************************************/
@@ -45,6 +42,9 @@ public class StudentsServlet extends HttpServlet {
 
     @Inject
     UserAccountBean userAccountBean;
+
+    @Inject
+    CompanyInfoBean companyInfoBean;
 
     /******************************************************************
      * @param request an {@link HttpServletRequest}

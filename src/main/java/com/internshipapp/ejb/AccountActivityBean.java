@@ -87,26 +87,38 @@ public class AccountActivityBean {
         }
     }
 
-    public void logActivity(Long userId, AccountActivity.Action actionEnum, String details) {
+    public void logActivity(Long userId, String actionKey, String details) {
         try {
+            // 1. Find the UserAccount entity
             UserAccount user = entityManager.find(UserAccount.class, userId);
-            if (user != null) {
-                AccountActivity activity = new AccountActivity();
 
-                activity.setUser(user);          // Now works (Setter exists)
-                activity.setAction(actionEnum);  // Now works (Matches Enum type)
+            if (user != null) {
+                // 2. Convert the String key to the internal Entity Enum
+                // This throws IllegalArgumentException if the key doesn't match the Enum exactly
+                AccountActivity.Action actionEnum = AccountActivity.Action.valueOf(actionKey);
+
+                // 3. Create and populate the Entity
+                AccountActivity activity = new AccountActivity();
+                activity.setUser(user);
+                activity.setAction(actionEnum);
                 activity.setActionTime(LocalDateTime.now());
 
-                // If we have details (like "Java Developer"), save it in newData
+                // 4. Handle details (stored as bytes in the @Lob column)
                 if (details != null) {
                     activity.setNewData(details.getBytes());
                 }
 
+                // 5. Persist to database
                 entityManager.persist(activity);
+
                 LOG.info("Logged activity: " + actionEnum + " for user " + userId);
+            } else {
+                LOG.warning("Could not log activity: User ID " + userId + " not found.");
             }
+        } catch (IllegalArgumentException e) {
+            LOG.severe("Invalid Action Key: '" + actionKey + "' does not match any AccountActivity.Action Enum values.");
         } catch (Exception e) {
-            LOG.warning("Failed to log activity: " + e.getMessage());
+            LOG.warning("Failed to log activity for user " + userId + ": " + e.getMessage());
         }
     }
 

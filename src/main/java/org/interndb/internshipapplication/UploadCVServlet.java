@@ -5,7 +5,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.AttachmentBean;
 import com.internshipapp.ejb.UserAccountBean;
-import com.internshipapp.entities.AccountActivity;
+
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -37,7 +37,10 @@ public class UploadCVServlet extends HttpServlet {
             Part filePart = request.getPart("cvFile");
             if (filePart != null && filePart.getSize() > 0) {
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
-                boolean alreadyHadCv = student.getAttachment().isCvAvailable();
+                boolean alreadyHadCv = false;
+                if (student.getAttachment() != null) {
+                    alreadyHadCv = student.getAttachment().isCvAvailable();
+                }
 
                 String fileName = filePart.getSubmittedFileName();
                 String contentType = filePart.getContentType();
@@ -47,11 +50,10 @@ public class UploadCVServlet extends HttpServlet {
 
                 UserAccountDto user = userAccountBean.findByEmail(email);
                 if (user != null) {
-                    AccountActivity.Action action = alreadyHadCv
-                            ? AccountActivity.Action.ChangeCV
-                            : AccountActivity.Action.UploadCV;
+                    // FIX: Use String keys instead of Entity Enums to maintain layer separation
+                    String actionKey = alreadyHadCv ? "ChangeCV" : "UploadCV";
 
-                    activityBean.logActivity(user.getUserId(), action, null);
+                    activityBean.logActivity(user.getUserId(), actionKey, null);
                 }
             }
             response.sendRedirect(request.getContextPath() + "/StudentProfile");

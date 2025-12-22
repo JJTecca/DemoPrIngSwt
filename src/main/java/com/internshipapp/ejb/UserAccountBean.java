@@ -120,20 +120,15 @@ public class UserAccountBean {
 
     public String getUserRoleByEmail(String email) {
         try {
-            TypedQuery<String> query = entityManager.createQuery(
-                    "SELECT p.role FROM Permission p WHERE p.user.email = :email", String.class);
+            // Query for the Enum object, then call .name()
+            TypedQuery<Permission.Role> query = entityManager.createQuery(
+                    "SELECT p.role FROM Permission p WHERE p.user.email = :email", Permission.Role.class);
             query.setParameter("email", email);
-            String role = query.getSingleResult();
-            return role;
+            Permission.Role role = query.getSingleResult();
+            return role.name(); // Converts Enum 'Faculty' to String "Faculty"
         } catch (Exception ex) {
-            // If no role in database, determine from email
-            if (email.toLowerCase().endsWith("@ulbs.ro")) {
-                return "Admin";
-            } else if (email.toLowerCase().contains("student") || email.toLowerCase().endsWith("@ulbsibiu.ro")) {
-                return "Student";
-            } else {
-                return "Company";
-            }
+            LOG.warning("Database role check failed: " + ex.getMessage());
+            return "";
         }
     }
 
