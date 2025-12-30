@@ -1,10 +1,13 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.InternshipPositionDto;
 import com.internshipapp.entities.CompanyInfo;
+import com.internshipapp.entities.InternshipApplication;
 import com.internshipapp.entities.InternshipPosition;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -30,6 +33,9 @@ public class InternshipPositionBean {
 
     @PersistenceContext(unitName = "default")
     EntityManager entityManager;
+
+    @Inject
+    private InternshipApplicationBean applicationBean;
 
     /*******************************************************
      *  Implement conversion methods between entities and DTOs
@@ -136,6 +142,42 @@ public class InternshipPositionBean {
         } catch (Exception ex) {
             LOG.severe("Error in findActivePositions: " + ex.getMessage());
             throw new EJBException(ex);
+        }
+    }
+
+    public List<InternshipApplicationDto> getApplicantsForPosition(Long positionId) {
+        try {
+            // Use JOIN FETCH to get the StudentInfo entity immediately with the Application
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "JOIN FETCH a.student " +
+                            "WHERE a.internshipPosition.id = :pid",
+                    InternshipApplication.class
+            );
+            query.setParameter("pid", positionId);
+            List<InternshipApplication> results = query.getResultList();
+
+            List<InternshipApplicationDto> dtos = new ArrayList<>();
+            for (InternshipApplication app : results) {
+                // Check for null student just in case of DB integrity issues
+                String fullName = "Unknown Student";
+                if (app.getStudent() != null) {
+                    fullName = app.getStudent().getFirstName() + " " + app.getStudent().getLastName();
+                }
+
+                dtos.add(new InternshipApplicationDto(
+                        app.getId(),
+                        app.getStudent() != null ? app.getStudent().getId() : null,
+                        fullName,
+                        app.getStatus() != null ? app.getStatus().name() : "Pending",
+                        app.getAppliedAt()
+                ));
+            }
+            return dtos;
+        } catch (Exception e) {
+            System.err.println("Error fetching applicants: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 

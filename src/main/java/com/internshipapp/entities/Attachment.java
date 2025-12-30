@@ -39,8 +39,7 @@ public class Attachment {
     @Column(name = "has_profile_pic")
     private Boolean hasProfilePic = false;
 
-    public Attachment() {
-    }
+    public Attachment() {}
 
     // Getters and Setters
     public void setId(Long id) {

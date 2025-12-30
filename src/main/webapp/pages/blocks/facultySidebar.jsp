@@ -65,18 +65,15 @@
             <i class="fa-solid fa-chart-line"></i> Dashboard
         </a>
 
-        <%-- NEW: My Profile Link (Points to CompanyProfile) --%>
         <a class="nav-link <%= originUri.contains("companyprofile") ? "active" : "" %>" href="${pageContext.request.contextPath}/CompanyProfile">
             <i class="fa-regular fa-id-card"></i> Faculty Profile
         </a>
 
-        <a class="nav-link <%= originUri.contains("managestudents") ? "active" : "" %>" href="${pageContext.request.contextPath}/ManageStudents">
-            <i class="fa-solid fa-users-gear"></i> Manage Students
+        <a class="nav-link <%= originUri.contains("internshippositions") ? "active" : "" %>" href="${pageContext.request.contextPath}/InternshipPositions">
+            <i class="fa-solid fa-briefcase"></i> Internships
         </a>
-        <a class="nav-link <%= originUri.contains("tutoringpositions") ? "active" : "" %>" href="${pageContext.request.contextPath}/TutoringPositions">
-            <i class="fa-solid fa-chalkboard-user"></i> Tutoring Positions
-        </a>
-        <a class="nav-link <%= originUri.contains("facultychats") ? "active" : "" %>" href="${pageContext.request.contextPath}/FacultyChats">
+
+        <a class="nav-link <%= originUri.contains("chats") ? "active" : "" %>" href="${pageContext.request.contextPath}/FacultyChats">
             <i class="fa-solid fa-comments"></i> Chats
         </a>
     </div>

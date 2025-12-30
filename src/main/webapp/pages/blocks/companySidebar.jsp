@@ -78,23 +78,14 @@
             <i class="fa-regular fa-id-card"></i> Company Profile
         </a>
 
-        <%-- Enrolled Interns Link --%>
-        <a class="nav-link <%= originUri.contains("enrolledinterns") ? "active" : "" %>"
-           href="#">
-            <i class="fa-solid fa-user-friends"></i> Enrolled Interns
+        <a class="nav-link <%= originUri.contains("internshippositions") ? "active" : "" %>" href="${pageContext.request.contextPath}/InternshipPositions">
+            <i class="fa-solid fa-briefcase"></i> Internships
         </a>
 
         <%-- Chats Link --%>
-        <a class="nav-link <%= originUri.contains("chats") ? "active" : "" %>"
-           href="#">
-            <i class="fa-regular fa-comments"></i> Chats
-        </a>
-
-        <%-- Positions Link (Manage Positions) --%>
-        <a class="nav-link <%= originUri.contains("positions") && !originUri.contains("companyprofile") ? "active" : "" %>"
-           href="#">
-            <i class="fa-solid fa-briefcase"></i> Positions
-        </a>
+       <a class="nav-link <%= originUri.contains("chats") ? "active" : "" %>" href="${pageContext.request.contextPath}/FacultyChats">
+                <i class="fa-solid fa-comments"></i> Chats
+       </a>
     </div>
 
     <%-- Bottom Section: Logout --%>

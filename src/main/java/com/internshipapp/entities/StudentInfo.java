@@ -19,8 +19,6 @@ public class StudentInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
-    @OneToOne(mappedBy = "studentInfo")
-    private UserAccount userAccount;
     // Zero to One relationship with Attachment
     @OneToOne(optional = true)
     @JoinColumn(name = "id_attachment")

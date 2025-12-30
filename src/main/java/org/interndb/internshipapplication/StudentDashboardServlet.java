@@ -72,6 +72,10 @@ public class StudentDashboardServlet extends HttpServlet {
             if ("Student".equals(role)) {
                 // Use UserAccountBean to get student info (since it has the relationship)
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+                CompanyInfoDto facultyProfile = companyInfoBean.findFacultyProfile();
+                if (facultyProfile != null) {
+                    request.setAttribute("facultyId", facultyProfile.getId());
+                }
 
                 if (student == null) {
                     System.out.println("DEBUG: No student found for email: " + email);

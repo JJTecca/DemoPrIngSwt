@@ -134,7 +134,7 @@
         }
 
         .main-scroll-area {
-            height: 500px;
+            height: 665px;
             overflow-y: auto;
             position: relative;
         }
@@ -357,7 +357,7 @@
                     <div class="card shadow-sm border-0">
                         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-dark"><i class="fa-solid fa-users me-2"></i> Student Roster</span>
-                            <a href="${pageContext.request.contextPath}/ManageStudents" class="btn-import-standout">
+                            <a href="${pageContext.request.contextPath}/ImportStudents" class="btn-import-standout">
                                 <i class="fa-solid fa-file-import me-2"></i> Import Students
                             </a>
                         </div>
