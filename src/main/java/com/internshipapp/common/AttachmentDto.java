@@ -25,8 +25,7 @@ public class AttachmentDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public AttachmentDto() {
-    }
+    public AttachmentDto() {}
 
     public AttachmentDto(Long id, boolean cvAvailable, boolean profilePicAvailable) {
         this.id = id;

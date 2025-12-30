@@ -15,6 +15,7 @@ public class InternshipApplicationDto {
     private Long id;
     private Long internshipPositionId;
     private Long studentId;
+    private String studentName;
     private String status;
     private Integer grade;
     private LocalDateTime appliedAt;
@@ -35,8 +36,7 @@ public class InternshipApplicationDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-    public InternshipApplicationDto() {
-    }
+    public InternshipApplicationDto() {}
 
     public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Integer grade, LocalDateTime appliedAt, String chatIds) {
         this.id = id;
@@ -75,6 +75,14 @@ public class InternshipApplicationDto {
         this.companyName = compName;
     }
 
+    public InternshipApplicationDto(Long id, Long studentId, String studentName, String status, LocalDateTime appliedAt) {
+        this.id = id;
+        this.studentId = studentId;
+        this.studentName = studentName;
+        this.status = status;
+        this.appliedAt = appliedAt;
+    }
+
     public Long getId() {
         return id;
     }
@@ -98,6 +106,10 @@ public class InternshipApplicationDto {
     public void setStudentId(Long studentId) {
         this.studentId = studentId;
     }
+
+    public String getStudentName() { return studentName; }
+
+    public void setStudentName(String studentName) { this.studentName = studentName; }
 
     public String getStatus() {
         return status;

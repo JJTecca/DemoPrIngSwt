@@ -2,6 +2,7 @@ package com.internshipapp.common;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 /******************************
  *Purpose of DTO Pattern:
@@ -23,7 +24,9 @@ public class InternshipPositionDto {
     private Integer filledSpots;      // Calculated field
     private Integer applicationsCount; // Calculated field
     private Boolean isActive;         // Calculated field
-    private Integer availableSpots;   // Calculated field
+    private Integer availableSpots;
+    private boolean alreadyApplied; // Calculated field
+    private List<InternshipApplicationDto> applicants;
 
     /************************************************
      *        Constructors
@@ -198,6 +201,14 @@ public class InternshipPositionDto {
     public void setAvailableSpots(Integer availableSpots) {
         this.availableSpots = availableSpots;
     }
+
+    public boolean isAlreadyApplied() { return alreadyApplied; }
+
+    public void setAlreadyApplied(boolean alreadyApplied) { this.alreadyApplied = alreadyApplied; }
+
+    public List<InternshipApplicationDto> getApplicants() { return applicants; }
+
+    public void setApplicants(List<InternshipApplicationDto> applicants) { this.applicants = applicants; }
 
     // Helper methods
     public Integer calculateAvailableSpots() {

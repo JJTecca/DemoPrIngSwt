@@ -138,6 +138,19 @@ public class CompanyInfoBean {
         }
     }
 
+    public CompanyInfoDto findFacultyProfile() {
+        try {
+            // Search for the specific name you gave the faculty in the DB
+            TypedQuery<CompanyInfo> query = entityManager.createQuery(
+                    "SELECT c FROM CompanyInfo c WHERE c.name LIKE :name", CompanyInfo.class);
+            query.setParameter("name", "%Faculty%"); // Or the exact name
+            CompanyInfo faculty = query.getSingleResult();
+            return copyToDto(faculty);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     // Update return type to DTO
     public CompanyInfoDto findById(Long id) {
         CompanyInfo entity = entityManager.find(CompanyInfo.class, id);

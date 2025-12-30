@@ -617,7 +617,7 @@
                                     <i class="fa-solid <%= student.hasCv() ? "fa-file-arrow-up" : "fa-upload" %> me-2"></i> Update CV
                                 </button>
 
-                                <a href="#"
+                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= request.getAttribute("facultyId") %>"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0 text-start w-100">
                                     <i class="fa-regular fa-envelope me-2"></i> Contact Faculty
                                 </a>
@@ -698,7 +698,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <p class="mb-0">Are you sure you want to **replace** your current CV with the new file?</p>
+                <p class="mb-0">Are you sure you want to replace your current CV with the new file?</p>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -718,7 +718,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
-                <p class="mb-0">Are you sure you want to **permanently delete** your CV? This cannot be undone.</p>
+                <p class="mb-0">Are you sure you want to permanently delete your CV? This cannot be undone.</p>
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>

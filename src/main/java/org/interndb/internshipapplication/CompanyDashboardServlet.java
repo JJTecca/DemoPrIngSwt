@@ -56,6 +56,10 @@ public class CompanyDashboardServlet extends HttpServlet {
             // You need to implement this method in CompanyInfoBean
             // It should find the CompanyInfo entity linked to the UserAccount email
             CompanyInfoDto companyDto = companyDtoInfoBean.findByUserEmail(email);
+            CompanyInfoDto facultyProfile = companyDtoInfoBean.findFacultyProfile();
+            if (facultyProfile != null) {
+                request.setAttribute("facultyId", facultyProfile.getId());
+            }
 
             if (companyDto == null) {
                 // Handle case where account exists but CompanyInfo is missing

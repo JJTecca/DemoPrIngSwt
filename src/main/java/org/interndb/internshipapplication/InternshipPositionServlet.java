@@ -1,7 +1,11 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.InternshipPositionDto;
+import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.ejb.InternshipApplicationBean;
 import com.internshipapp.ejb.InternshipPositionBean;
+import com.internshipapp.ejb.UserAccountBean;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -14,23 +18,31 @@ import java.io.IOException;
 import java.util.List;
 
 /**********************************************************
- *              GENERAL SERVLET STRUCTURE :
- *   1. @WebServlet with it's value set to redirect webpage
- *   2. @Inject the bean Class
- *   3. /doGet function at first with debugging context (optional)
- *   4. Redirect to render the positions.jsp
+ * GENERAL SERVLET STRUCTURE :
+ * 1. @WebServlet with it's value set to redirect webpage
+ * 2. @Inject the bean Class
+ * 3. /doGet function at first with debugging context (optional)
+ * 4. Redirect to render the positions.jsp
  **********************************************************/
 
 /****************************************************************************
  * AdminDashboardServlet logic:
- *  -doGet :  Get all the Positions from Backend + redirect to /pages/positions
- *  -doPost : TODO
+ * -doGet :  Get all the Positions from Backend + redirect to /pages/positions
+ * -doPost : TODO
  ****************************************************************************/
-@WebServlet(name = "InternshipPosServlet", value = "/InternshipPositions")
-class InternshipPosServlet extends HttpServlet {
+@WebServlet(name = "InternshipPositionServlet", value = "/InternshipPositions")
+public class InternshipPositionServlet extends HttpServlet {
 
     @Inject
     InternshipPositionBean internshipPositionBean;
+
+    // Added for Application Logic
+    @Inject
+    InternshipApplicationBean internshipApplicationBean;
+
+    // Added to find studentId from Email
+    @Inject
+    UserAccountBean userAccountBean;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,10 +53,44 @@ class InternshipPosServlet extends HttpServlet {
             return;
         }
 
+        String email = (String) session.getAttribute("userEmail");
+        String role = (String) session.getAttribute("userRole");
+        // Retrieve companyId for ownership check
+        Long sessionCompanyId = (Long) session.getAttribute("companyId");
+
         try {
             // Get data
             List<InternshipPositionDto> positions = internshipPositionBean.findAllPositions();
             long totalPositions = internshipPositionBean.countAllPositions();
+
+            // Handle Student "Already Applied" logic
+            if ("Student".equals(role) && email != null) {
+                StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
+                if (student != null) {
+                    List<Long> appliedIds = internshipApplicationBean.getAppliedPositionIds(student.getId());
+                    if (appliedIds != null && !appliedIds.isEmpty()) {
+                        for (InternshipPositionDto pos : positions) {
+                            if (appliedIds.contains(pos.getId())) {
+                                pos.setAlreadyApplied(true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- ADDED: Role-Based Applicant Visibility Logic ---
+            if (positions != null) {
+                for (InternshipPositionDto pos : positions) {
+                    boolean isAdminOrFaculty = "Admin".equals(role) || "Faculty".equals(role);
+                    boolean isOwningCompany = "Company".equals(role) && pos.getCompanyId().equals(sessionCompanyId);
+
+                    if (isAdminOrFaculty || isOwningCompany) {
+                        List<InternshipApplicationDto> applicants = internshipPositionBean.getApplicantsForPosition(pos.getId());
+                        pos.setApplicants(applicants);
+                    }
+                }
+            }
+            // --- END OF ADDED LOGIC ---
 
             System.out.println("DEBUG: Total positions from count: " + totalPositions);
             System.out.println("DEBUG: Positions list size: " + (positions != null ? positions.size() : "null"));

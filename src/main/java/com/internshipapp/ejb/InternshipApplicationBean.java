@@ -95,17 +95,33 @@ public class InternshipApplicationBean {
 
     public List<InternshipApplicationDto> findApplicationsByCompanyId(Long companyId) {
         try {
+            // We JOIN FETCH the student so the name is available in memory
             TypedQuery<InternshipApplication> query = entityManager.createQuery(
                     "SELECT a FROM InternshipApplication a " +
-                            "LEFT JOIN FETCH a.internshipPosition p " +
-                            "LEFT JOIN FETCH p.company c " +
-                            "WHERE c.id = :companyId " +
-                            "ORDER BY a.appliedAt DESC",
+                            "JOIN FETCH a.student " +
+                            "JOIN FETCH a.internshipPosition p " +
+                            "WHERE p.company.id = :companyId",
                     InternshipApplication.class
             );
             query.setParameter("companyId", companyId);
-            return copyApplicationsToDto(query.getResultList());
-        } catch (Exception ex) {
+            List<InternshipApplication> entities = query.getResultList();
+
+            List<InternshipApplicationDto> dtos = new ArrayList<>();
+            for (InternshipApplication entity : entities) {
+                // Use the empty constructor + setters to be safe and clear
+                InternshipApplicationDto dto = new InternshipApplicationDto();
+                dto.setId(entity.getId());
+                dto.setStudentId(entity.getStudent().getId());
+
+                // CONSTRUCT THE NAME HERE
+                dto.setStudentName(entity.getStudent().getFirstName() + " " + entity.getStudent().getLastName());
+
+                dto.setStatus(entity.getStatus().name());
+                dto.setPositionTitle(entity.getInternshipPosition().getTitle());
+                dtos.add(dto);
+            }
+            return dtos;
+        } catch (Exception e) {
             return new ArrayList<>();
         }
     }
@@ -149,6 +165,13 @@ public class InternshipApplicationBean {
         }
     }
 
+    public List<Long> getAppliedPositionIds(Long studentId) {
+        return entityManager.createQuery(
+                        "SELECT a.internshipPosition.id FROM InternshipApplication a WHERE a.student.id = :sid", Long.class)
+                .setParameter("sid", studentId)
+                .getResultList();
+    }
+
     public String createApplication(Long studentId, Long positionId) throws Exception {
         // 1. Find Entities
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
@@ -174,6 +197,7 @@ public class InternshipApplicationBean {
         app.setStudent(student);
         app.setInternshipPosition(position);
         app.setStatus(InternshipApplication.ApplicationStatus.Pending); // Assuming Enum exists
+        app.setChatIds("[]");
         app.setAppliedAt(LocalDateTime.now());
 
         // 4. Update Position Counters (Optional but recommended)

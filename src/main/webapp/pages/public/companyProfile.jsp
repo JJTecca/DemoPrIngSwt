@@ -263,7 +263,8 @@
                         <div class="d-grid gap-2 mt-auto">
                             <% if (isOwner) { %>
                             <button class="btn btn-gray-modern btn-sm px-3" data-bs-toggle="modal"
-                                    data-bs-target="#changePasswordModal">Change Password
+                                    data-bs-target="#changePasswordModal">
+                                <i class="fa-solid fa-key me-2 text-secondary"></i>Change Password
                             </button>
                             <% } %>
                         </div>
