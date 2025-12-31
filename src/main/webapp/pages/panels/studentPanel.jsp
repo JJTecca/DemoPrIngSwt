@@ -481,7 +481,7 @@
                                             String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
 
                                             // Company Logo Logic
-                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getInternshipPositionId() + "&targetRole=Company";
+                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getCompanyId() + "&targetRole=Company";
                                             String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
                                         %>
                                         <tr>

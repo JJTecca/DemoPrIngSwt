@@ -25,7 +25,7 @@ public class InternshipApplicationDto {
     private String description;
     private String requirements;
     private Date deadline;
-
+    private Long companyId;
     /************************************************
      *        Constructors
      *  - we have more type of constructors
@@ -48,7 +48,7 @@ public class InternshipApplicationDto {
         this.chatIds = chatIds;
     }
 
-    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Integer grade, LocalDateTime appliedAt, String chatIds, String positionTitle, String companyName, String description, String requirements, Date deadline) {
+    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Integer grade, LocalDateTime appliedAt, String chatIds, String positionTitle, String companyName, Long companyId, String description, String requirements, Date deadline) {
         this.id = id;
         this.internshipPositionId = internshipPositionId;
         this.studentId = studentId;
@@ -61,6 +61,7 @@ public class InternshipApplicationDto {
         this.description = description;
         this.requirements = requirements;
         this.deadline = deadline;
+        this.companyId = companyId;
     }
 
     public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Integer grade, LocalDateTime appliedAt, String chatIds, String posTitle, String compName) {
@@ -182,4 +183,8 @@ public class InternshipApplicationDto {
     public void setDeadline(Date deadline) {
         this.deadline = deadline;
     }
+
+    public Long getCompanyId() { return companyId; }
+
+    public void setCompanyId(Long companyId) { this.companyId = companyId; }
 }
