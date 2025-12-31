@@ -28,6 +28,7 @@
     <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
 
     <style>
+        /* 1. HEADER & LAYERING (Fixed Overflow/Z-Index) */
         .header-stat {
             background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
             color: white;
@@ -35,8 +36,9 @@
             padding: 2rem;
             margin-bottom: 2rem;
             position: relative;
-            overflow: hidden;
-
+            /* UPDATED: Allow dropdowns to show while staying under Modals */
+            overflow: visible;
+            z-index: 1;
         }
 
         .header-stat::after {
@@ -52,16 +54,28 @@
             z-index: 1;
         }
 
-        .col-md-3.text-end {
-            position: relative;
-            z-index: 10;
-        }
-
+        /* 2. TUTORING FILTER (Updated with Descriptive Label) */
         #tutoringFilter {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             border-width: 2px;
             position: relative;
-            z-index: 11; /* Ensures it stays above the decorative briefcase icon */
+            z-index: 1021;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Extension: Adds label without changing HTML structure */
+        #tutoringFilter::after {
+            content: "In-Faculty Tutoring";
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        /* Hide label on very small mobile screens to prevent overflow */
+        @media (max-width: 576px) {
+            #tutoringFilter::after { content: "Faculty"; }
         }
 
         #tutoringFilter:hover {
@@ -70,7 +84,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
-        /* State when the filter is turned ON */
         #tutoringFilter.filter-btn-active {
             background-color: white !important;
             color: var(--brand-blue) !important;
@@ -87,6 +100,7 @@
             transform: rotate(-10deg) scale(1.1);
         }
 
+        /* 3. POSITION CARDS */
         .position-card {
             background: white;
             border: none;
@@ -144,6 +158,7 @@
             text-decoration: underline;
         }
 
+        /* 4. BUTTONS & UI COMPONENTS */
         .btn-brand {
             background-color: var(--brand-blue);
             color: white;
@@ -162,14 +177,55 @@
             cursor: default;
         }
 
+        .btn-white {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+
+        .btn-white:hover {
+            background-color: #f8f9fa;
+            border-color: var(--brand-blue);
+            color: var(--brand-blue);
+        }
+
+        /* 5. DROPDOWN POLISH (Open-Closed Extension) */
+        .dropdown-menu {
+            border-radius: 10px;
+            padding: 0.5rem;
+            /* UPDATED: Sits above cards but below Modal (1050) */
+            z-index: 1030 !important;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        }
+
+        .dropdown-item {
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            font-weight: 500;
+            color: #555;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(14, 43, 88, 0.05);
+            color: var(--brand-blue);
+        }
+
+        .dropdown-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+            font-weight: 800;
+            padding: 0.5rem 1rem;
+        }
+
         .applicant-scroll {
             max-height: 350px;
             overflow-y: auto;
-        }
-
-        .filter-btn-active {
-            background-color: white !important;
-            color: var(--brand-blue) !important;
         }
 
         .applicant-item {
@@ -192,6 +248,34 @@
             border-radius: 50%;
             object-fit: cover;
             border: 1px solid #ddd;
+        }
+
+        .pos-status-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .pos-status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .pos-status-open {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        .pos-status-closed {
+            background-color: #e2e3e5;
+            color: #41464b;
+            border: 1px solid #d3d3d4;
         }
     </style>
 </head>
@@ -223,26 +307,53 @@
 
             <div class="header-stat">
                 <div class="row align-items-center">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <h2 class="fw-bold mb-1"><i class="fa-solid fa-briefcase me-2"></i> Internship Opportunities
                         </h2>
                         <p class="mb-0 opacity-75">Browse <strong><%= totalPositions %>
                         </strong> available positions.</p>
                     </div>
-                    <div class="col-md-4">
-                        <div class="bg-white rounded p-1 shadow-sm">
-                            <div class="input-group">
-                                <span class="input-group-text bg-transparent border-0"><i
-                                        class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                                <input type="text" id="searchInput" class="form-control border-0 shadow-none"
-                                       placeholder="Search title or company...">
+
+                    <div class="col-md-8">
+                        <div class="d-flex gap-2 justify-content-end align-items-center">
+                            <div class="bg-white rounded p-1 shadow-sm flex-grow-1" style="max-width: 400px;">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-0"><i
+                                            class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                    <input type="text" id="searchInput" class="form-control border-0 shadow-none"
+                                           placeholder="Search title or company...">
+                                </div>
                             </div>
+
+                            <div class="dropdown">
+                                <button id="sortButton" class="btn btn-white shadow-sm dropdown-toggle fw-bold" type="button"
+                                        data-bs-toggle="dropdown" style="height: 45px; background: white;">
+                                    <i class="fa-solid fa-arrow-down-wide-short me-1 text-primary"></i>
+                                    <span id="sortLabel">Sort By</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li><h6 class="dropdown-header">Chronological</h6></li>
+                                    <li><a class="dropdown-item sort-btn" href="#" data-criteria="newest"><i
+                                            class="fa-solid fa-clock-rotate-left me-2 text-muted"></i>Newest First</a>
+                                    </li>
+                                    <li><a class="dropdown-item sort-btn" href="#" data-criteria="oldest"><i
+                                            class="fa-solid fa-calendar-day me-2 text-muted"></i>Oldest First</a></li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li><h6 class="dropdown-header">Filter and Capacity</h6></li>
+                                    <li><a class="dropdown-item sort-btn" href="#" data-criteria="openOnly"><i
+                                            class="fa-solid fa-door-open me-2 text-success"></i>Only Open Positions</a></li>
+                                    <li><a class="dropdown-item sort-btn" href="#" data-criteria="spots">
+                                        <i class="fa-solid fa-users me-2 text-muted"></i>Max Spots</a></li>
+                                </ul>
+                            </div>
+
+                            <button id="tutoringFilter" class="btn btn-outline-light rounded shadow-sm"
+                                    style="height: 45px;">
+                                <i class="fa-solid fa-chalkboard-user"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="col-md-3 text-end">
-                        <button id="tutoringFilter" class="btn btn-outline-light rounded-pill btn-sm">
-                            <i class="fa-solid fa-chalkboard-user me-1"></i> Tutoring Only
-                        </button>
                     </div>
                 </div>
             </div>
@@ -260,7 +371,10 @@
                 %>
                 <div class="col-xl-6 position-item"
                      data-search="<%= pos.getTitle().toLowerCase() %> <%= pos.getCompanyName().toLowerCase() %>"
-                     data-tutoring="<%= isTutoring %>">
+                     data-tutoring="<%= isTutoring %>"
+                     data-date="<%= pos.getDatePosted() != null ? pos.getDatePosted().getTime() : 0 %>"
+                     data-spots="<%= pos.getMaxSpots() %>"
+                     data-status="<%= pos.getStatus() %>">
                     <div class="position-card p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="d-flex gap-3 align-items-center">
@@ -270,31 +384,53 @@
                                          class="company-logo-small" alt="Logo">
                                 </a>
                                 <div>
-                                    <a href="#" class="position-title-link" data-bs-toggle="modal"
-                                       data-bs-target="#applyModal<%= pos.getId() %>"><%= pos.getTitle() %>
-                                    </a>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="#" class="position-title-link" data-bs-toggle="modal"
+                                           data-bs-target="#applyModal<%= pos.getId() %>"><%= pos.getTitle() %>
+                                        </a>
+                                        <%
+                                            String status = (pos.getStatus() != null) ? pos.getStatus() : "Pending";
+                                            String badgeClass = "pos-status-pending";
+                                            if ("Open".equalsIgnoreCase(status)) badgeClass = "pos-status-open";
+                                            else if ("Closed".equalsIgnoreCase(status)) badgeClass = "pos-status-closed";
+                                        %>
+                                        <span class="pos-status-badge <%= badgeClass %>">
+                                            <%= status %>
+                                            </span>
+                                    </div>
                                     <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= pos.getCompanyId() %>"
                                        class="company-link small text-decoration-none d-block">
                                         <i class="fa-solid fa-building me-1"></i> <%= pos.getCompanyName() %>
                                     </a>
                                 </div>
                             </div>
+                            <%-- Updated Badge to show Accepted / Max --%>
                             <span class="badge badge-spots rounded-pill">
-                                <i class="fa-solid fa-users me-1"></i> <%= (pos.getFilledSpots() != null ? pos.getFilledSpots() : 0) %> / <%= pos.getMaxSpots() %>
-                            </span>
+                <i class="fa-solid fa-user-check me-1"></i> <%= (pos.getAcceptedCount() != null ? pos.getAcceptedCount() : 0) %> / <%= pos.getMaxSpots() %>
+            </span>
                         </div>
 
                         <p class="text-muted small mb-4 flex-grow-1"><%= (pos.getDescription() != null && pos.getDescription().length() > 120) ? pos.getDescription().substring(0, 120) + "..." : pos.getDescription() %>
                         </p>
 
                         <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
-                            <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>
-                                Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
-                            </small>
+                            <div class="d-flex flex-column">
+                                <small class="text-muted"><i class="fa-regular fa-clock me-1"></i>
+                                    Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
+                                </small>
+                                <small class="text-muted" style="font-size: 0.7rem;">
+                                    <i class="fa-solid fa-upload me-1"></i>
+                                    Posted: <%= pos.getDatePosted() != null ? new java.text.SimpleDateFormat("MMM dd, yyyy").format(pos.getDatePosted()) : "N/A" %>
+                                </small>
+                            </div>
                             <% if ("Student".equals(sessionRole)) { %>
                             <% if (pos.isAlreadyApplied()) { %>
-                            <button class="btn btn-applied btn-sm px-4 rounded-pill" disabled><i
-                                    class="fa-solid fa-check me-1"></i> Already Applied
+                            <button class="btn btn-applied btn-sm px-4 rounded-pill" disabled>
+                                <i class="fa-solid fa-check me-1"></i> Already Applied
+                            </button>
+                            <% } else if ("Closed".equalsIgnoreCase(status)) { %>
+                            <button class="btn btn-secondary btn-sm px-4 rounded-pill opacity-75" disabled style="cursor: not-allowed;">
+                                <i class="fa-solid fa-lock me-1"></i> Closed
                             </button>
                             <% } else { %>
                             <button class="btn btn-brand btn-sm px-4 rounded-pill" data-bs-toggle="modal"
@@ -319,9 +455,21 @@
                             </div>
                             <div class="modal-body p-5 pt-0">
                                 <div class="text-center mb-4">
+                                    <%-- Status Badge Logic --%>
+                                    <%
+                                        String modalStatus = (pos.getStatus() != null) ? pos.getStatus() : "Pending";
+                                        String modalBadgeClass = "pos-status-pending";
+                                        if ("Open".equalsIgnoreCase(modalStatus)) modalBadgeClass = "pos-status-open";
+                                        else if ("Closed".equalsIgnoreCase(modalStatus)) modalBadgeClass = "pos-status-closed";
+                                    %>
+                                    <div class="mb-2">
+                                        <span class="pos-status-badge <%= modalBadgeClass %>" style="font-size: 0.75rem; padding: 4px 12px;">
+                                            <%= modalStatus %> Status
+                                        </span>
+                                    </div>
                                     <img src="<%= companyPfp %>"
                                          onerror="this.onerror=null;this.src='<%= fallbackAvatar %>';"
-                                         class="rounded-circle mb-3 border p-1" width="80" height="80"
+                                         class="rounded-3 mb-3 border p-1" width="80" height="80"
                                          style="object-fit: cover;">
                                     <h3 class="fw-bold"><%= pos.getTitle() %>
                                     </h3>
@@ -378,13 +526,28 @@
                             </div>
                             <div class="modal-footer border-0 justify-content-center pb-4">
                                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
-                                <% if ("Student".equals(sessionRole) && !pos.isAlreadyApplied()) { %>
+                                <% if ("Student".equals(sessionRole)) { %>
+
+                                <% if ("Closed".equalsIgnoreCase(modalStatus)) { %>
+                                <button class="btn btn-secondary px-5 opacity-50" disabled style="cursor: not-allowed;">
+                                    <i class="fa-solid fa-lock me-2"></i> Position Closed
+                                </button>
+
+                                <%-- 3. Then check if they already applied --%>
+                                <% } else if (pos.isAlreadyApplied()) { %>
+                                <button class="btn btn-applied px-5" disabled>
+                                    <i class="fa-solid fa-check me-2"></i> Application Sent
+                                </button>
+
+                                <%-- 4. Only if Open and Not Applied, show the form --%>
+                                <% } else { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">
-                                    <button type="submit" class="btn btn-brand px-5"><i
-                                            class="fa-solid fa-paper-plane me-2"></i> Confirm Application
+                                    <button type="submit" class="btn btn-brand px-5">
+                                        <i class="fa-solid fa-paper-plane me-2"></i> Confirm Application
                                     </button>
                                 </form>
+                                <% } %>
                                 <% } %>
                             </div>
                         </div>
@@ -425,6 +588,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Success Modal Logic
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('success')) {
             new bootstrap.Modal(document.getElementById('successModal')).show();
@@ -433,24 +597,80 @@
 
         const searchInput = document.getElementById('searchInput');
         const tutoringBtn = document.getElementById('tutoringFilter');
-        let tutoringFilterActive = false;
+        const positionsGrid = document.getElementById('positionsGrid');
 
-        function filterGrid() {
+        let tutoringFilterActive = false;
+        let openOnlyFilterActive = false;
+
+        // --- MASTER FILTER FUNCTION ---
+        // This function checks EVERYTHING (Search, Tutoring, Status)
+        function applyAllFilters() {
             const searchTerm = searchInput.value.toLowerCase();
             const cards = document.querySelectorAll('.position-item');
+
             cards.forEach(card => {
                 const text = card.getAttribute('data-search');
                 const isTutoring = card.getAttribute('data-tutoring') === 'true';
-                card.classList.toggle('d-none', !(text.includes(searchTerm) && (!tutoringFilterActive || isTutoring)));
+                const status = card.getAttribute('data-status');
+
+                const matchesSearch = text.includes(searchTerm);
+                const matchesCategory = (tutoringFilterActive === isTutoring);
+                const matchesStatus = !openOnlyFilterActive || (status === 'Open');
+
+                // Show only if ALL active filters match
+                card.classList.toggle('d-none', !(matchesSearch && matchesCategory && matchesStatus));
             });
         }
 
-        searchInput.addEventListener('keyup', filterGrid);
+        // --- SORTING LOGIC ---
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const criteria = this.getAttribute('data-criteria');
+
+                // Update Button Label UI
+                document.getElementById('sortLabel').innerText = this.innerText;
+
+                if (criteria === 'openOnly') {
+                    openOnlyFilterActive = !openOnlyFilterActive;
+                    this.classList.toggle('bg-light', openOnlyFilterActive);
+                    applyAllFilters();
+                    return;
+                }
+
+                // CHRONOLOGICAL / CAPACITY SORTING
+                const items = Array.from(positionsGrid.querySelectorAll('.position-item'));
+                items.sort((a, b) => {
+                    const dateA = parseInt(a.getAttribute('data-date'));
+                    const dateB = parseInt(b.getAttribute('data-date'));
+                    const spotsA = parseInt(a.getAttribute('data-spots'));
+                    const spotsB = parseInt(b.getAttribute('data-spots'));
+
+                    if (criteria === 'newest') return dateB - dateA;
+                    if (criteria === 'oldest') return dateA - dateB;
+                    if (criteria === 'spots') return spotsB - spotsA;
+                    return 0;
+                });
+
+                // Re-append items in new order
+                items.forEach(item => positionsGrid.appendChild(item));
+
+                // CRUCIAL: Re-run filters so sorted hidden items stay hidden
+                applyAllFilters();
+            });
+        });
+
+        // --- EVENT LISTENERS ---
         tutoringBtn.addEventListener('click', function () {
             tutoringFilterActive = !tutoringFilterActive;
             this.classList.toggle('filter-btn-active', tutoringFilterActive);
-            filterGrid();
+            applyAllFilters();
         });
+
+        searchInput.addEventListener('keyup', applyAllFilters);
+
+        // Initial Run on Page Load
+        applyAllFilters();
     });
 </script>
 </body>

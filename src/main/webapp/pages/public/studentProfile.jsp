@@ -180,6 +180,73 @@
             box-shadow: 0 6px 12px rgba(14, 43, 88, 0.3);
             color: white;
         }
+
+        /* Persistent container for editable sections */
+        .editable-section {
+            position: relative;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa; /* Permanent light gray */
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .editable-section:hover {
+            background-color: #f1f3f5;
+            border-color: #dee2e6;
+        }
+
+        /* Base style for floating action buttons (Pen/Eye) */
+        .btn-edit-floating, .btn-eye-floating{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ced4da;
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        /* Pen hover: White to Brand Blue */
+        .btn-edit-floating { color: var(--brand-blue); }
+        .btn-edit-floating:hover {
+            background-color: var(--brand-blue);
+            color: white;
+            border-color: var(--brand-blue);
+            transform: scale(1.05);
+        }
+
+        /* Hover: Reverse colors (Blue Background, White Eye) */
+        .btn-eye-floating:hover {
+            background-color: var(--brand-blue) !important;
+            color: white !important;
+            border-color: var(--brand-blue);
+            transform: scale(1.05);
+        }
+
+        /* Ensure the icon specifically turns white on hover */
+        .btn-eye-floating:hover i {
+            color: white !important;
+        }
+
+        /* Privacy labels */
+        .privacy-status-label {
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: block;
+            margin-top: 4px;
+        }
+        .text-danger-custom { color: #dc3545; }
     </style>
 </head>
 <body>
@@ -230,13 +297,14 @@
                             <span class="badge rounded-pill <%= student.getEnrolled() ? "bg-success" : "bg-danger" %> px-3 py-2 ms-1"><%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %></span>
                         </div>
 
-                        <div class="text-start mb-4">
-                            <h6 class="text-uppercase text-muted small fw-bold mb-2">Biography <% if (isOwner) { %>
-                                <button class="btn btn-sm btn-link p-0 float-end" data-bs-toggle="modal"
-                                        data-bs-target="#editBioModal"><i class="fa-solid fa-pen fa-xs"></i></button>
-                                <% } %></h6>
-                            <div class="text-dark small"><%= (student.getBiography() != null && !student.getBiography().isEmpty()) ? student.getBiography() : "No bio provided." %>
-                            </div>
+                        <div class="editable-section text-start mb-4">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-2">Biography</h6>
+                            <div class="text-dark small"><%= (student.getBiography() != null && !student.getBiography().isEmpty()) ? student.getBiography() : "No bio provided." %></div>
+                            <% if (isOwner) { %>
+                            <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editBioModal" title="Edit Biography">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <% } %>
                         </div>
 
                         <div class="d-grid gap-2">
@@ -269,39 +337,50 @@
                                 <hr class="text-muted opacity-25 m-0">
                             </div>
                             <div class="col-md-4">
-                                <div class="info-label">Study Year</div>
-                                <div class="info-value">Year <%= student.getStudyYear() %>
+                                <div class="editable-section h-100">
+                                    <div class="info-label">Study Year</div>
+                                    <div class="info-value">Year <%= student.getStudyYear() %></div>
+
+                                    <%-- Only Faculty can edit the Study Year --%>
                                     <% if ("Faculty".equals(sessionRole)) { %>
-                                    <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
-                                            data-bs-target="#editStudyYearModal">
+                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editStudyYearModal" title="Edit Study Year">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <% } %>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="info-label">Study Grade</div>
-                                <div class="info-value">
-                                    <% if ("Company".equals(sessionRole) && !student.getGradeVisibility()) { %><span
-                                        class="text-muted small fst-italic">Private</span><% } else { %>
-                                    <span class="fw-bold"><%= student.getGradeFormatted() %></span>
+                                <div class="editable-section h-100">
+                                    <div class="info-label">Study Grade</div>
+                                    <div class="info-value">
+                                        <% if ("Company".equals(sessionRole) && !student.getGradeVisibility()) { %>
+                                        <span class="text-muted small fst-italic">Private</span>
+                                        <% } else { %>
+                                        <span class="fw-bold"><%= student.getGradeFormatted() %></span>
+
+                                        <%-- Privacy indicator for Owner --%>
+                                        <% if (isOwner && !student.getGradeVisibility()) { %>
+                                        <span class="privacy-status-label text-danger-custom"><i class="fa-solid fa-eye-slash me-1"></i>Hidden from Companies</span>
+                                        <% } %>
+                                        <% } %>
+                                    </div>
+
                                     <% if (isOwner) { %>
-                                    <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
-                                            data-bs-target="#confirmHideGradeModal">
+                                    <button class="btn-eye-floating" data-bs-toggle="modal" data-bs-target="#confirmHideGradeModal" title="Toggle Visibility">
                                         <i class="fa-solid <%= student.getGradeVisibility() ? "fa-eye text-primary" : "fa-eye-slash text-muted" %>"></i>
                                     </button>
                                     <% } else if ("Faculty".equals(sessionRole)) { %>
-                                    <button class="btn btn-link btn-sm p-0 ms-2" data-bs-toggle="modal"
-                                            data-bs-target="#editStudyGradeModal">
+                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editStudyGradeModal" title="Edit Grade">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
-                                    <% } %>
                                     <% } %>
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="info-label">Faculty</div>
-                                <div class="info-value text-dark">Engineering</div>
+                                <div class="p-3 rounded-3 border h-100" style="background-color: #f8f9fa; border-color: #e9ecef !important;">
+                                    <div class="info-label">Faculty</div>
+                                    <div class="info-value text-dark">Engineering</div>
+                                </div>
                             </div>
                         </div>
                     </div>

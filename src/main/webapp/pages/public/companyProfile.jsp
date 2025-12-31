@@ -8,8 +8,10 @@
     String sessionEmail = (String) session.getAttribute("userEmail");
     String sessionRole = (String) session.getAttribute("userRole");
 
+    Boolean isFacultyProfileAttr = (Boolean) request.getAttribute("isFacultyProfile");
+    boolean isFaculty = (isFacultyProfileAttr != null && isFacultyProfileAttr);
+
     // Dynamic label logic
-    boolean isFaculty = "Faculty".equals(sessionRole);
     String mainLabel = isFaculty ? "Faculty" : "Company";
     String deptLabel = isFaculty ? "Department" : "Company";
     String positionLabel = isFaculty ? "Tutoring Positions" : "Internship Positions";
@@ -120,6 +122,12 @@
             transform: scale(1.2);
         }
 
+        .positions-scroll-wrapper {
+            max-height: 500px; /* Increased from 300px to 500px */
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         .positions-scroll-wrapper::-webkit-scrollbar {
             width: 6px;
         }
@@ -194,6 +202,112 @@
             box-shadow: 0 6px 12px rgba(14, 43, 88, 0.3);
             color: white;
         }
+
+        .btn-manage-eye {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #ced4da;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border-radius: 50%;
+        }
+
+        .btn-manage-eye:hover {
+            background-color: var(--brand-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .applicant-scroll {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .applicant-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+
+        .applicant-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .applicant-pfp {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        /* Persistent container for editable sections */
+        .editable-section {
+            position: relative;
+            padding: 1rem; /* Increased padding for better internal spacing */
+            border-radius: 8px;
+            background-color: #f8f9fa; /* Permanent light gray background */
+            border: 1px solid #e9ecef; /* Subtle border to define the zone */
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Darken slightly on hover for visual feedback */
+        .editable-section:hover {
+            background-color: #f1f3f5;
+            border-color: #dee2e6;
+        }
+
+        /* The modern floating edit button - now permanently visible */
+        .btn-edit-floating {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ced4da;
+            color: var(--brand-blue);
+            width: 34px;
+            height: 34px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            z-index: 5;
+            /* Opacity and Transform logic removed to keep it visible */
+        }
+
+        /* Hover effect for the button itself (White to Blue transition) */
+        .btn-edit-floating:hover {
+            background-color: var(--brand-blue);
+            color: white;
+            border-color: var(--brand-blue);
+            transform: scale(1.05);
+        }
+
+        .pos-status-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+        }
+
+        .pos-status-pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .pos-status-open { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .pos-status-closed { background-color: #e2e3e5; color: #41464b; border: 1px solid #d3d3d4; }
     </style>
 </head>
 <body>
@@ -251,13 +365,14 @@
                             <% } %>
                         </div>
 
-                        <div class="text-start mb-4">
-                            <h6 class="text-uppercase text-muted small fw-bold mb-2">Biography <% if (isOwner) { %>
-                                <button class="btn btn-sm btn-link p-0 float-end" data-bs-toggle="modal"
-                                        data-bs-target="#editBioModal"><i class="fa-solid fa-pen fa-xs"></i></button>
-                                <% } %></h6>
-                            <div class="text-dark small"><%= company.getBiography() != null ? company.getBiography() : "No biography provided." %>
-                            </div>
+                        <div class="text-start mb-4 editable-section">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-2">Biography</h6>
+                            <div class="text-dark small"><%= company.getBiography() != null ? company.getBiography() : "No biography provided." %></div>
+                            <% if (isOwner) { %>
+                            <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editBioModal">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <% } %>
                         </div>
 
                         <div class="d-grid gap-2 mt-auto">
@@ -278,25 +393,40 @@
                             Info</h5>
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="info-label">Contact Email <% if (isOwner) { %><i
-                                        class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
-                                        data-bs-target="#editContactEmailModal"></i><% } %></div>
-                                <div class="info-value"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "N/A" %>
+                                <div class="editable-section">
+                                    <div class="info-label">Contact Email</div>
+                                    <div class="info-value"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "N/A" %></div>
+                                    <% if (isOwner) { %>
+                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editContactEmailModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
                                 </div>
                             </div>
+
                             <div class="col-md-6">
-                                <div class="info-label">Website <% if (isOwner) { %><i
-                                        class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
-                                        data-bs-target="#editWebsiteModal"></i><% } %></div>
-                                <div class="info-value"><a href="<%= company.getWebsite() %>"
-                                                           target="_blank"><%= company.getWebsite() != null ? company.getWebsite() : "N/A" %>
-                                </a></div>
+                                <div class="editable-section">
+                                    <div class="info-label">Website</div>
+                                    <div class="info-value">
+                                        <a href="<%= company.getWebsite() %>" target="_blank"><%= company.getWebsite() != null ? company.getWebsite() : "N/A" %></a>
+                                    </div>
+                                    <% if (isOwner) { %>
+                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editWebsiteModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
+                                </div>
                             </div>
+
                             <div class="col-md-12">
-                                <div class="info-label"><%= deptLabel %> Description<% if (isOwner) { %><i
-                                        class="fa-solid fa-pen ms-1 small" style="cursor:pointer" data-bs-toggle="modal"
-                                        data-bs-target="#editDescModal"></i><% } %></div>
-                                <div class="info-value"><%= company.getCompDescription() != null ? company.getCompDescription() : "No description set." %>
+                                <div class="editable-section">
+                                    <div class="info-label"><%= deptLabel %> Description</div>
+                                    <div class="info-value"><%= company.getCompDescription() != null ? company.getCompDescription() : "No description set." %></div>
+                                    <% if (isOwner) { %>
+                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editDescModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
                                 </div>
                             </div>
                         </div>
@@ -308,32 +438,123 @@
                                 <i class="<%= isFaculty ? "fa-solid fa-chalkboard-user" : "fa-solid fa-briefcase" %> me-2"></i> <%= positionLabel %>
                             </h5>
                             <% if (isOwner) { %>
-                            <button class="btn btn-sm btn-brand" data-bs-toggle="modal"
-                                    data-bs-target="#postPositionModal"><%= postBtnLabel %>
-                            </button>
+                            <a href="${pageContext.request.contextPath}/PostPosition" class="btn btn-sm btn-brand">
+                                <i class="fa-solid fa-plus me-1"></i> <%= postBtnLabel %>
+                            </a>
                             <% } %>
                         </div>
 
-                        <div class="positions-scroll-wrapper"
-                             style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
+                        <div class="positions-scroll-wrapper" style="max-height: 500px; overflow-y: auto; overflow-x: hidden;">
                             <div class="list-group list-group-flush">
                                 <% if (myPositions != null && !myPositions.isEmpty()) { %>
-                                <% for (InternshipPositionDto pos : myPositions) { %>
+                                <% for (InternshipPositionDto pos : myPositions) {
+                                    // 1. Resolve Status and Visibility
+                                    String status = (pos.getStatus() != null) ? pos.getStatus() : "Pending";
+                                    boolean isVisibleStatus = "Open".equalsIgnoreCase(status);
+                                    boolean canSeePrivate = isOwner || "Admin".equals(sessionRole) || "Faculty".equals(sessionRole);
+
+                                    // Privacy Guard: Hide pending positions from students/guests
+                                    if (isVisibleStatus || canSeePrivate) {
+
+                                        // 2. Determine Badge Color
+                                        String badgeClass = "pos-status-pending";
+                                        if ("Open".equalsIgnoreCase(status)) badgeClass = "pos-status-open";
+                                        else if ("Closed".equalsIgnoreCase(status)) badgeClass = "pos-status-closed";
+                                %>
                                 <div class="position-list-item d-flex justify-content-between align-items-center">
                                     <div>
-                                        <div class="fw-bold"><%= pos.getTitle() %>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <div class="fw-bold"><%= pos.getTitle() %></div>
+                                            <%-- Logic applied: Adding the badge to the list --%>
+                                            <span class="pos-status-badge <%= badgeClass %>">
+                            <%= status %>
+                        </span>
                                         </div>
-                                        <div class="small text-muted">Deadline: <%= pos.getDeadline() %>
+                                        <div class="small text-muted">
+                                            <i class="fa-regular fa-calendar me-1"></i>Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "N/A" %>
                                         </div>
                                     </div>
-                                    <span class="badge bg-light text-primary border"><%= pos.getMaxSpots() %> Spots</span>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="badge bg-light text-primary border"><%= pos.getMaxSpots() %> Spots</span>
+                                        <button class="btn-manage-eye" data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <% } %>
-                                <% } else { %>
-                                <div class="text-center py-5 d-flex flex-column align-items-center">
-                                    <i class="fa-regular fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
-                                    <p class="text-muted small">No <%= positionLabel.toLowerCase() %> found.</p>
+
+                                <%-- MODAL: Updated with Status Header --%>
+                                <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                        <div class="modal-content border-0 shadow-lg">
+                                            <div class="modal-header border-0 pb-0">
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body p-5 pt-0">
+                                                <div class="text-center mb-4">
+                                                    <%-- Status badge inside modal --%>
+                                                    <div class="mb-2">
+                                    <span class="pos-status-badge <%= badgeClass %>" style="font-size: 0.75rem; padding: 4px 12px;">
+                                        <%= status %> Status
+                                    </span>
+                                                    </div>
+                                                    <h3 class="fw-bold"><%= pos.getTitle() %></h3>
+                                                    <p class="text-muted"><%= company.getName() %></p>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="<%= isOwner ? "col-md-7" : "col-12" %>">
+                                                        <h6 class="fw-bold text-uppercase text-muted small">Description</h6>
+                                                        <p class="small text-secondary"><%= pos.getDescription() %></p>
+                                                        <h6 class="fw-bold text-uppercase text-muted small mt-4">Requirements</h6>
+                                                        <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %></p>
+                                                    </div>
+
+                                                    <% if (isOwner) { %>
+                                                    <div class="col-md-5 border-start">
+                                                        <h6 class="fw-bold text-uppercase text-muted small mb-3">
+                                                            <i class="fa-solid fa-user-graduate me-2"></i>Candidates
+                                                        </h6>
+                                                        <div class="applicant-scroll">
+                                                            <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
+                                                            <% for (com.internshipapp.common.InternshipApplicationDto app : pos.getApplicants()) { %>
+                                                            <div class="applicant-item">
+                                                                <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
+                                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                                     class="applicant-pfp">
+                                                                <div class="overflow-hidden">
+                                                                    <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
+                                                                       class="text-decoration-none text-dark fw-bold small d-block text-truncate">
+                                                                        <%= app.getStudentName() %>
+                                                                    </a>
+                                                                    <span class="badge bg-light text-dark x-small" style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                </div>
+                                                            </div>
+                                                            <% } %>
+                                                            <% } else { %>
+                                                            <div class="text-center py-4 text-muted small">No applications yet.</div>
+                                                            <% } %>
+                                                        </div>
+                                                    </div>
+                                                    <% } %>
+                                                </div>
+
+                                                <div class="alert alert-light border mt-4 m-0">
+                                                    <div class="d-flex justify-content-between small">
+                                                        <span><i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
+                                                        <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 justify-content-center pb-4">
+                                                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                <%      } // End Visibility If
+                                } // End For Loop
+                                } else { %>
+                                <div class="p-4 text-center text-muted small">No positions posted yet.</div>
                                 <% } %>
                             </div>
                         </div>
@@ -478,21 +699,6 @@
                     <button type="submit" class="btn btn-brand">Update</button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="postPositionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Post New Role</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center py-5"><i class="fa-solid fa-tools fa-2x text-muted mb-3"></i>
-                <p class="text-muted">Post creation form coming soon.</p></div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
         </div>
     </div>
 </div>

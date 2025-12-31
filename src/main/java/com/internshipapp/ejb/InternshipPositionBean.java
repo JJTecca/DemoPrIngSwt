@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /*******************************************************************
  *      Format of the Bean
@@ -46,19 +47,29 @@ public class InternshipPositionBean {
         if (position == null) return null;
 
         Long id = position.getId();
-        Integer filledSpots = getFilledSpotsForPosition(id);
-        Integer applicationsCount = getApplicationsCountForPosition(id);
+
+        // Use the direct counts from the entity instead of separate database calls
+        Integer applicationsCount = position.getApplicationsCount();
+        Integer acceptedCount = position.getAcceptedCount();
         Integer maxSpots = position.getMaxSpots();
-        Integer availableSpots = Math.max(0, maxSpots - filledSpots);
+
+        // Logic for available spots
+        Integer availableSpots = Math.max(0, maxSpots - (acceptedCount != null ? acceptedCount : 0));
 
         // Convert Date to LocalDateTime
         LocalDateTime deadline = position.getDeadline() != null ?
                 LocalDateTime.ofInstant(position.getDeadline().toInstant(),
                         java.time.ZoneId.systemDefault()) : null;
 
+        // Calculate active status based on deadline
         Boolean isActive = deadline != null ?
                 deadline.isAfter(LocalDateTime.now()) : false;
 
+        // New Fields from your Entity
+        String status = position.getStatus() != null ? position.getStatus().name() : "Pending";
+        Date datePosted = position.getDatePosted();
+
+        // Map to the full constructor we just updated in the DTO
         return new InternshipPositionDto(
                 id,
                 position.getCompany() != null ? position.getCompany().getId() : null,
@@ -68,10 +79,12 @@ public class InternshipPositionBean {
                 position.getRequirements(),
                 deadline,
                 maxSpots,
-                filledSpots,
+                acceptedCount,      // REPLACED filledSpots
                 applicationsCount,
                 isActive,
-                availableSpots
+                availableSpots,
+                status,             // NEW
+                datePosted          // NEW
         );
     }
 
@@ -274,8 +287,8 @@ public class InternshipPositionBean {
     }
 
     public Long createPosition(Long companyId, String title, String description,
-                               String requirements, Date deadline, Integer maxSpots) {
-        LOG.info("createPosition");
+                               String requirements, Date deadline, Integer maxSpots, String status) {
+        LOG.info("createPosition with status: " + status);
         try {
             // Verify company exists
             CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
@@ -292,6 +305,9 @@ public class InternshipPositionBean {
             position.setDeadline(deadline);
             position.setMaxSpots(maxSpots);
 
+            // Set initial status (Open for Faculty, Pending for Company)
+            position.setStatus(InternshipPosition.PositionStatus.valueOf(status));
+
             // Persist
             entityManager.persist(position);
             entityManager.flush(); // Get the generated ID
@@ -305,32 +321,28 @@ public class InternshipPositionBean {
         }
     }
 
-    // Update position
-    public void updatePosition(Long positionId, String title, String description,
-                               String requirements, Date deadline, Integer maxSpots) {
-        LOG.info("updatePosition: " + positionId);
+    // Update position status (e.g. Pending -> Open)
+    public void updateStatus(Long positionId, String status) {
+        LOG.info("updateStatus: " + positionId + " to " + status);
         try {
             InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
             if (position == null) {
                 throw new IllegalArgumentException("Position not found with ID: " + positionId);
             }
 
-            position.setTitle(title);
-            position.setDescription(description);
-            position.setRequirements(requirements);
-            position.setDeadline(deadline);
-            position.setMaxSpots(maxSpots);
+            // Using Enum valueOf to convert the String status to the Entity's Enum type
+            position.setStatus(InternshipPosition.PositionStatus.valueOf(status));
 
             entityManager.merge(position);
-            LOG.info("Updated position: " + positionId);
+            LOG.info("Updated status for position: " + positionId);
 
         } catch (Exception ex) {
-            LOG.severe("Error in updatePosition: " + ex.getMessage());
+            LOG.severe("Error in updateStatus: " + ex.getMessage());
             throw new EJBException(ex);
         }
     }
 
-    // Delete position
+    // Delete position (Reused your reference style for rejection)
     public void deletePosition(Long positionId) {
         LOG.info("deletePosition: " + positionId);
         try {
@@ -341,6 +353,22 @@ public class InternshipPositionBean {
             }
         } catch (Exception ex) {
             LOG.severe("Error in deletePosition: " + ex.getMessage());
+            throw new EJBException(ex);
+        }
+    }
+
+    // Fetch Pending Positions for Admin
+    public List<InternshipPositionDto> findPendingPositions() {
+        LOG.info("findPendingPositions");
+        try {
+            List<InternshipPosition> pending = entityManager.createQuery(
+                            "SELECT p FROM InternshipPosition p WHERE p.status = :status", InternshipPosition.class)
+                    .setParameter("status", InternshipPosition.PositionStatus.Pending)
+                    .getResultList();
+
+            return pending.stream().map(this::copyPositionToDto).collect(Collectors.toList());
+        } catch (Exception ex) {
+            LOG.severe("Error in findPendingPositions: " + ex.getMessage());
             throw new EJBException(ex);
         }
     }

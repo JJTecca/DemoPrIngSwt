@@ -31,6 +31,10 @@ public class InternshipPosition {
     @JoinColumn(name = "id_company")
     private CompanyInfo company;
 
+    public enum PositionStatus {
+        Pending, Open, Closed
+    }
+
     @Column(name = "title", nullable = false)
     private String title;
 
@@ -54,6 +58,17 @@ public class InternshipPosition {
 
     @OneToMany(mappedBy = "internshipPosition", cascade = CascadeType.ALL)
     private List<InternshipApplication> applications;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private PositionStatus status = PositionStatus.Pending;
+
+    @Column(name = "date_posted", insertable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date datePosted;
+
+    @Column(name = "accepted_count")
+    private Integer acceptedCount = 0;
 
     // Constructor
     public InternshipPosition() {
@@ -133,5 +148,25 @@ public class InternshipPosition {
 
     public void setApplicationsCount(Integer applicationsCount) {
         this.applicationsCount = applicationsCount;
+    }
+
+    public PositionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PositionStatus status) {
+        this.status = status;
+    }
+
+    public Date getDatePosted() {
+        return datePosted;
+    }
+
+    public Integer getAcceptedCount() {
+        return acceptedCount;
+    }
+
+    public void setAcceptedCount(Integer acceptedCount) {
+        this.acceptedCount = acceptedCount;
     }
 }

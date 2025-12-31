@@ -77,6 +77,13 @@ public class CompanyDashboardServlet extends HttpServlet {
             // You need to implement this in InternshipPositionBean: findByCompanyId(Long companyId)
             List<InternshipPositionDto> myPositions = positionBean.findByCompanyId(companyDto.getId());
 
+            if (myPositions != null) {
+                for (InternshipPositionDto pos : myPositions) {
+                    List<InternshipApplicationDto> applicants = positionBean.getApplicantsForPosition(pos.getId());
+                    pos.setApplicants(applicants);
+                }
+            }
+
             // C. Received Applications
             // You need to implement this in InternshipApplicationBean: findApplicationsByCompanyId(Long companyId)
             // This method must join Application -> Position -> Company to filter correctly

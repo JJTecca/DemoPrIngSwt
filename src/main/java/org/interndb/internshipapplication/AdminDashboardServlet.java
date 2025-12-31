@@ -1,5 +1,7 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.common.InternshipPositionDto;
+import com.internshipapp.ejb.InternshipPositionBean;
 import com.internshipapp.ejb.RequestBean;
 import com.internshipapp.ejb.UserAccountBean;
 import jakarta.inject.Inject;
@@ -11,17 +13,17 @@ import java.io.IOException;
 import java.util.List;
 
 /**********************************************************
- *              GENERAL SERVLET STRUCTURE :
- *   1. @WebServlet with it's value set to redirect webpage
- *   2. @Inject the bean Class
- *   3. /doGet function at first with debugging context (optional)
- *   4. Redirect to render the adminPanel.jsp
+ * GENERAL SERVLET STRUCTURE :
+ * 1. @WebServlet with it's value set to redirect webpage
+ * 2. @Inject the bean Class
+ * 3. /doGet function at first with debugging context (optional)
+ * 4. Redirect to render the adminPanel.jsp
  **********************************************************/
 
 /***********************************************************
  * AdminDashboardServlet logic:
- *  -doGet :  Get pending requests
- *  -doPost : TODO
+ * -doGet  : Get pending registration requests & pending positions
+ * -doPost : TODO
  **********************************************************/
 @WebServlet(name = "AdminDashboardServlet", value = "/AdminDashboard")
 public class AdminDashboardServlet extends HttpServlet {
@@ -34,6 +36,9 @@ public class AdminDashboardServlet extends HttpServlet {
 
     @Inject
     private UserAccountBean userAccountBean;
+
+    @Inject
+    private InternshipPositionBean internshipPositionBean;
 
     /******************************************************************
      * @param request an {@link HttpServletRequest}
@@ -52,17 +57,33 @@ public class AdminDashboardServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/UserLogin");
             return;
         }
-        // Get pending requests
-        List<com.internshipapp.common.RequestDto> pendingRequests = requestBean.getPendingRequests();
 
-        request.setAttribute("pendingRequests", pendingRequests);
-        request.setAttribute("pendingRequestsCount", pendingRequests.size());
+        try {
+            // 1. Get pending Company Registration requests (Existing)
+            List<com.internshipapp.common.RequestDto> pendingRequests = requestBean.getPendingRequests();
 
-        // Get total users count (you need to add this method to UserAccountBean)
-        // For now, we'll use placeholder
-        request.setAttribute("totalUsers", 10);
-        request.setAttribute("activeStudents", 6);
-        request.setAttribute("totalCompanies", 4);
+            // 2. Get pending Internship Position requests (New Action-based logic)
+            List<InternshipPositionDto> pendingPositions = internshipPositionBean.findPendingPositions();
+
+            // 3. Set Attributes for Registration Requests
+            request.setAttribute("pendingRequests", pendingRequests);
+            request.setAttribute("pendingRequestsCount", pendingRequests.size());
+
+            // 4. Set Attributes for Position Requests (Used by the new scroll container)
+            request.setAttribute("pendingPositions", pendingPositions);
+
+            // 5. Dashboard Stats (Placeholder logic preserved, updated with real position count)
+            request.setAttribute("totalUsers", 10);
+            request.setAttribute("activeStudents", 6);
+            request.setAttribute("totalCompanies", 4);
+
+            System.out.println("DEBUG Admin: Found " + pendingRequests.size() + " reg requests and " +
+                    pendingPositions.size() + " position requests.");
+
+        } catch (Exception e) {
+            System.err.println("ERROR in AdminDashboardServlet: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Forward to admin panel
         request.getRequestDispatcher("/pages/panels/adminPanel.jsp").forward(request, response);

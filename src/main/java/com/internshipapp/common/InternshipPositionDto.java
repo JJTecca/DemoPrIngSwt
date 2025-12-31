@@ -21,22 +21,24 @@ public class InternshipPositionDto {
     private String requirements;
     private LocalDateTime deadline;   // DATETIME in DB
     private Integer maxSpots;         // max_spots in DB
-    private Integer filledSpots;      // Calculated field
+    private Integer acceptedCount;     // REPLACED filledSpots
     private Integer applicationsCount; // Calculated field
     private Boolean isActive;         // Calculated field
     private Integer availableSpots;
-    private boolean alreadyApplied; // Calculated field
+    private boolean alreadyApplied;   // Calculated field
     private List<InternshipApplicationDto> applicants;
+    private String status;             // Pending, Open, Closed
+    private Date datePosted;           // date_posted in DB
 
     /************************************************
-     *        Constructors
-     *  - we have more type of constructors
-     *  - adjust params as needed
-     *  - *NOTE* : constructors called based on feature */
+     * Constructors
+     * - we have more type of constructors
+     * - adjust params as needed
+     * - *NOTE* : constructors called based on feature */
     /****************************************************************
-     *               PERFORMANCE NOTES
-     *  - Lazy relationships should not be initialized in constructors
-     *   - Consider using factory methods for complex object creation
+     * PERFORMANCE NOTES
+     * - Lazy relationships should not be initialized in constructors
+     * - Consider using factory methods for complex object creation
      **************************************************************/
     public InternshipPositionDto() {
     }
@@ -53,12 +55,13 @@ public class InternshipPositionDto {
         this.maxSpots = maxSpots;
     }
 
-    // Full constructor
+    // Full constructor (Updated to replace filledSpots with acceptedCount and add new fields)
     public InternshipPositionDto(Long id, Long companyId, String companyName,
                                  String title, String description, String requirements,
                                  LocalDateTime deadline, Integer maxSpots,
-                                 Integer filledSpots, Integer applicationsCount,
-                                 Boolean isActive, Integer availableSpots) {
+                                 Integer acceptedCount, Integer applicationsCount,
+                                 Boolean isActive, Integer availableSpots,
+                                 String status, Date datePosted) {
         this.id = id;
         this.companyId = companyId;
         this.companyName = companyName;
@@ -67,10 +70,12 @@ public class InternshipPositionDto {
         this.requirements = requirements;
         this.deadline = deadline;
         this.maxSpots = maxSpots;
-        this.filledSpots = filledSpots;
+        this.acceptedCount = acceptedCount;
         this.applicationsCount = applicationsCount;
         this.isActive = isActive;
         this.availableSpots = availableSpots;
+        this.status = status;
+        this.datePosted = datePosted;
     }
 
     // Constructor for Date type (if needed)
@@ -169,12 +174,12 @@ public class InternshipPositionDto {
         this.maxSpots = maxSpots;
     }
 
-    public Integer getFilledSpots() {
-        return filledSpots;
+    public Integer getAcceptedCount() {
+        return acceptedCount;
     }
 
-    public void setFilledSpots(Integer filledSpots) {
-        this.filledSpots = filledSpots;
+    public void setAcceptedCount(Integer acceptedCount) {
+        this.acceptedCount = acceptedCount;
     }
 
     public Integer getApplicationsCount() {
@@ -202,18 +207,42 @@ public class InternshipPositionDto {
         this.availableSpots = availableSpots;
     }
 
-    public boolean isAlreadyApplied() { return alreadyApplied; }
+    public boolean isAlreadyApplied() {
+        return alreadyApplied;
+    }
 
-    public void setAlreadyApplied(boolean alreadyApplied) { this.alreadyApplied = alreadyApplied; }
+    public void setAlreadyApplied(boolean alreadyApplied) {
+        this.alreadyApplied = alreadyApplied;
+    }
 
-    public List<InternshipApplicationDto> getApplicants() { return applicants; }
+    public List<InternshipApplicationDto> getApplicants() {
+        return applicants;
+    }
 
-    public void setApplicants(List<InternshipApplicationDto> applicants) { this.applicants = applicants; }
+    public void setApplicants(List<InternshipApplicationDto> applicants) {
+        this.applicants = applicants;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Date getDatePosted() {
+        return datePosted;
+    }
+
+    public void setDatePosted(Date datePosted) {
+        this.datePosted = datePosted;
+    }
 
     // Helper methods
     public Integer calculateAvailableSpots() {
-        if (filledSpots != null && maxSpots != null) {
-            return Math.max(0, maxSpots - filledSpots);
+        if (acceptedCount != null && maxSpots != null) {
+            return Math.max(0, maxSpots - acceptedCount);
         }
         return maxSpots != null ? maxSpots : 0;
     }
