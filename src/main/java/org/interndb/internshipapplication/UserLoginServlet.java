@@ -53,6 +53,24 @@ public class UserLoginServlet extends HttpServlet {
         session.setAttribute("userEmail", email);
         session.setAttribute("userRole", role);
 
+        try {
+            // 1. Always set the userId
+            var user = userAccountBean.findByEmail(email);
+            if (user != null) {
+                session.setAttribute("userId", user.getUserId());
+            }
+
+            // 2. Set the companyId if they are Company or Faculty
+            if ("Company".equals(role) || "Faculty".equals(role)) {
+                var company = userAccountBean.getCompanyInfoByEmail(email); // You may need to add this method to your Bean
+                if (company != null) {
+                    session.setAttribute("companyId", company.getId());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error setting session IDs: " + e.getMessage());
+        }
+
         // 5. Redirect based on role
         if ("Admin".equals(role)) {
             response.sendRedirect("AdminDashboard");

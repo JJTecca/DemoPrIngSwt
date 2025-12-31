@@ -47,6 +47,14 @@ public class StudentProfileServlet extends HttpServlet {
                 // View specific student (Admin/Faculty/Company view)
                 Long studentId = Long.parseLong(idParam);
                 student = studentInfoBean.findById(studentId);
+
+                if ("Student".equals(role)) {
+                    StudentInfoDto loggedInStudent = userAccountBean.getStudentInfoByEmail(loggedInEmail);
+                    if (loggedInStudent == null || !studentId.equals(loggedInStudent.getId())) {
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: You cannot view other student profiles.");
+                        return;
+                    }
+                }
             } else {
                 // View own profile
                 if ("Student".equals(role)) {

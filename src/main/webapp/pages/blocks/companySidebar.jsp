@@ -1,16 +1,32 @@
+<%@ page import="com.internshipapp.common.CompanyInfoDto" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    // 1. Get the original browser URL (even inside a jsp:include)
-    String originUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
+    String originUri = (String) request.getAttribute("jakarta.servlet.forward.servlet_path");
     if (originUri == null) {
-        originUri = request.getRequestURI();
+        originUri = request.getServletPath();
     }
-
-    // Normalize to lowercase for reliable matching
+    if (originUri == null) originUri = "";
     originUri = originUri.toLowerCase();
 
-    // 2. Define the Dashboard URL
     String dashboardUrl = request.getContextPath() + "/CompanyDashboard";
+
+    String currentIdParam = request.getParameter("id");
+    String sessionUserEmail = (String) session.getAttribute("userEmail");
+    CompanyInfoDto sidebarLoggedInCompany = (CompanyInfoDto) request.getAttribute("company");
+
+    boolean isProfilePage = originUri.contains("companyprofile");
+    boolean isViewingOwnProfile = false;
+
+    if (isProfilePage) {
+        if (currentIdParam == null || currentIdParam.trim().isEmpty()) {
+            isViewingOwnProfile = true;
+        }
+        else if (sidebarLoggedInCompany != null && sessionUserEmail != null) {
+            if (sessionUserEmail.equalsIgnoreCase(sidebarLoggedInCompany.getUserEmail())) {
+                isViewingOwnProfile = true;
+            }
+        }
+    }
 %>
 
 <style>
@@ -73,7 +89,7 @@
         </a>
 
         <%-- Company Profile Link --%>
-        <a class="nav-link <%= originUri.contains("companyprofile") ? "active" : "" %>"
+        <a class="nav-link <%= isViewingOwnProfile ? "active" : "" %>"
            href="${pageContext.request.contextPath}/CompanyProfile">
             <i class="fa-regular fa-id-card"></i> Company Profile
         </a>

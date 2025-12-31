@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**********************************************************
  * GENERAL SERVLET STRUCTURE :
@@ -59,9 +60,29 @@ public class InternshipPositionServlet extends HttpServlet {
         Long sessionCompanyId = (Long) session.getAttribute("companyId");
 
         try {
-            // Get data
-            List<InternshipPositionDto> positions = internshipPositionBean.findAllPositions();
-            long totalPositions = internshipPositionBean.countAllPositions();
+            // 1. Get ALL data initially
+            List<InternshipPositionDto> allPositions = internshipPositionBean.findAllPositions();
+
+            // 2. Filter logic: Exclude 'Pending' and handle any specific filter requests (like 'Open' only)
+            // This follows the Open-Closed principle by filtering the stream here.
+            String filterStatus = request.getParameter("filterStatus"); // e.g., "Open"
+
+            List<InternshipPositionDto> positions = allPositions.stream()
+                    .filter(pos -> {
+                        // Hard rule: No one sees Pending positions on this page
+                        if ("Pending".equals(pos.getStatus())) {
+                            return false;
+                        }
+                        // If user requested only 'Open' positions via UI
+                        if ("Open".equals(filterStatus)) {
+                            return "Open".equals(pos.getStatus());
+                        }
+                        return true; // Keep 'Open' and 'Closed'
+                    })
+                    .collect(Collectors.toList());
+
+            // Recalculate count based on filtered list
+            long totalPositions = (long) positions.size();
 
             // Handle Student "Already Applied" logic
             if ("Student".equals(role) && email != null) {
@@ -92,8 +113,8 @@ public class InternshipPositionServlet extends HttpServlet {
             }
             // --- END OF ADDED LOGIC ---
 
-            System.out.println("DEBUG: Total positions from count: " + totalPositions);
-            System.out.println("DEBUG: Positions list size: " + (positions != null ? positions.size() : "null"));
+            System.out.println("DEBUG: Filtered positions size: " + totalPositions);
+            System.out.println("DEBUG: Original list size: " + (allPositions != null ? allPositions.size() : "null"));
 
             if (positions != null && !positions.isEmpty()) {
                 for (int i = 0; i < positions.size(); i++) {
@@ -101,11 +122,12 @@ public class InternshipPositionServlet extends HttpServlet {
                     System.out.println("Position " + i + ": " +
                             "ID=" + p.getId() + ", " +
                             "Title=" + p.getTitle() + ", " +
+                            "Status=" + p.getStatus() + ", " +
                             "Company=" + p.getCompanyName() + ", " +
-                            "Spots=" + p.getFilledSpots() + "/" + p.getMaxSpots());
+                            "Spots=" + p.getAcceptedCount() + "/" + p.getMaxSpots());
                 }
             } else {
-                System.out.println("DEBUG: Positions list is empty or null");
+                System.out.println("DEBUG: Positions list is empty or null after filtering");
             }
 
             // Check if attributes are being set

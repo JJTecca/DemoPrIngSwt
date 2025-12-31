@@ -68,6 +68,13 @@ public class FacultyDashboardServlet extends HttpServlet {
             List<InternshipPositionDto> tutoringPositions = null;
             if (facultyDeptDto != null) {
                 tutoringPositions = positionBean.findByCompanyId(facultyDeptDto.getId());
+
+                // NEW: Hydrate each position with its candidates list
+                if (tutoringPositions != null) {
+                    for (InternshipPositionDto pos : tutoringPositions) {
+                        pos.setApplicants(positionBean.getApplicantsForPosition(pos.getId()));
+                    }
+                }
             }
 
             // 5. Set Attributes for JSP

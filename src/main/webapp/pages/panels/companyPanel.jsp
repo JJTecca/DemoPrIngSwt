@@ -186,25 +186,6 @@
             color: #777;
         }
 
-        /* --- Buttons & Transitions --- */
-        .btn-manage-gear {
-            background-color: #f8f9fa;
-            color: #6c757d;
-            border: 1px solid #e9ecef;
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-
-        .btn-manage-gear:hover {
-            background-color: var(--brand-blue);
-            color: white;
-            transform: rotate(45deg);
-        }
-
         .btn-outline-primary.rounded-pill {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             border-width: 1.5px;
@@ -281,6 +262,68 @@
             align-items: center;
             gap: 10px;
             font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .student-link:hover {
+            color: var(--brand-blue);
+        }
+
+        .card-header .btn-primary:hover {
+            background-color: var(--brand-blue-dark) !important;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-manage-eye {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            border: 1px solid #e9ecef;
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            border-radius: 50%; /* Ensuring it's a perfect circle */
+        }
+
+        .btn-manage-eye:hover {
+            background-color: var(--brand-blue);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .applicant-scroll {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .applicant-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+
+        .applicant-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .applicant-pfp {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        /* Ensure the badge inside the modal matches the small style */
+        .x-small {
+            font-size: 0.65rem;
         }
 
         .status-badge {
@@ -303,6 +346,39 @@
         .status-accepted {
             background-color: #d1e7dd;
             color: #0f5132;
+        }
+
+        /* --- Position Status Badges --- */
+        .pos-status-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        /* Pending: Warning/Yellow (Waiting for Admin) */
+        .pos-status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        /* Open: Success/Green (Visible to Students) */
+        .pos-status-open {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        /* Closed/Filled: Dark/Gray */
+        .pos-status-closed {
+            background-color: #e2e3e5;
+            color: #41464b;
+            border: 1px solid #d3d3d4;
         }
     </style>
 </head>
@@ -458,6 +534,10 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="d-grid gap-0">
+                                <a href="${pageContext.request.contextPath}/PostPosition"
+                                   class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
+                                    <i class="fa-solid fa-plus-circle me-2"></i> Post New Internship
+                                </a>
                                 <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= request.getAttribute("facultyId") %>"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-regular fa-envelope me-2"></i> Contact Faculty
@@ -466,22 +546,107 @@
                         </div>
                     </div>
                     <div class="card custom-card mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center"><span
-                                class="fw-bold"><i class="fa-solid fa-list-ul me-2"></i> Your Positions</span>
-                            <button class="btn btn-sm btn-primary rounded-circle"
-                                    style="width: 28px; height: 28px; padding: 0;"><i class="fa-solid fa-plus"></i>
-                            </button>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold"><i class="fa-solid fa-list-ul me-2"></i> Your Positions</span>
+                            <a href="${pageContext.request.contextPath}/PostPosition"
+                               class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center"
+                               style="width: 28px; height: 28px; transition: all 0.3s ease; border: none;"
+                               title="Post New Position">
+                                <i class="fa-solid fa-plus" style="font-size: 0.8rem;"></i>
+                            </a>
                         </div>
                         <div class="scrollable-list">
                             <% if (myPositions != null && !myPositions.isEmpty()) { %>
                             <% for (InternshipPositionDto pos : myPositions) { %>
                             <div class="position-item d-flex justify-content-between align-items-center">
-                                <div><span class="position-title"><%= pos.getTitle() %></span><span
-                                        class="position-meta"><i
-                                        class="fa-regular fa-calendar me-1"></i>Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "N/A" %></span>
+                                <div>
+                                    <span class="position-title"><%= pos.getTitle() %></span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <%
+                                            String status = pos.getStatus(); // Assumes getStatus() returns "Open", "Pending", etc.
+                                            String posBadgeClass = "pos-status-pending";
+                                            if ("Open".equalsIgnoreCase(status)) posBadgeClass = "pos-status-open";
+                                            else if ("Closed".equalsIgnoreCase(status))
+                                                posBadgeClass = "pos-status-closed";
+                                        %>
+                                        <span class="pos-status-badge <%= posBadgeClass %>">
+                                          <i class="fa-solid <%= "Open".equalsIgnoreCase(status) ? "fa-globe" : "fa-clock-rotate-left" %> me-1"></i>
+                                          <%= status %>
+                                        </span>
+                                        <span class="position-meta">
+                                            <i class="fa-regular fa-calendar ms-1"></i>
+                                         <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "N/A" %>
+                                        </span>
+                                    </div>
                                 </div>
-                                <button class="btn-manage-gear rounded-circle" title="Settings"><i
-                                        class="fa-solid fa-gear"></i></button>
+                                <button class="btn-manage-eye" data-bs-toggle="modal"
+                                        data-bs-target="#applyModal<%= pos.getId() %>" title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+
+                            <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                    <div class="modal-content border-0">
+                                        <div class="modal-header border-0 pb-0">
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body p-5 pt-0">
+                                            <div class="text-center mb-4">
+                                                <div class="mb-2">
+                                                    <span class="pos-status-badge <%= posBadgeClass %>" style="font-size: 0.75rem; padding: 4px 12px;">
+                                                      <%= status %> Status
+                                                    </span>
+                                                </div>
+                                                <h3 class="fw-bold"><%= pos.getTitle() %></h3>
+                                                <p class="text-muted"><%= company.getName() %></p>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-7">
+                                                    <h6 class="fw-bold text-uppercase text-muted small">Description</h6>
+                                                    <p class="small text-secondary"><%= pos.getDescription() %></p>
+                                                    <h6 class="fw-bold text-uppercase text-muted small mt-4">Requirements</h6>
+                                                    <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %></p>
+                                                </div>
+
+                                                <div class="col-md-5 border-start">
+                                                    <h6 class="fw-bold text-uppercase text-muted small mb-3"><i class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
+                                                    <div class="applicant-scroll">
+                                                        <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
+                                                        <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
+                                                        <div class="applicant-item">
+                                                            <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
+                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                                 class="applicant-pfp">
+                                                            <div class="overflow-hidden">
+                                                                <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
+                                                                   class="text-decoration-none text-dark fw-bold small d-block text-truncate">
+                                                                    <%= app.getStudentName() %>
+                                                                </a>
+                                                                <span class="badge bg-light text-dark x-small" style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+                                                        <% } else { %>
+                                                        <div class="text-center py-4 text-muted small">No applications yet.</div>
+                                                        <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="alert alert-light border mt-4 m-0">
+                                                <div class="d-flex justify-content-between small">
+                                                    <span><i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
+                                                    <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <% } %>
                             <% } else { %>

@@ -1,11 +1,32 @@
+<%@ page import="com.internshipapp.common.CompanyInfoDto" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    // Logic to highlight the active link based on the current URL
-    String originUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
-    if (originUri == null) originUri = request.getRequestURI();
+    String originUri = (String) request.getAttribute("jakarta.servlet.forward.servlet_path");
+    if (originUri == null) {
+        originUri = request.getServletPath();
+    }
+    if (originUri == null) originUri = "";
     originUri = originUri.toLowerCase();
 
     String facultyDashboardUrl = request.getContextPath() + "/FacultyDashboard";
+
+    String currentIdParam = request.getParameter("id");
+    String sessionUserEmail = (String) session.getAttribute("userEmail");
+    CompanyInfoDto sidebarLoggedInCompany = (CompanyInfoDto) request.getAttribute("company");
+
+    boolean isProfilePage = originUri.contains("companyprofile");
+    boolean isViewingOwnProfile = false;
+
+    if (isProfilePage) {
+        if (currentIdParam == null || currentIdParam.trim().isEmpty()) {
+            isViewingOwnProfile = true;
+        }
+        else if (sidebarLoggedInCompany != null && sessionUserEmail != null) {
+            if (sessionUserEmail.equalsIgnoreCase(sidebarLoggedInCompany.getUserEmail())) {
+                isViewingOwnProfile = true;
+            }
+        }
+    }
 %>
 
 <style>
@@ -65,7 +86,7 @@
             <i class="fa-solid fa-chart-line"></i> Dashboard
         </a>
 
-        <a class="nav-link <%= originUri.contains("companyprofile") ? "active" : "" %>" href="${pageContext.request.contextPath}/CompanyProfile">
+        <a class="nav-link <%= isViewingOwnProfile ? "active" : "" %>" href="${pageContext.request.contextPath}/CompanyProfile">
             <i class="fa-regular fa-id-card"></i> Faculty Profile
         </a>
 

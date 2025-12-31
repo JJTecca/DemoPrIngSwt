@@ -11,6 +11,7 @@ import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
@@ -325,6 +326,37 @@ public class UserAccountBean {
             return query.getSingleResult();
         } catch (Exception ex) {
             return null;
+        }
+    }
+
+    public List<UserAccountDto> findByCompanyId(Long companyId) {
+        TypedQuery<UserAccount> query = entityManager.createQuery(
+                "SELECT u FROM UserAccount u WHERE u.companyInfo.id = :companyId", UserAccount.class);
+        query.setParameter("companyId", companyId);
+        List<UserAccount> entities = query.getResultList();
+
+        List<UserAccountDto> dtos = new ArrayList<>();
+        for (UserAccount entity : entities) {
+            UserAccountDto dto = new UserAccountDto();
+            dto.setUserId(entity.getUserId());
+            dto.setEmail(entity.getEmail());
+            dto.setUsername(entity.getUsername());
+            dto.setCompanyId(companyId);
+            dtos.add(dto);
+        }
+        return dtos;
+    }
+
+    public String getRoleByUserId(Long userId) {
+        try {
+            TypedQuery<Permission.Role> query = entityManager.createQuery(
+                    "SELECT p.role FROM Permission p WHERE p.user.id = :userId",
+                    Permission.Role.class
+            );
+            query.setParameter("userId", userId);
+            return query.getSingleResult().name();
+        } catch (NoResultException e) {
+            return "Unknown";
         }
     }
 }

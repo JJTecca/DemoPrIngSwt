@@ -262,6 +262,74 @@
                 </div>
             </div>
 
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card custom-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold" style="color: var(--brand-blue);">
+                                <i class="fa-solid fa-file-circle-check me-2"></i> Internship Position Requests
+                            </h5>
+                            <span class="badge rounded-pill bg-danger">${pendingPositions.size()} Pending</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <%-- SCROLLABLE CONTAINER --%>
+                            <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="sticky-top bg-white" style="z-index: 10;">
+                                    <tr class="table-light">
+                                        <th class="ps-4">Internship Detail</th>
+                                        <th>Company</th>
+                                        <th>Spots</th>
+                                        <th>Deadline</th>
+                                        <th class="text-end pe-4">Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty pendingPositions}">
+                                            <c:forEach var="pos" items="${pendingPositions}">
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div class="fw-bold text-dark">${pos.title}</div>
+                                                        <div class="small text-muted text-truncate" style="max-width: 300px;">
+                                                                ${pos.description}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark border"><i class="fa-solid fa-building me-1"></i> ${pos.companyName}</span>
+                                                    </td>
+                                                    <td><span class="fw-bold">${pos.maxSpots}</span></td>
+                                                    <td><small>${pos.getDeadlineAsDate().toString().substring(0, 10)}</small></td>
+                                                    <td class="text-end pe-4">
+                                                        <button class="btn btn-sm btn-approve me-1"
+                                                                onclick="manageInternship(${pos.id}, 'approve')" title="Approve">
+                                                            <i class="fa-solid fa-check"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-reject"
+                                                                onclick="manageInternship(${pos.id}, 'reject')" title="Delete Request">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="5" class="p-5 text-center text-muted">
+                                                    <i class="fa-solid fa-clipboard-check fa-3x mb-3 opacity-25"></i>
+                                                    <p>All internship requests have been processed.</p>
+                                                </td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-12">
                     <h5 class="text-muted mb-3 fs-6 text-uppercase ls-1">System Logs</h5>
@@ -312,6 +380,32 @@
             });
         }
     }
+
+    function manageInternship(posId, action) {
+        const confirmMsg = action === 'approve'
+            ? 'Make this internship visible to students?'
+            : 'Permanently delete this internship request?';
+
+        if (confirm(confirmMsg)) {
+            const params = new URLSearchParams();
+            params.append('id', posId);
+            params.append('action', action);
+
+            // UPDATED URL to match your new Servlet name
+            fetch('PositionRequestServlet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            }).then(response => {
+                if (response.ok) {
+                    location.reload(); // Success! Page reloads and item is gone
+                } else {
+                    alert('Error processing the internship request.');
+                }
+            });
+        }
+    }
+
 </script>
 </body>
 </html>

@@ -80,11 +80,33 @@ public class CompanyProfileServlet extends HttpServlet {
                 request.getRequestDispatcher("/pages/error.jsp").forward(request, response);
                 return;
             }
+            boolean isFacultyProfile = false;
+            try {
+                List<UserAccountDto> linkedUsers = userAccountBean.findByCompanyId(company.getId());
+                if (linkedUsers != null) {
+                    for (UserAccountDto user : linkedUsers) {
+                        String userRole = userAccountBean.getRoleByUserId(user.getUserId());
+                        if ("Faculty".equals(userRole)) {
+                            isFacultyProfile = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                LOG.warning("Permission check failed: " + e.getMessage());
+            }
 
             List<InternshipPositionDto> positions = positionBean.findByCompanyId(company.getId());
 
+            if (positions != null) {
+                for (InternshipPositionDto pos : positions) {
+                    pos.setApplicants(positionBean.getApplicantsForPosition(pos.getId()));
+                }
+            }
+
             request.setAttribute("company", company);
             request.setAttribute("myPositions", positions);
+            request.setAttribute("isFacultyProfile", isFacultyProfile);
 
             request.getRequestDispatcher("/pages/public/companyProfile.jsp").forward(request, response);
 
