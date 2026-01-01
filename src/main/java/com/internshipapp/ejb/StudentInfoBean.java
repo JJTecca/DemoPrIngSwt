@@ -2,14 +2,17 @@ package com.internshipapp.ejb;
 
 import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.entities.Attachment;
+import com.internshipapp.entities.Permission;
 import com.internshipapp.entities.StudentInfo;
 import com.internshipapp.entities.UserAccount;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,14 +20,6 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-/*******************************************************************
- *      Format of the Bean
- *      1. User proper java EE annotations
- *      2. Declare one log + entityManager
- *      3. Functions which involve calling DTO's
- *      4. CRUD Operations / Other SQL Statement Execution functions
- *      NOTE:  Follow consistent naming conventions and code organization
- *******************************************************************/
 @Stateless
 public class StudentInfoBean {
     private static final Logger LOG = Logger.getLogger(StudentInfoBean.class.getName());
@@ -32,11 +27,9 @@ public class StudentInfoBean {
     @PersistenceContext(unitName = "default")
     EntityManager entityManager;
 
-    /*******************************************************
-     *  Implement conversion methods between entities and DTOs
-     *  Write specific sentence about what each function does
-     *  Copy function example is standard
-     **********************************************************/
+    @Inject
+    private ExcelParserBean excelParserBean;
+
     public List<StudentInfoDto> copyStudentsToDto(List<StudentInfo> students) {
         List<StudentInfoDto> dtos = new ArrayList<>();
         for (StudentInfo student : students) {
@@ -74,13 +67,9 @@ public class StudentInfoBean {
         com.internshipapp.common.AttachmentDto attachmentDto = null;
 
         if (student.getAttachment() != null) {
-            // We reload the attachment to ensure we have the latest boolean flags
-            // and avoid any stale proxy state.
             Attachment att = entityManager.find(Attachment.class, student.getAttachment().getId());
 
             if (att != null) {
-                // DIRECTLY READ THE FLAGS from your Entity
-                // This avoids all complex SQL queries and syntax errors.
                 boolean hasCv = (att.hasCv() != null && att.hasCv());
                 boolean hasPfp = (att.hasProfilePic() != null && att.hasProfilePic());
 
@@ -206,19 +195,14 @@ public class StudentInfoBean {
 
     private Object[] getAttachmentStatusByStudentId(Long studentId) {
         try {
-            // Query to get the Attachment ID and the boolean flags directly
             TypedQuery<Object[]> query = entityManager.createQuery(
                     "SELECT s.attachment.id, s.attachment.hasCv, s.attachment.hasProfilePic " +
                             "FROM StudentInfo s WHERE s.id = :sid",
                     Object[].class
             );
             query.setParameter("sid", studentId);
-
-            // Use getSingleResult() because we expect one row
             return query.getSingleResult();
-
         } catch (Exception e) {
-            // Log quietly if no attachment is linked or other fetch error
             return null;
         }
     }
@@ -238,7 +222,6 @@ public class StudentInfoBean {
                 student.setEnrolled(enrolled);
                 student.setBiography(biography);
                 student.setGradeVisibility(gradeVisibility);
-
                 entityManager.merge(student);
             }
         } catch (Exception ex) {
@@ -354,5 +337,279 @@ public class StudentInfoBean {
             LOG.warning("Error getting student statistics: " + ex.getMessage());
         }
         return stats;
+    }
+
+    public List<Map<String, String>> parseExcelForPreview(InputStream excelInputStream) throws Exception {
+        LOG.info("Parsing Excel for preview");
+        try {
+            return excelParserBean.parseExcel(excelInputStream);
+        } catch (Exception e) {
+            LOG.severe("Error parsing Excel for preview: " + e.getMessage());
+            throw new Exception("Failed to parse Excel file: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Import students from parsed Excel data
+     */
+    public ImportResult importStudentsFromExcelData(List<Map<String, String>> excelData) throws Exception {
+        LOG.info("Starting student import from parsed Excel data");
+
+        ImportResult result = new ImportResult();
+        result.totalInFile = excelData.size();
+        LOG.info("Total students to process: " + result.totalInFile);
+
+        // Process each row
+        for (Map<String, String> row : excelData) {
+            LOG.info("Processing row: " + row);
+            try {
+                // Extract and validate data
+                ImportStudentData studentData = extractStudentData(row);
+
+                if (!studentData.isValid()) {
+                    result.skipped++;
+                    String reason = "Missing required fields: Email=" + studentData.email +
+                            ", Username=" + studentData.username +
+                            ", FullName=" + studentData.fullName +
+                            ", Password=" + studentData.password;
+                    result.skippedDetails.add(reason);
+                    LOG.warning("Skipped - Invalid data: " + reason);
+                    continue;
+                }
+
+                // Check if student already exists
+                boolean exists = studentExists(studentData.email);
+                LOG.info("Checking if student exists (email: " + studentData.email + "): " + exists);
+
+                if (exists) {
+                    result.skipped++;
+                    String reason = "Already exists: " + studentData.email;
+                    result.skippedDetails.add(reason);
+                    LOG.warning("Skipped - " + reason);
+                    continue;
+                }
+
+                // Create the student
+                LOG.info("Creating student: " + studentData.fullName + " (" + studentData.email + ")");
+                createCompleteStudent(studentData);
+                result.imported++;
+                result.importedStudents.add(studentData.fullName + " (" + studentData.email + ")");
+                LOG.info("Successfully created student: " + studentData.fullName);
+
+            } catch (Exception e) {
+                result.skipped++;
+                result.skippedDetails.add("Error processing: " + e.getMessage());
+                LOG.severe("Failed to process row: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        LOG.info("Import completed. Imported: " + result.imported +
+                ", Skipped: " + result.skipped + ", Total: " + result.totalInFile);
+
+        return result;
+    }
+
+    /**
+     * Extract and validate student data from row
+     */
+    private ImportStudentData extractStudentData(Map<String, String> row) {
+        ImportStudentData data = new ImportStudentData();
+
+        // Get values with case-insensitive matching
+        data.email = getCaseInsensitiveValue(row, "Email");
+        data.username = getCaseInsensitiveValue(row, "Username");
+        data.fullName = getCaseInsensitiveValue(row, "Full Name");
+        String studyYearStr = getCaseInsensitiveValue(row, "Study Year");
+        String gradeStr = getCaseInsensitiveValue(row, "Last Year Grade");
+        String statusStr = getCaseInsensitiveValue(row, "Status");
+        String enrolledStr = getCaseInsensitiveValue(row, "Enrolled");
+        data.password = getCaseInsensitiveValue(row, "Password");
+
+        LOG.info("Extracted values - Email: '" + data.email +
+                "', Username: '" + data.username +
+                "', FullName: '" + data.fullName +
+                "', Password: '" + data.password + "'");
+
+        // Validate required fields (ADD PASSWORD TO VALIDATION)
+        if (data.email.isEmpty() || data.username.isEmpty() || data.fullName.isEmpty() || data.password.isEmpty()) {
+            return data; // Will be invalid
+        }
+
+        // Parse name into parts
+        String[] nameParts = data.fullName.split("\\s+", 3);
+        data.firstName = nameParts.length > 0 ? nameParts[0] : "";
+        data.lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+        data.middleName = nameParts.length > 2 ? nameParts[1] : "";
+
+        // Parse study year
+        try {
+            data.studyYear = Integer.parseInt(studyYearStr);
+        } catch (NumberFormatException e) {
+            data.studyYear = 1; // Default
+        }
+
+        // Parse grade
+        try {
+            data.lastYearGrade = Float.parseFloat(gradeStr);
+        } catch (NumberFormatException e) {
+            data.lastYearGrade = 0.0f; // Default
+        }
+
+        // Parse enrolled status
+        data.enrolled = "Yes".equalsIgnoreCase(enrolledStr) ||
+                "true".equalsIgnoreCase(enrolledStr) ||
+                "1".equals(enrolledStr);
+
+        // Parse status
+        try {
+            data.status = StudentInfo.StudentStatus.valueOf(statusStr);
+        } catch (IllegalArgumentException e) {
+            data.status = StudentInfo.StudentStatus.Available; // Default
+        }
+
+        data.valid = true;
+        return data;
+    }
+
+    /**
+     * Create complete student with all related entities
+     */
+    private void createCompleteStudent(ImportStudentData data) {
+
+        // 1. Create Attachment (empty)
+        Attachment attachment = new Attachment();
+        attachment.setHasCv(false);
+        attachment.setHasProfilePic(false);
+        entityManager.persist(attachment);
+
+        // 2. Create StudentInfo
+        StudentInfo student = new StudentInfo();
+        student.setFirstName(data.firstName);
+        student.setMiddleName(data.middleName);
+        student.setLastName(data.lastName);
+        student.setStudyYear(data.studyYear);
+        student.setLastYearGrade(data.lastYearGrade);
+        student.setStatus(data.status);
+        student.setEnrolled(data.enrolled);
+        student.setBiography("Imported from Excel");
+        student.setGradeVisibility(true);
+        student.setAttachment(attachment);
+
+        entityManager.persist(student);
+        entityManager.flush();
+        LOG.info("Created StudentInfo with ID: " + student.getId());
+
+        // 3. Create UserAccount
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUsername(data.username);
+        userAccount.setEmail(data.email);
+        userAccount.setStudentInfo(student);
+
+        // USE PASSWORD FROM EXCEL
+        userAccount.setPassword(data.password);
+        LOG.info("Setting password for " + data.email + ": '" + data.password + "'");
+
+        entityManager.persist(userAccount);
+        entityManager.flush();
+        LOG.info("Created UserAccount with ID: " + userAccount.getUserId());
+
+        // 4. Create Permission
+        Permission permission = new Permission();
+        permission.setUser(userAccount);
+        permission.setRole(Permission.Role.Student);
+        entityManager.persist(permission);
+        entityManager.flush();
+
+        LOG.info("Created Permission with ID: " + permission.getId());
+        LOG.info("Successfully created student: " + data.fullName + " (" + data.email + ") with password: " + data.password);
+    }
+
+    /**
+     * Get value from map with case-insensitive key matching
+     */
+    private String getCaseInsensitiveValue(Map<String, String> map, String key) {
+        // First try exact match
+        if (map.containsKey(key)) {
+            return map.get(key);
+        }
+
+        // Try case-insensitive match
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase(key)) {
+                return entry.getValue();
+            }
+        }
+
+        return "";
+    }
+
+    /**
+     * Check if a student already exists by email
+     */
+    private boolean studentExists(String email) {
+        try {
+            Long count = entityManager.createQuery(
+                            "SELECT COUNT(u) FROM UserAccount u WHERE u.email = :email", Long.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+            return count > 0;
+        } catch (Exception e) {
+            LOG.warning("Error checking student existence: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // =============================================
+    // HELPER CLASSES
+    // =============================================
+
+    /**
+     * Data class for student import
+     */
+    private static class ImportStudentData {
+        String email;
+        String username;
+        String fullName;
+        String firstName;
+        String middleName;
+        String lastName;
+        int studyYear;
+        float lastYearGrade;
+        StudentInfo.StudentStatus status;
+        boolean enrolled;
+        String password;  // ADD THIS
+        boolean valid = false;
+
+        boolean isValid() {
+            return valid && !email.isEmpty() && !username.isEmpty() && !fullName.isEmpty() && !password.isEmpty();
+        }
+    }
+
+    /**
+     * Result class for import operation
+     */
+    public static class ImportResult {
+        public int imported = 0;
+        public int skipped = 0;
+        public int totalInFile = 0;
+        public List<String> importedStudents = new ArrayList<>();
+        public List<String> skippedDetails = new ArrayList<>();
+
+        // Add getters for JSP
+        public int getImported() { return imported; }
+        public int getSkipped() { return skipped; }
+        public int getTotalInFile() { return totalInFile; }
+        public List<String> getImportedStudents() { return importedStudents; }
+        public List<String> getSkippedDetails() { return skippedDetails; }
+
+        public boolean hasErrors() {
+            return skipped > 0;
+        }
+
+        public String getSummary() {
+            return String.format("Imported: %d, Skipped: %d, Total in file: %d",
+                    imported, skipped, totalInFile);
+        }
     }
 }
