@@ -142,8 +142,6 @@ public class InternshipApplicationBean {
             return query.getSingleResult();
 
         } catch (Exception ex) {
-            // Log the exception, but return 0 gracefully.
-            // LOG.log(Level.SEVERE, "Error counting applications for company ID " + companyId, ex);
             return 0L;
         }
     }
