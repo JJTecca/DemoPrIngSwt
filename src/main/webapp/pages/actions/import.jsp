@@ -117,7 +117,7 @@
             </h2>
             <p class="text-muted mb-0">Import student data from Excel file</p>
         </div>
-        <a href="${pageContext.request.contextPath}/facultyPanel.jsp" class="btn btn-outline-secondary">
+        <a href="${pageContext.request.contextPath}/FacultyDashboard" class="btn btn-outline-secondary">
             <i class="fa-solid fa-arrow-left me-1"></i>Back
         </a>
     </div>
