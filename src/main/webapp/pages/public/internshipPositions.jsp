@@ -622,29 +622,54 @@
             });
         }
 
-        // --- SORTING LOGIC ---
+// Variable to store the "base" sort text
+        let currentSortLabel = "Sort By";
+
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const criteria = this.getAttribute('data-criteria');
+                const sortLabelElement = document.getElementById('sortLabel');
 
-                // Update Button Label UI
-                document.getElementById('sortLabel').innerText = this.innerText;
-
+                // CASE 1: TOGGLE FILTER (Open Only)
                 if (criteria === 'openOnly') {
                     openOnlyFilterActive = !openOnlyFilterActive;
-                    this.classList.toggle('bg-light', openOnlyFilterActive);
+
+                    // Toggle visual state of the specific dropdown item
+                    this.classList.toggle('fw-bold', openOnlyFilterActive);
+                    this.classList.toggle('text-primary', openOnlyFilterActive);
+                    this.querySelector('i').classList.toggle('text-success', openOnlyFilterActive);
+
+                    // Update Label: If filter is OFF, go back to the base sort. If ON, show filter.
+                    sortLabelElement.innerText = openOnlyFilterActive ? "Only Open Positions" : currentSortLabel;
+
                     applyAllFilters();
                     return;
                 }
 
-                // CHRONOLOGICAL / CAPACITY SORTING
+                // CASE 2: ACTUAL SORTING (Newest, Oldest, Spots)
+                // 1. Remove active effect from all OTHER sort-only buttons
+                document.querySelectorAll('.sort-btn[data-criteria]:not([data-criteria="openOnly"])')
+                    .forEach(b => b.classList.remove('fw-bold', 'text-primary'));
+
+                // 2. Add active effect to THIS button
+                this.classList.add('fw-bold', 'text-primary');
+
+                // 3. Update the "Memory" of what the sort is
+                currentSortLabel = this.innerText;
+
+                // 4. Update UI: If "Open Only" is active, don't overwrite the label yet
+                if (!openOnlyFilterActive) {
+                    sortLabelElement.innerText = currentSortLabel;
+                }
+
+                // Execution of the Sort
                 const items = Array.from(positionsGrid.querySelectorAll('.position-item'));
                 items.sort((a, b) => {
-                    const dateA = parseInt(a.getAttribute('data-date'));
-                    const dateB = parseInt(b.getAttribute('data-date'));
-                    const spotsA = parseInt(a.getAttribute('data-spots'));
-                    const spotsB = parseInt(b.getAttribute('data-spots'));
+                    const dateA = parseInt(a.getAttribute('data-date')) || 0;
+                    const dateB = parseInt(b.getAttribute('data-date')) || 0;
+                    const spotsA = parseInt(a.getAttribute('data-spots')) || 0;
+                    const spotsB = parseInt(b.getAttribute('data-spots')) || 0;
 
                     if (criteria === 'newest') return dateB - dateA;
                     if (criteria === 'oldest') return dateA - dateB;
@@ -652,10 +677,7 @@
                     return 0;
                 });
 
-                // Re-append items in new order
                 items.forEach(item => positionsGrid.appendChild(item));
-
-                // CRUCIAL: Re-run filters so sorted hidden items stay hidden
                 applyAllFilters();
             });
         });

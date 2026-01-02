@@ -43,6 +43,7 @@ public class InternshipApplicationBean {
             // Default values to avoid NullPointerExceptions
             String posTitle = "Unknown Position";
             String compName = "Unknown Company";
+            Long compId = null;
             String description = "No description available.";
             String requirements = "No requirements specified.";
             Date deadline = null;
@@ -58,6 +59,7 @@ public class InternshipApplicationBean {
 
                 // 3. Get Company Name
                 if (pos.getCompany() != null && pos.getCompany().getName() != null) {
+                    compId = pos.getCompany().getId();
                     compName = pos.getCompany().getName();
                 }
 
@@ -84,6 +86,7 @@ public class InternshipApplicationBean {
                     app.getChatIds(),
                     posTitle,
                     compName,
+                    compId,
                     description,   // Passed here
                     requirements,  // Passed here
                     deadline       // Passed here

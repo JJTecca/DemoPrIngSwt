@@ -437,7 +437,7 @@
                             <h5 class="fw-bold m-0 text-primary">
                                 <i class="<%= isFaculty ? "fa-solid fa-chalkboard-user" : "fa-solid fa-briefcase" %> me-2"></i> <%= positionLabel %>
                             </h5>
-                            <% if (isOwner) { %>
+                            <% if (isOwner || "Faculty".equals(sessionRole)) { %>
                             <a href="${pageContext.request.contextPath}/PostPosition" class="btn btn-sm btn-brand">
                                 <i class="fa-solid fa-plus me-1"></i> <%= postBtnLabel %>
                             </a>
