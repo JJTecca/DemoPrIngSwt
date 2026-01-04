@@ -33,7 +33,8 @@ public class InternshipApplication {
         Pending,
         Interview,
         Accepted,
-        Rejected
+        Rejected,
+        Discussion
     }
 
     @Enumerated(EnumType.STRING)
@@ -41,7 +42,7 @@ public class InternshipApplication {
     private ApplicationStatus status = ApplicationStatus.Pending;
 
     @Column(name = "grade")
-    private Integer grade;
+    private Float grade;
 
     @Column(name = "applied_at", nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();
@@ -49,8 +50,11 @@ public class InternshipApplication {
     @Column(name = "chat_ids", columnDefinition = "JSON", nullable = false)
     private String chatIds; // Or use @Convert with List<String>
 
+    @Column(name = "interview")
+    private LocalDateTime interview;
+
     public InternshipApplication() {}
-    public InternshipApplication(Long id, InternshipPosition internshipPosition, StudentInfo student, ApplicationStatus status, Integer grade, LocalDateTime appliedAt, String chatIds) {
+    public InternshipApplication(Long id, InternshipPosition internshipPosition, StudentInfo student, ApplicationStatus status, Float grade, LocalDateTime appliedAt, String chatIds) {
         this.id = id;
         this.internshipPosition = internshipPosition;
         this.student = student;
@@ -81,11 +85,11 @@ public class InternshipApplication {
         this.status = status;
     }
 
-    public Integer getGrade() {
+    public Float getGrade() {
         return grade;
     }
 
-    public void setGrade(Integer grade) {
+    public void setGrade(Float grade) {
         this.grade = grade;
     }
 
@@ -104,4 +108,8 @@ public class InternshipApplication {
     public void setChatIds(String chatIds) {
         this.chatIds = chatIds;
     }
+
+    public LocalDateTime getInterview() { return interview; }
+
+    public void setInterview(LocalDateTime interview) { this.interview = interview; }
 }

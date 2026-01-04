@@ -88,6 +88,8 @@ public class InternshipPositionServlet extends HttpServlet {
             if ("Student".equals(role) && email != null) {
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
                 if (student != null) {
+                    String currentStatus = student.getStatus();
+                    session.setAttribute("studentStatus", currentStatus);
                     List<Long> appliedIds = internshipApplicationBean.getAppliedPositionIds(student.getId());
                     if (appliedIds != null && !appliedIds.isEmpty()) {
                         for (InternshipPositionDto pos : positions) {

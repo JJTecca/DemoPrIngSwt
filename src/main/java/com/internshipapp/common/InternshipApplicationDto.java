@@ -17,7 +17,7 @@ public class InternshipApplicationDto {
     private Long studentId;
     private String studentName;
     private String status;
-    private Integer grade;
+    private Float grade;
     private LocalDateTime appliedAt;
     private String chatIds;
     private String positionTitle;
@@ -26,6 +26,9 @@ public class InternshipApplicationDto {
     private String requirements;
     private Date deadline;
     private Long companyId;
+    private LocalDateTime interview;
+    private String studentStatus;
+    private Float studyGrade;
     /************************************************
      *        Constructors
      *  - we have more type of constructors
@@ -38,7 +41,7 @@ public class InternshipApplicationDto {
      **************************************************************/
     public InternshipApplicationDto() {}
 
-    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Integer grade, LocalDateTime appliedAt, String chatIds) {
+    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Float grade, LocalDateTime appliedAt, String chatIds) {
         this.id = id;
         this.internshipPositionId = internshipPositionId;
         this.studentId = studentId;
@@ -48,23 +51,31 @@ public class InternshipApplicationDto {
         this.chatIds = chatIds;
     }
 
-    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId, String status, Integer grade, LocalDateTime appliedAt, String chatIds, String positionTitle, String companyName, Long companyId, String description, String requirements, Date deadline) {
+    // Update this constructor in InternshipApplicationDto.java
+    public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId,
+                                    String studentName, String studentStatus, String status,
+                                    Float grade, Float studyGrade, LocalDateTime appliedAt,
+                                    String chatIds, String positionTitle, String companyName,
+                                    Long companyId, String description, String requirements, Date deadline) {
         this.id = id;
         this.internshipPositionId = internshipPositionId;
         this.studentId = studentId;
+        this.studentName = studentName; // Added this
+        this.studentStatus = studentStatus;
         this.status = status;
         this.grade = grade;
+        this.studyGrade = studyGrade;
         this.appliedAt = appliedAt;
         this.chatIds = chatIds;
         this.positionTitle = positionTitle;
         this.companyName = companyName;
+        this.companyId = companyId;
         this.description = description;
         this.requirements = requirements;
         this.deadline = deadline;
-        this.companyId = companyId;
     }
 
-    public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Integer grade, LocalDateTime appliedAt, String chatIds, String posTitle, String compName) {
+    public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Float grade, LocalDateTime appliedAt, String chatIds, String posTitle, String compName) {
         this.id = id;
         this.internshipPositionId = aLong;
         this.studentId = id1;
@@ -82,6 +93,21 @@ public class InternshipApplicationDto {
         this.studentName = studentName;
         this.status = status;
         this.appliedAt = appliedAt;
+    }
+
+    // Add this 7-parameter constructor to your DTO
+    public InternshipApplicationDto(Long id, Long positionId, String positionTitle,
+                                    Long companyId, String companyName,
+                                    Object status, Float grade) {
+        this.id = id;
+        this.internshipPositionId = positionId;
+        this.positionTitle = positionTitle;
+        this.companyId = companyId;
+        this.companyName = companyName;
+
+        // Handle the Enum-to-String conversion here
+        this.status = (status != null) ? status.toString() : "Pending";
+        this.grade = grade;
     }
 
     public Long getId() {
@@ -120,11 +146,11 @@ public class InternshipApplicationDto {
         this.status = status;
     }
 
-    public Integer getGrade() {
+    public Float getGrade() {
         return grade;
     }
 
-    public void setGrade(Integer grade) {
+    public void setGrade(Float grade) {
         this.grade = grade;
     }
 
@@ -187,4 +213,24 @@ public class InternshipApplicationDto {
     public Long getCompanyId() { return companyId; }
 
     public void setCompanyId(Long companyId) { this.companyId = companyId; }
+
+    public LocalDateTime getInterview() { return interview; }
+
+    public void setInterview(LocalDateTime interview) { this.interview = interview; }
+
+    public String getStudentStatus() { return studentStatus; }
+
+    public void setStudentStatus(String studentStatus) { this.studentStatus = studentStatus; }
+
+    public Float getStudyGrade() { return studyGrade; }
+
+    public void setStudyGrade(Float studyGrade) { this.studyGrade = studyGrade; }
+
+    public String getStudyGradeFormatted() {
+        return (studyGrade != null) ? String.format("%.2f", studyGrade) : "N/A";
+    }
+
+    public String getInternshipGradeFormatted() {
+        return (grade != null) ? String.format("%.2f", grade) : "N/A";
+    }
 }

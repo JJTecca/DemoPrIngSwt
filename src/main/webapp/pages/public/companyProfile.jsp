@@ -169,19 +169,31 @@
         }
 
         .btn-gray-modern {
-            background-color: #f1f3f5;
-            color: #475467;
-            border: 1px solid #ced4da;
+            background-color: #ffffff; /* Bright white base */
+            color: #101828; /* Very dark gray for maximum contrast */
+            border: 1px solid #d0d5dd;
             font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle lift */
+            border-left: 4px solid #667085; /* Left accent bar for visual weight */
         }
 
         .btn-gray-modern:hover {
-            background-color: #e9ecef;
-            color: #1d2939;
-            border-color: #adb5bd;
-            transform: translateY(-1px);
+            background-color: #f9fafb;
+            color: #0e2b58; /* Brand blue on hover */
+            border-color: #0e2b58;
+            border-left-color: #0e2b58; /* Accent matches brand on hover */
+            box-shadow: 0 4px 12px rgba(16, 24, 40, 0.12); /* Pronounced lift */
+            transform: translateY(-2px);
+        }
+
+        .btn-gray-modern i {
+            color: #0e2b58; /* Make the key icon brand blue initially to catch the eye */
+            transition: color 0.2s ease;
+        }
+
+        .btn-gray-modern:hover i {
+            color: var(--ulbs-red); /* Optional: Turn red on hover for "security" feel */
         }
 
         .btn-brand {
@@ -377,9 +389,9 @@
 
                         <div class="d-grid gap-2 mt-auto">
                             <% if (isOwner) { %>
-                            <button class="btn btn-gray-modern btn-sm px-3" data-bs-toggle="modal"
+                            <button class="btn btn-gray-modern btn-sm px-3 py-2 shadow-sm" data-bs-toggle="modal"
                                     data-bs-target="#changePasswordModal">
-                                <i class="fa-solid fa-key me-2 text-secondary"></i>Change Password
+                                <i class="fa-solid fa-key me-2"></i> Change Password
                             </button>
                             <% } %>
                         </div>

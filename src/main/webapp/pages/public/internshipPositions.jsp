@@ -13,6 +13,9 @@
     // We assume the Company user has their Company ID stored in session to check ownership
     Long sessionCompanyId = (Long) session.getAttribute("companyId");
 
+    String globalStudentStatus = (String) session.getAttribute("studentStatus");
+    boolean isAcceptedGlobally = "Accepted".equalsIgnoreCase(globalStudentStatus);
+
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
 %>
@@ -496,7 +499,7 @@
                                             <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
                                             <div class="applicant-item">
                                                 <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff&size=100';"
                                                      class="applicant-pfp">
                                                 <div class="overflow-hidden">
                                                     <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
@@ -526,20 +529,27 @@
                             </div>
                             <div class="modal-footer border-0 justify-content-center pb-4">
                                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
-                                <% if ("Student".equals(sessionRole)) { %>
 
-                                <% if ("Closed".equalsIgnoreCase(modalStatus)) { %>
+                                <% if ("Student".equals(sessionRole)) {%>
+                                <%-- 1. Master Lock (Business Rule No2): Student is already hired --%>
+                                <% if (isAcceptedGlobally) { %>
+                                <button class="btn btn-secondary px-5 opacity-75" disabled style="cursor: not-allowed;">
+                                    <i class="fa-solid fa-ban me-2"></i> Selection Locked (Hired)
+                                </button>
+
+                                <%-- 2. Position Status Check: Position is closed --%>
+                                <% } else if ("Closed".equalsIgnoreCase(modalStatus)) { %>
                                 <button class="btn btn-secondary px-5 opacity-50" disabled style="cursor: not-allowed;">
                                     <i class="fa-solid fa-lock me-2"></i> Position Closed
                                 </button>
 
-                                <%-- 3. Then check if they already applied --%>
+                                <%-- 3. Application History Check: Already applied to this specific position --%>
                                 <% } else if (pos.isAlreadyApplied()) { %>
                                 <button class="btn btn-applied px-5" disabled>
                                     <i class="fa-solid fa-check me-2"></i> Application Sent
                                 </button>
 
-                                <%-- 4. Only if Open and Not Applied, show the form --%>
+                                <%-- 4. Final Action: Position is open, Student is available, and no existing application --%>
                                 <% } else { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">

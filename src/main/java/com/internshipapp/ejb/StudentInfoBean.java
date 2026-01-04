@@ -1,10 +1,9 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.common.AttachmentDto;
+import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.StudentInfoDto;
-import com.internshipapp.entities.Attachment;
-import com.internshipapp.entities.Permission;
-import com.internshipapp.entities.StudentInfo;
-import com.internshipapp.entities.UserAccount;
+import com.internshipapp.entities.*;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -64,7 +63,7 @@ public class StudentInfoBean {
         }
 
         // 2. ATTACHMENT LOGIC (Simplified: Using your Entity Flags)
-        com.internshipapp.common.AttachmentDto attachmentDto = null;
+        AttachmentDto attachmentDto = null;
 
         if (student.getAttachment() != null) {
             Attachment att = entityManager.find(Attachment.class, student.getAttachment().getId());
@@ -80,6 +79,8 @@ public class StudentInfoBean {
                 );
             }
         }
+        Float internshipGrade = getAcceptedInternshipGrade(student.getId());
+        List<InternshipApplicationDto> applications = getStudentApplications(student.getId());
 
         // 3. Return StudentInfoDto
         return new StudentInfoDto(
@@ -89,11 +90,13 @@ public class StudentInfoBean {
                 student.getLastName(),
                 student.getStudyYear(),
                 student.getLastYearGrade(),
+                internshipGrade,
                 student.getStatus().toString(),
                 student.getEnrolled(),
                 userEmail,
                 username,
                 userId,
+                applications,
                 attachmentDto,
                 student.getBiography(),
                 student.getGradeVisibility()
@@ -177,6 +180,36 @@ public class StudentInfoBean {
         }
     }
 
+    private List<InternshipApplicationDto> getStudentApplications(Long studentId) {
+        try {
+            // Paths matched to your Entity:
+            // a.internshipPosition -> p
+            // p.company -> c
+            // a.status (Enum)
+            // a.grade (Integer)
+            TypedQuery<InternshipApplicationDto> query = entityManager.createQuery(
+                    "SELECT new com.internshipapp.common.InternshipApplicationDto(" +
+                            "a.id, " +
+                            "p.id, " +
+                            "p.title, " +
+                            "c.id, " +
+                            "c.name, " +
+                            "a.status, " +
+                            "a.grade) " +
+                            "FROM InternshipApplication a " +
+                            "JOIN a.internshipPosition p " +
+                            "JOIN p.company c " +
+                            "WHERE a.student.id = :sid",
+                    InternshipApplicationDto.class
+            );
+            query.setParameter("sid", studentId);
+            return query.getResultList();
+        } catch (Exception e) {
+            LOG.warning("Error fetching applications for student " + studentId + ": " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
     public void createStudent(String firstName, String middleName, String lastName, Integer studyYear, Float lastYearGrade) {
         try {
             StudentInfo student = new StudentInfo();
@@ -203,6 +236,33 @@ public class StudentInfoBean {
             query.setParameter("sid", studentId);
             return query.getSingleResult();
         } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Float getAcceptedInternshipGrade(Long studentId) {
+        try {
+            // Change the TypedQuery to Integer.class
+            TypedQuery<Integer> query = entityManager.createQuery(
+                    "SELECT a.grade FROM InternshipApplication a " +
+                            "WHERE a.student.id = :sid AND a.status = :status",
+                    Integer.class
+            );
+
+            query.setParameter("sid", studentId);
+            query.setParameter("status", com.internshipapp.entities.InternshipApplication.ApplicationStatus.Accepted);
+
+            List<Integer> results = query.getResultList();
+
+            // Convert the Integer result to Float for the DTO
+            if (results.isEmpty() || results.get(0) == null) {
+                return null;
+            }
+
+            return results.get(0).floatValue();
+
+        } catch (Exception e) {
+            LOG.warning("Error fetching internship grade for student " + studentId + ": " + e.getMessage());
             return null;
         }
     }

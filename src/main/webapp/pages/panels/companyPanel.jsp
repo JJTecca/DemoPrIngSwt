@@ -153,12 +153,13 @@
 
         /* --- Lists & Tables --- */
         .applications-scroll-area {
-            height: 790px; /* Balanced height for the dashboard */
-            overflow-y: auto;
+            max-height: 810px; /* Balanced height for the dashboard */
+            overflow: visible !important;
+            position: relative;
         }
 
         .scrollable-list {
-            height: 400px;
+            max-height: 400px;
             overflow-y: auto;
             border-bottom-left-radius: 8px;
             border-bottom-right-radius: 8px;
@@ -244,7 +245,7 @@
             background: var(--brand-blue);
             color: white !important;
             transform: translateX(5px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .student-avatar-small {
@@ -272,7 +273,7 @@
         .card-header .btn-primary:hover {
             background-color: var(--brand-blue-dark) !important;
             transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .btn-manage-eye {
@@ -333,21 +334,6 @@
             font-weight: 600;
         }
 
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-interview {
-            background-color: #cff4fc;
-            color: #055160;
-        }
-
-        .status-accepted {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-
         /* --- Position Status Badges --- */
         .pos-status-badge {
             font-size: 0.65rem;
@@ -379,6 +365,121 @@
             background-color: #e2e3e5;
             color: #41464b;
             border: 1px solid #d3d3d4;
+        }
+
+        /* Specific state for locked chat */
+        .btn-chat.disabled {
+            background-color: #f8f9fa;
+            color: #adb5bd;
+            border-color: #e9ecef;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* --- High-Contrast Gradient Filter Button --- */
+        #appFilterBtn {
+            height: 38px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
+            color: white !important;
+            border: none;
+            box-shadow: 0 4px 10px rgba(14, 43, 88, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #appFilterBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(14, 43, 88, 0.3);
+            filter: brightness(1.1);
+        }
+
+        /* --- Gradient Status Selectors --- */
+        .status-dropdown-btn {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            color: var(--brand-blue-dark);
+            font-weight: 700;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Active State Badge Colors (Text remains high contrast) */
+        .status-pending {
+            border-left: 4px solid #ffc107;
+        }
+
+        .status-interview {
+            border-left: 4px solid #0dcaf0;
+        }
+
+        .status-accepted {
+            border-left: 4px solid #198754;
+        }
+
+        .grade-internship {
+            color: #0d6efd !important; /* Matches your brand blue or primary */
+        }
+        .grade-internship i.fa-star {
+            color: #ffc107; /* Gold star */
+        }
+
+        .status-rejected {
+            border-left: 4px solid #dc3545;
+        }
+
+        .status-discussion {
+            border-left: 4px solid #6610f2;
+        }
+
+        .status-dropdown-btn:hover {
+            background: white;
+            border-color: var(--brand-blue);
+            color: var(--brand-blue);
+            transform: translateY(-1px);
+        }
+
+        /* Prevents the responsive table wrapper from clipping the dropdown menu */
+        .table-responsive {
+            overflow: visible !important;
+            /* This prevents Bootstrap from forcing a scroll-container logic on the table */
+            display: block;
+        }
+
+        .custom-card {
+            overflow: visible !important;
+        }
+
+        /* Ensures table headers stay below the dropdown when scrolling */
+        thead.sticky-top {
+            z-index: 10 !important;
+        }
+
+        /* Forced elevation for the status dropdown to ensure it clears all other UI elements */
+        .status-dropdown-btn + .dropdown-menu {
+            z-index: 1070 !important;
+            position: absolute;
+        }
+
+        .filter-active {
+            background-color: var(--brand-blue) !important;
+            color: white !important;
+        }
+
+        .main-content {
+            overflow: visible !important;
+        }
+
+        /* Fixes both the App Filter and the Status Dropdowns */
+        #appFilterBtn + .dropdown-menu {
+            /* Ensure it is above the sticky header and other cards */
+            z-index: 9999 !important;
+            position: absolute;
+        }
+
+        /* Specifically for the filter at the top to prevent it hiding if header is small */
+        .card-header {
+            z-index: 20 !important;
+            position: relative;
         }
     </style>
 </head>
@@ -467,9 +568,39 @@
                     </div>
 
                     <div class="card custom-card">
-                        <div class="card-header d-flex justify-content-between align-items-center"><span
-                                class="fw-bold"><i class="fa-solid fa-user-check me-2"></i> Received Applications</span><span
-                                class="badge bg-light text-primary border"><%= totalAppsCount %> Total</span></div>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-bold"><i
+                                    class="fa-solid fa-user-check me-2"></i> Received Applications</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="dropdown">
+                                    <button id="appFilterBtn"
+                                            class="btn btn-sm btn-outline-primary dropdown-toggle rounded-pill px-3"
+                                            type="button" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-filter me-1"></i> Filter: <span id="currentFilterLabel">Hide Rejected</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li><a class="dropdown-item filter-opt" data-filter="All" href="#">Show All</a>
+                                        </li>
+                                        <li><a class="dropdown-item filter-opt active" data-filter="HideRejected"
+                                               href="#">Hide Rejected (Default)</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Pending"
+                                               href="#">Pending</a></li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Discussion" href="#">Discussion</a>
+                                        </li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Interview" href="#">Interview</a>
+                                        </li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Accepted"
+                                               href="#">Accepted</a></li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Rejected" href="#">Rejected
+                                            Only</a></li>
+                                    </ul>
+                                </div>
+                                <span class="badge bg-light text-primary border"><%= totalAppsCount %> Total</span>
+                            </div>
+                        </div>
                         <div class="card-body p-0">
                             <% if (applications != null && !applications.isEmpty()) { %>
                             <div class="applications-scroll-area">
@@ -479,25 +610,48 @@
                                         <tr>
                                             <th class="ps-4">Candidate</th>
                                             <th>Position</th>
+                                            <th style="min-width: 150px;">
+                                                <div class="dropdown">
+                                                    <a class="text-decoration-none text-muted dropdown-toggle fw-bold small"
+                                                       href="#" role="button" data-bs-toggle="dropdown">
+                                                        <i class="fa-solid fa-graduation-cap me-1"></i> <span
+                                                            id="gradeColumnLabel">Study Grade</span>
+                                                    </a>
+                                                    <ul class="dropdown-menu shadow border-0">
+                                                        <li><a class="dropdown-item small toggle-grade"
+                                                               data-type="study" href="#">Study Grade</a></li>
+                                                        <li><a class="dropdown-item small toggle-grade"
+                                                               data-type="internship" href="#">Internship Grade</a></li>
+                                                    </ul>
+                                                </div>
+                                            </th>
                                             <th>Status</th>
                                             <th class="text-end pe-4">Actions</th>
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        <% for (InternshipApplicationDto app : applications) {
-                                            String badgeClass = "status-pending";
-                                            if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
-                                            else if ("Interview".equals(app.getStatus()))
-                                                badgeClass = "status-interview";
-                                            String pfpUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getStudentId() + "&targetRole=Student";
-                                            String fallbackUrl = "https://ui-avatars.com/api/?name=" + app.getStudentName().replace(" ", "+") + "&background=0E2B58&color=fff";
+                                        <%
+                                            for (InternshipApplicationDto app : applications) {
+                                                String currentStatus = app.getStatus();
+                                                boolean isRejected = "Rejected".equals(currentStatus);
+                                                boolean isAccepted = "Accepted".equals(currentStatus);
+
+                                                // Define Badge Colors for the Status Button
+                                                String badgeClass = "status-pending";
+                                                if (isAccepted) badgeClass = "status-accepted";
+                                                else if ("Interview".equals(currentStatus))
+                                                    badgeClass = "status-interview";
+                                                else if ("Rejected".equals(currentStatus))
+                                                    badgeClass = "status-rejected";
+                                                else if ("Discussion".equals(currentStatus))
+                                                    badgeClass = "status-discussion";
                                         %>
-                                        <tr>
+                                        <tr class="app-row" data-status="<%= currentStatus %>">
                                             <td class="ps-4">
                                                 <a href="StudentProfile?id=<%= app.getStudentId() %>"
                                                    class="student-link">
-                                                    <img src="<%= pfpUrl %>"
-                                                         onerror="this.onerror=null;this.src='<%= fallbackUrl %>';"
+                                                    <img src="<%= request.getContextPath() + "/ProfilePicture?id=" + app.getStudentId() + "&targetRole=Student" %>"
+                                                         onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName().replace(" ", "+") %>&background=0E2B58&color=fff';"
                                                          class="student-avatar-small">
                                                     <div><%= app.getStudentName() %>
                                                     </div>
@@ -505,13 +659,61 @@
                                             </td>
                                             <td class="small text-muted fw-bold"><%= app.getPositionTitle() %>
                                             </td>
-                                            <td><span
-                                                    class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+
+                                            <%-- Dual-Grade Column (Faculty Style) --%>
+                                            <td class="fw-bold text-muted small">
+                                                <span class="grade-val grade-study">
+                                                   <%= app.getStudyGradeFormatted()%>
+                                                </span>
+                                                <span class="grade-val grade-internship d-none text-primary">
+                                                   <i class="fa-solid fa-star me-1"></i>
+                                                   <%= app.getInternshipGradeFormatted()%>
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <% if (isAccepted) { %>
+                                                <%-- Normal size, unclickable button for Accepted status --%>
+                                                <div class="status-badge status-dropdown-btn status-accepted text-center"
+                                                     style="cursor: default; opacity: 0.9; width: fit-content;">
+                                                    <i class="fa-solid fa-check-double me-1"></i> Accepted
+                                                </div>
+                                                <% } else { %>
+                                                <%-- Dropdown for all other statuses --%>
+                                                <div class="dropdown">
+                                                    <button class="status-badge status-dropdown-btn dropdown-toggle <%= badgeClass %>"
+                                                            type="button" data-bs-toggle="dropdown"
+                                                            aria-expanded="false">
+                                                        <%= currentStatus %>
+                                                    </button>
+                                                    <ul class="dropdown-menu shadow border-0">
+                                                        <li><h6 class="dropdown-header small">Move to State</h6></li>
+
+                                                        <% if ("Pending".equals(currentStatus) || "Discussion".equals(currentStatus)) { %>
+                                                        <li><a class="dropdown-item small"
+                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
+                                                        </li>
+                                                        <% } else if ("Interview".equals(currentStatus)) { %>
+                                                        <li><a class="dropdown-item small text-success fw-bold"
+                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Accepted">Accept
+                                                            Student</a></li>
+                                                        <li><a class="dropdown-item small"
+                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
+                                                        </li>
+                                                        <% } else if ("Rejected".equals(currentStatus)) { %>
+                                                        <li><a class="dropdown-item small"
+                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Pending">Restore
+                                                            to Pending</a></li>
+                                                        <% } %>
+                                                    </ul>
+                                                </div>
+                                                <% } %>
                                             </td>
                                             <td class="text-end pe-4">
-                                                <button class="btn btn-sm btn-chat rounded-pill px-3"
-                                                        onclick="alert('Chat with <%= app.getStudentName() %>')"><i
-                                                        class="fa-regular fa-comments me-1"></i> Chat
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isRejected ? "disabled" : "" %>"
+                                                        <%= isRejected ? "disabled" : "" %>
+                                                        onclick="window.location.href='Chat?appId=<%= app.getId() %>'">
+                                                    <i class="fa-regular fa-comments me-1"></i> Chat
                                                 </button>
                                             </td>
                                         </tr>
@@ -594,42 +796,52 @@
                                         <div class="modal-body p-5 pt-0">
                                             <div class="text-center mb-4">
                                                 <div class="mb-2">
-                                                    <span class="pos-status-badge <%= posBadgeClass %>" style="font-size: 0.75rem; padding: 4px 12px;">
+                                                    <span class="pos-status-badge <%= posBadgeClass %>"
+                                                          style="font-size: 0.75rem; padding: 4px 12px;">
                                                       <%= status %> Status
                                                     </span>
                                                 </div>
-                                                <h3 class="fw-bold"><%= pos.getTitle() %></h3>
-                                                <p class="text-muted"><%= company.getName() %></p>
+                                                <h3 class="fw-bold"><%= pos.getTitle() %>
+                                                </h3>
+                                                <p class="text-muted"><%= company.getName() %>
+                                                </p>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-md-7">
                                                     <h6 class="fw-bold text-uppercase text-muted small">Description</h6>
-                                                    <p class="small text-secondary"><%= pos.getDescription() %></p>
-                                                    <h6 class="fw-bold text-uppercase text-muted small mt-4">Requirements</h6>
-                                                    <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %></p>
+                                                    <p class="small text-secondary"><%= pos.getDescription() %>
+                                                    </p>
+                                                    <h6 class="fw-bold text-uppercase text-muted small mt-4">
+                                                        Requirements</h6>
+                                                    <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %>
+                                                    </p>
                                                 </div>
 
                                                 <div class="col-md-5 border-start">
-                                                    <h6 class="fw-bold text-uppercase text-muted small mb-3"><i class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
+                                                    <h6 class="fw-bold text-uppercase text-muted small mb-3"><i
+                                                            class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
                                                     <div class="applicant-scroll">
                                                         <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
                                                         <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
                                                         <div class="applicant-item">
                                                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff';"
                                                                  class="applicant-pfp">
                                                             <div class="overflow-hidden">
                                                                 <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
                                                                    class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                                     <%= app.getStudentName() %>
                                                                 </a>
-                                                                <span class="badge bg-light text-dark x-small" style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                <span class="badge bg-light text-dark x-small"
+                                                                      style="font-size: 0.65rem;"><%= app.getStatus() %></span>
                                                             </div>
                                                         </div>
                                                         <% } %>
                                                         <% } else { %>
-                                                        <div class="text-center py-4 text-muted small">No applications yet.</div>
+                                                        <div class="text-center py-4 text-muted small">No applications
+                                                            yet.
+                                                        </div>
                                                         <% } %>
                                                     </div>
                                                 </div>
@@ -637,13 +849,16 @@
 
                                             <div class="alert alert-light border mt-4 m-0">
                                                 <div class="d-flex justify-content-between small">
-                                                    <span><i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
+                                                    <span><i
+                                                            class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
                                                     <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="modal-footer border-0 justify-content-center pb-4">
-                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                                                Close
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -663,5 +878,65 @@
 
 <jsp:include page="../blocks/footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- 1. Application Filtering Logic ---
+        const filterOptions = document.querySelectorAll('.filter-opt');
+        const appRows = document.querySelectorAll('.app-row');
+        const filterLabel = document.getElementById('currentFilterLabel');
+
+        function applyFilter(filterType) {
+            appRows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                if (filterType === 'All') {
+                    row.style.display = '';
+                } else if (filterType === 'HideRejected') {
+                    row.style.display = (status === 'Rejected') ? 'none' : '';
+                } else {
+                    row.style.display = (status === filterType) ? '' : 'none';
+                }
+            });
+        }
+
+        filterOptions.forEach(opt => {
+            opt.addEventListener('click', function (e) {
+                e.preventDefault();
+                filterOptions.forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                filterLabel.innerText = this.innerText;
+                applyFilter(this.getAttribute('data-filter'));
+            });
+        });
+
+        // --- 2. Grade Toggling Logic ---
+        const gradeToggleOpts = document.querySelectorAll('.toggle-grade');
+        const gradeLabel = document.getElementById('gradeColumnLabel');
+
+        gradeToggleOpts.forEach(opt => {
+            opt.addEventListener('click', function (e) {
+                e.preventDefault();
+                const type = this.getAttribute('data-type');
+
+                // Update Header Label
+                gradeLabel.innerText = (type === 'study') ? 'Study Grade' : 'Internship Grade';
+
+                // Toggle Visibility Spans
+                document.querySelectorAll('.grade-study').forEach(el => {
+                    el.classList.toggle('d-none', type !== 'study');
+                });
+                document.querySelectorAll('.grade-internship').forEach(el => {
+                    el.classList.toggle('d-none', type !== 'internship');
+                });
+
+                // Optional: Update active state in the dropdown menu
+                gradeToggleOpts.forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // --- 3. Initial Run ---
+        applyFilter('HideRejected');
+    });
+</script>
 </body>
 </html>
