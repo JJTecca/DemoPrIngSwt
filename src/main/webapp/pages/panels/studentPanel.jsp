@@ -375,7 +375,7 @@
                             <div>
                                 <h2 class="stat-value" style="font-size: 1.4rem;"><%= student.getStatus() %>
                                 </h2>
-                                <span class="stat-label">Academic Status</span>
+                                <span class="stat-label">Status</span>
                             </div>
                             <i class="fa-solid fa-user-check stat-icon"></i>
                         </div>
@@ -429,7 +429,7 @@
                                 <h2 class="stat-value" style="font-size: 1.4rem;">
                                     <%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %>
                                 </h2>
-                                <span class="stat-label">Status</span>
+                                <span class="stat-label">Academic Status</span>
                             </div>
                             <i class="fa-solid fa-school stat-icon"></i>
                         </div>
