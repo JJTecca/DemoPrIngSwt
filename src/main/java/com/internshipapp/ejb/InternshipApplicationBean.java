@@ -177,6 +177,13 @@ public class InternshipApplicationBean {
             throw new IllegalArgumentException("Invalid Student or Position ID");
         }
 
+        // HARDLOCK: Prevent applications if the student is already "Accepted" or "Completed"
+        // This handles Rule #2: A student cannot apply if they already have an internship.
+        if (student.getStatus() != StudentInfo.StudentStatus.Available) {
+            throw new IllegalStateException("Your current status is " + student.getStatus() +
+                    ". You can only apply for new positions if your status is 'Available'.");
+        }
+
         // 2. Check for Duplicates (Prevent applying twice)
         Long count = entityManager.createQuery(
                         "SELECT COUNT(a) FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid", Long.class)
@@ -212,14 +219,11 @@ public class InternshipApplicationBean {
         try {
             // 1. Find the managed entity
             InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
+            StudentInfo.StudentStatus studentStatus = app.getStudent().getStatus();
             if (statusName.equalsIgnoreCase("Pending") && app.getStatus().name().equalsIgnoreCase("Rejected")) {
-                if (app.getStudent().getStatus().name().equalsIgnoreCase("Accepted")) {
+                if (studentStatus != StudentInfo.StudentStatus.Available) {
                     throw new IllegalStateException("Cannot restore application: Student is already accepted to another position.");
                 }
-            }
-
-            if (app == null) {
-                throw new IllegalArgumentException("Application not found with ID: " + appId);
             }
 
             // 2. Convert String to Enum (Case-insensitive check is safer)
@@ -257,27 +261,35 @@ public class InternshipApplicationBean {
     }
 
     public void assignStudentAndCleanUp(Long studentId, Long positionId) throws Exception {
-        // 1. Get or Create the application
+        // 1. Fetch Student first to verify eligibility
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        if (student == null) {
+            throw new IllegalArgumentException("Student not found.");
+        }
+
+        // RULE 1: Hardlock - Prevent assigning Tutoring roles to students already accepted elsewhere
+        if (student.getStatus() != StudentInfo.StudentStatus.Available) {
+            throw new IllegalStateException("Student is already accepted for an internship and cannot take a tutoring role.");
+        }
+
+        // 2. Get or Create the application
         InternshipApplication targetApp = findApplication(studentId, positionId);
 
         if (targetApp == null) {
+            // This will now also trigger the check in createApplication (if you updated it)
             createApplication(studentId, positionId);
             targetApp = findApplication(studentId, positionId);
         }
 
-        // 2. Force status to Accepted
+        // 3. Force application status to Accepted
         targetApp.setStatus(InternshipApplication.ApplicationStatus.Accepted);
         entityManager.merge(targetApp);
 
-        // 3. Update Student Table status to Accepted
-        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
-        if (student != null) {
-            // Ensure this matches your StudentInfo ENUM naming
-            student.setStatus(StudentInfo.StudentStatus.Accepted);
-            entityManager.merge(student);
-        }
+        // 4. Update Student Table status to Accepted
+        student.setStatus(StudentInfo.StudentStatus.Accepted);
+        entityManager.merge(student);
 
-        // 4. Cascade Rejection: Change '!=' to '<>'
+        // 5. Cascade Rejection: Reject all other pending applications for this student
         entityManager.createQuery(
                         "UPDATE InternshipApplication a SET a.status = :rejectedStatus " +
                                 "WHERE a.student.id = :sid " +

@@ -146,6 +146,72 @@
             margin-bottom: 1rem;
         }
 
+        /* Professional Download Button - Faculty Style */
+        .btn-download-cv {
+            background-color: var(--brand-blue);
+            color: white !important;
+            border: none;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Spring effect */
+            box-shadow: 0 4px 6px rgba(14, 43, 88, 0.1);
+        }
+
+        .btn-download-cv:hover {
+            transform: translateY(-3px);
+            background-color: var(--brand-blue-dark);
+            /* Soft Faculty Blue glow */
+            box-shadow: 0 8px 20px rgba(14, 43, 88, 0.25);
+        }
+
+        .btn-download-cv i {
+            transition: transform 0.3s ease;
+        }
+
+        /* Subtle "bounce" for the arrow icon */
+        .btn-download-cv:hover i {
+            transform: translateY(2px);
+        }
+
+        .btn-download-cv:active {
+            transform: translateY(-1px);
+        }
+
+        /* Professional Delete Button - Refined */
+        .btn-delete-cv {
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #dc3545;
+            color: #dc3545;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .btn-delete-cv:hover {
+            transform: translateY(-3px);
+            background-color: #dc3545;
+            color: white !important;
+            /* Soft crimson glow */
+            box-shadow: 0 6px 15px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Subtle icon animation */
+        .btn-delete-cv i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-delete-cv:hover i {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* Active state for a "pressed" feel */
+        .btn-delete-cv:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+        }
+
         .btn-gray-modern {
             background-color: #ffffff; /* Bright white base */
             color: #101828; /* Very dark gray for maximum contrast */
@@ -406,10 +472,13 @@
                             <h5 class="fw-bold">Student_CV.pdf</h5>
                             <div class="d-flex justify-content-center gap-3 mt-4">
                                 <a href="${pageContext.request.contextPath}/DownloadCV?id=<%= student.getId() %>"
-                                   class="btn btn-brand px-4">Download</a>
+                                   class="btn btn-sm btn-download-cv px-4">
+                                    <i class="fa-solid fa-cloud-arrow-down me-2"></i> Download CV
+                                </a>
                                 <% if (isOwner) { %>
-                                <button class="btn btn-outline-danger px-4" data-bs-toggle="modal"
-                                        data-bs-target="#deleteCvModal">Delete
+                                <button type="button" class="btn btn-sm btn-delete-cv px-4"
+                                        data-bs-toggle="modal" data-bs-target="#deleteCvModal">
+                                    <i class="fa-solid fa-trash-can me-2"></i> Delete CV
                                 </button>
                                 <% } %>
                             </div>

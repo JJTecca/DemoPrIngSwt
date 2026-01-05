@@ -242,24 +242,24 @@ public class StudentInfoBean {
 
     private Float getAcceptedInternshipGrade(Long studentId) {
         try {
-            // Change the TypedQuery to Integer.class
-            TypedQuery<Integer> query = entityManager.createQuery(
+            // We look for ANY application for this student that has a grade assigned.
+            // Usually, only the 'Accepted' application will have a grade.
+            TypedQuery<Float> query = entityManager.createQuery(
                     "SELECT a.grade FROM InternshipApplication a " +
-                            "WHERE a.student.id = :sid AND a.status = :status",
-                    Integer.class
+                            "WHERE a.student.id = :sid " +
+                            "AND a.grade IS NOT NULL " +
+                            "AND a.status = :status",
+                    Float.class
             );
 
             query.setParameter("sid", studentId);
-            query.setParameter("status", com.internshipapp.entities.InternshipApplication.ApplicationStatus.Accepted);
+            // We still look for the 'Accepted' application record,
+            // because that's where the grade was recorded.
+            query.setParameter("status", InternshipApplication.ApplicationStatus.Accepted);
+            query.setMaxResults(1);
 
-            List<Integer> results = query.getResultList();
-
-            // Convert the Integer result to Float for the DTO
-            if (results.isEmpty() || results.get(0) == null) {
-                return null;
-            }
-
-            return results.get(0).floatValue();
+            List<Float> results = query.getResultList();
+            return (results.isEmpty()) ? null : results.get(0);
 
         } catch (Exception e) {
             LOG.warning("Error fetching internship grade for student " + studentId + ": " + e.getMessage());

@@ -46,7 +46,7 @@ public class InternshipApplicationServlet extends HttpServlet {
         String role = (String) session.getAttribute("userRole");
 
         // Authorization: Only Faculty can use this specific fast-track tool
-        if (session == null || !"Faculty".equals(role)) {
+        if (!"Faculty".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -71,7 +71,7 @@ public class InternshipApplicationServlet extends HttpServlet {
         String role = (String) session.getAttribute("userRole");
 
         // Authorization check: Only Companies or Faculty can change statuses
-        if (session == null || (!"Company".equals(role) && !"Faculty".equals(role))) {
+        if (!"Company".equals(role) && !"Faculty".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -79,14 +79,9 @@ public class InternshipApplicationServlet extends HttpServlet {
         try {
             Long appId = Long.parseLong(request.getParameter("id"));
             String newStatus = request.getParameter("status");
-            Long userId = (Long) session.getAttribute("userId");
 
             // Perform the update
             applicationBean.updateApplicationStatus(appId, newStatus);
-
-            // Log activity
-            activityBean.logActivity(userId, "UPDATE_APP_STATUS",
-                    "Application ID: " + appId + " moved to " + newStatus);
 
             response.sendRedirect("CompanyDashboard?update=success");
         } catch (Exception e) {
