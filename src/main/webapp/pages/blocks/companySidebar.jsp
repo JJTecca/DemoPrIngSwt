@@ -99,8 +99,8 @@
         </a>
 
         <%-- Chats Link --%>
-       <a class="nav-link <%= originUri.contains("chats") ? "active" : "" %>" href="${pageContext.request.contextPath}/FacultyChats">
-                <i class="fa-solid fa-comments"></i> Chats
+       <a class="nav-link <%= originUri.contains("internshipapplications") ? "active" : "" %>" href="${pageContext.request.contextPath}/FacultyChats">
+                <i class="fa-solid fa-comments"></i> Applications
        </a>
     </div>
 

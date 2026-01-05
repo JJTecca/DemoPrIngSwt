@@ -1,6 +1,7 @@
 package com.internshipapp.common;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StudentInfoDto implements Serializable {
@@ -19,6 +20,7 @@ public class StudentInfoDto implements Serializable {
     private List<InternshipApplicationDto> internshipApplications;
     private String biography;
     private boolean gradeVisibility;
+    private Float internshipGrade;
 
 
     // Primary source of attachment data
@@ -63,8 +65,8 @@ public class StudentInfoDto implements Serializable {
 
     // Constructor 3 (Full DTO - Used by copyStudentToDto)
     public StudentInfoDto(Long id, String firstName, String middleName, String lastName,
-                          Integer studyYear, Float lastYearGrade, String status,
-                          Boolean enrolled, String userEmail, String username, Long userId,
+                          Integer studyYear, Float lastYearGrade, Float internshipGrade, String status,
+                          Boolean enrolled, String userEmail, String username, Long userId, List<InternshipApplicationDto> applications,
                           AttachmentDto attachment, String biography, boolean gradeVisibility) {
         this.id = id;
         this.firstName = firstName;
@@ -72,11 +74,13 @@ public class StudentInfoDto implements Serializable {
         this.lastName = lastName;
         this.studyYear = studyYear;
         this.lastYearGrade = lastYearGrade;
+        this.internshipGrade = internshipGrade;
         this.status = status;
         this.enrolled = enrolled;
         this.userEmail = userEmail;
         this.username = username;
         this.userId = userId;
+        this.internshipApplications = applications;
         this.attachment = attachment;
         this.biography = biography;
         this.gradeVisibility = gradeVisibility;
@@ -250,5 +254,26 @@ public class StudentInfoDto implements Serializable {
 
     public void setGradeVisibility(boolean gradeVisibility) {
         this.gradeVisibility = gradeVisibility;
+    }
+
+    public Float getInternshipGrade() {
+        return internshipGrade;
+    }
+
+    public void setInternshipGrade(Float internshipGrade) {
+        this.internshipGrade = internshipGrade;
+    }
+
+    public String getInternshipGradeFormatted() {
+        if (internshipGrade == null) return "N/A";
+        return String.format("%.2f", internshipGrade);
+    }
+
+    public List<InternshipApplicationDto> getInternshipApplications() {
+        return this.internshipApplications;
+    }
+
+    public void setInternshipApplications(List<InternshipApplicationDto> internshipApplications) {
+        this.internshipApplications = internshipApplications;
     }
 }

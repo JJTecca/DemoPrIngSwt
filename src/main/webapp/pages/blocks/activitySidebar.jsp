@@ -10,7 +10,7 @@
     /* 1. Container & Scrolling Logic */
     .activity-timeline {
         padding: 0;
-        height: 450px;
+        max-height: 450px;
         overflow-y: auto;
     }
 
@@ -80,7 +80,7 @@
     <div class="card-header fw-bold" style="color: var(--brand-blue); background: white; border-bottom: 1px solid #eee; font-size: 1.1rem; padding: 1.2rem;">
         <i class="fa-solid fa-clock-rotate-left me-2"></i> Recent Activity
     </div>
-    <div class="card-body activity-timeline custom-scroll dashboard-fixed-height">
+    <div class="card-body activity-timeline custom-scroll">
         <% if (activities != null && !activities.isEmpty()) { %>
         <% for (AccountActivityDto activity : activities) {
             String rawAction = activity.getAction();
