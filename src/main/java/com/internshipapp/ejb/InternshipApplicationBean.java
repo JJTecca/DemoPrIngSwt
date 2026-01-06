@@ -170,7 +170,6 @@ public class InternshipApplicationBean {
     }
 
     public String createApplication(Long studentId, Long positionId) throws Exception {
-        // 1. Find Entities
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
         InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
 
@@ -178,73 +177,142 @@ public class InternshipApplicationBean {
             throw new IllegalArgumentException("Invalid Student or Position ID");
         }
 
-        // HARDLOCK: Prevent applications if the student is already "Accepted" or "Completed"
-        // This handles Rule #2: A student cannot apply if they already have an internship.
-        if (student.getStatus() != StudentInfo.StudentStatus.Available) {
-            throw new IllegalStateException("Your current status is " + student.getStatus() +
-                    ". You can only apply for new positions if your status is 'Available'.");
+        if (position.getStatus() == InternshipPosition.PositionStatus.Closed) {
+            throw new IllegalStateException("This position is no longer accepting applications.");
         }
 
-        // 2. Check for Duplicates (Prevent applying twice)
+        if (position.getDeadline() != null && position.getDeadline().before(new Date())) {
+            position.setStatus(InternshipPosition.PositionStatus.Closed);
+            entityManager.merge(position);
+            throw new IllegalStateException("The application deadline has passed.");
+        }
+
+        // NEW HARDLOCK: Check if position is full
+        int max = (position.getMaxSpots() != null) ? position.getMaxSpots() : 0;
+        int accepted = (position.getAcceptedCount() != null) ? position.getAcceptedCount() : 0;
+
+        if (accepted >= max && max > 0) {
+            throw new IllegalStateException("This position has already been filled (" + accepted + "/" + max + ").");
+        }
+
+        // Existing Student Status check
+        if (student.getStatus() != StudentInfo.StudentStatus.Available) {
+            throw new IllegalStateException("Your current status is " + student.getStatus() + ".");
+        }
+
+        // Duplicate check...
         Long count = entityManager.createQuery(
                         "SELECT COUNT(a) FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid", Long.class)
                 .setParameter("sid", studentId)
                 .setParameter("pid", positionId)
                 .getSingleResult();
 
-        if (count > 0) {
-            throw new IllegalStateException("Already applied");
-        }
+        if (count > 0) throw new IllegalStateException("Already applied");
 
-        // 3. Create Entity
         InternshipApplication app = new InternshipApplication();
         app.setStudent(student);
         app.setInternshipPosition(position);
-        app.setStatus(InternshipApplication.ApplicationStatus.Pending); // Assuming Enum exists
+        app.setStatus(InternshipApplication.ApplicationStatus.Pending);
         app.setChatIds("[]");
         app.setAppliedAt(LocalDateTime.now());
 
-        // 4. Update Position Counters (Optional but recommended)
         if (position.getApplicationsCount() == null) position.setApplicationsCount(0);
         position.setApplicationsCount(position.getApplicationsCount() + 1);
 
         entityManager.persist(app);
         entityManager.merge(position);
 
-        // Return title for the Activity Log
         return position.getTitle();
     }
 
     public void updateApplicationStatus(Long appId, String statusName) {
-        LOG.info("Updating application #" + appId + " to status: " + statusName);
         try {
-            // 1. Find the managed entity
             InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
-            StudentInfo.StudentStatus studentStatus = app.getStudent().getStatus();
-            if (statusName.equalsIgnoreCase("Pending") && app.getStatus().name().equalsIgnoreCase("Rejected")) {
-                if (studentStatus != StudentInfo.StudentStatus.Available) {
-                    throw new IllegalStateException("Cannot restore application: Student is already accepted to another position.");
-                }
-            }
+            InternshipPosition pos = app.getInternshipPosition();
+            StudentInfo student = app.getStudent();
 
-            // 2. Convert String to Enum (Case-insensitive check is safer)
-            // This assumes your Enum is named ApplicationStatus inside InternshipApplication
             InternshipApplication.ApplicationStatus targetStatus =
                     InternshipApplication.ApplicationStatus.valueOf(statusName);
 
-            // 3. Apply the update
-            app.setStatus(targetStatus);
+            // 1. ILLEGAL SCENARIO: Status Regression
+            if (app.getStatus() == InternshipApplication.ApplicationStatus.Accepted ||
+                    student.getStatus() == StudentInfo.StudentStatus.Completed) {
+                throw new IllegalStateException("Finalized applications cannot be modified.");
+            }
 
-            // 4. Persistence
+            // 2. ILLEGAL SCENARIO: Prevent restoring a rejected app if the student is globally Accepted
+            if (app.getStatus() == InternshipApplication.ApplicationStatus.Rejected &&
+                    targetStatus == InternshipApplication.ApplicationStatus.Pending) {
+
+                if (student.getStatus() == StudentInfo.StudentStatus.Accepted) {
+                    throw new IllegalStateException("Cannot restore application: Student is already accepted for another position.");
+                }
+            }
+
+            // 3. LOGIC: Moving to "Accepted"
+            if (targetStatus == InternshipApplication.ApplicationStatus.Accepted &&
+                    app.getStatus() != InternshipApplication.ApplicationStatus.Accepted) {
+
+                // Availability Check
+                if (student.getStatus() != StudentInfo.StudentStatus.Available) {
+                    throw new IllegalStateException("Cannot accept: Student is already committed elsewhere.");
+                }
+
+                // Capacity Check
+                int max = (pos.getMaxSpots() != null) ? pos.getMaxSpots() : 0;
+                int current = (pos.getAcceptedCount() != null) ? pos.getAcceptedCount() : 0;
+
+                // A. Is it filled?
+                if (current >= max && max > 0) {
+                    // Just in case the status didn't sync, force close it now
+                    pos.setStatus(InternshipPosition.PositionStatus.Closed);
+                    entityManager.merge(pos);
+                    throw new IllegalStateException("Cannot accept student: Position capacity reached.");
+                }
+
+                // B. Increment accepted count
+                pos.setAcceptedCount(current + 1);
+
+                // C. SYNC: If position is now full, Close it AND Reject ALL OTHER APPLICANTS FOR THIS POSITION
+                if (pos.getAcceptedCount() >= max && max > 0) {
+                    pos.setStatus(InternshipPosition.PositionStatus.Closed);
+
+                    entityManager.createQuery(
+                                    "UPDATE InternshipApplication a SET a.status = :rejected " +
+                                            "WHERE a.internshipPosition.id = :pid " +
+                                            "AND a.id <> :currentAppId " +
+                                            "AND a.status <> :accepted") // Leave accepted applicants alone
+                            .setParameter("rejected", InternshipApplication.ApplicationStatus.Rejected)
+                            .setParameter("pid", pos.getId())
+                            .setParameter("currentAppId", app.getId())
+                            .setParameter("accepted", InternshipApplication.ApplicationStatus.Accepted)
+                            .executeUpdate();
+                }
+
+                // D. CASCADE REJECTION: Reject all other applications for THIS STUDENT
+                entityManager.createQuery(
+                                "UPDATE InternshipApplication a SET a.status = :rejected " +
+                                        "WHERE a.student.id = :sid " +
+                                        "AND a.id <> :currentAppId " +
+                                        "AND a.status <> :accepted")
+                        .setParameter("rejected", InternshipApplication.ApplicationStatus.Rejected)
+                        .setParameter("sid", student.getId())
+                        .setParameter("currentAppId", app.getId())
+                        .setParameter("accepted", InternshipApplication.ApplicationStatus.Accepted)
+                        .executeUpdate();
+
+                // E. Final Student/Position Sync
+                student.setStatus(StudentInfo.StudentStatus.Accepted);
+                entityManager.merge(pos);
+                entityManager.merge(student);
+            }
+
+            app.setStatus(targetStatus);
             entityManager.merge(app);
 
-            LOG.info("Successfully updated application #" + appId + " to " + targetStatus);
-        } catch (IllegalArgumentException e) {
-            LOG.severe("Invalid status value provided: " + statusName);
-            throw new EJBException("Invalid status update: " + statusName);
         } catch (Exception e) {
-            LOG.severe("Failed to update application status: " + e.getMessage());
-            throw new EJBException(e);
+            LOG.severe("Update failed: " + e.getMessage());
+            throw new EJBException(e.getMessage());
         }
     }
 
@@ -262,45 +330,31 @@ public class InternshipApplicationBean {
     }
 
     public void assignStudentAndCleanUp(Long studentId, Long positionId) throws Exception {
-        // 1. Fetch Student first to verify eligibility
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
-        if (student == null) {
-            throw new IllegalArgumentException("Student not found.");
+        InternshipPosition pos = entityManager.find(InternshipPosition.class, positionId);
+
+        if (student == null || pos == null) {
+            throw new IllegalArgumentException("Invalid Student or Position ID");
         }
 
-        // RULE 1: Hardlock - Prevent assigning Tutoring roles to students already accepted elsewhere
+        // Faculty-level validation
         if (student.getStatus() != StudentInfo.StudentStatus.Available) {
-            throw new IllegalStateException("Student is already accepted for an internship and cannot take a tutoring role.");
+            throw new IllegalStateException("Student is already accepted for another role.");
         }
 
-        // 2. Get or Create the application
-        InternshipApplication targetApp = findApplication(studentId, positionId);
+        if (pos.getAcceptedCount() >= pos.getMaxSpots()) {
+            throw new IllegalStateException("Tutoring position is already full.");
+        }
 
+        // Ensure application exists
+        InternshipApplication targetApp = findApplication(studentId, positionId);
         if (targetApp == null) {
-            // This will now also trigger the check in createApplication (if you updated it)
             createApplication(studentId, positionId);
             targetApp = findApplication(studentId, positionId);
         }
 
-        // 3. Force application status to Accepted
-        targetApp.setStatus(InternshipApplication.ApplicationStatus.Accepted);
-        entityManager.merge(targetApp);
-
-        // 4. Update Student Table status to Accepted
-        student.setStatus(StudentInfo.StudentStatus.Accepted);
-        entityManager.merge(student);
-
-        // 5. Cascade Rejection: Reject all other pending applications for this student
-        entityManager.createQuery(
-                        "UPDATE InternshipApplication a SET a.status = :rejectedStatus " +
-                                "WHERE a.student.id = :sid " +
-                                "AND a.id <> :currentId " +
-                                "AND a.status <> :acceptedStatus")
-                .setParameter("rejectedStatus", InternshipApplication.ApplicationStatus.Rejected)
-                .setParameter("sid", studentId)
-                .setParameter("currentId", targetApp.getId())
-                .setParameter("acceptedStatus", InternshipApplication.ApplicationStatus.Accepted)
-                .executeUpdate();
+        // DELEGATE: Use the centralized logic to handle rejections, counts, and status sync
+        updateApplicationStatus(targetApp.getId(), "Accepted");
     }
 
     public List<InternshipApplicationDto> findAllApplications() {
