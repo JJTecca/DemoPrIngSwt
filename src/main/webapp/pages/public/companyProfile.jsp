@@ -320,6 +320,40 @@
         .pos-status-pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         .pos-status-open { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
         .pos-status-closed { background-color: #e2e3e5; color: #41464b; border: 1px solid #d3d3d4; }
+
+        /* Sidebar Capacity Badge - Identical to Panel logic */
+        .capacity-badge-sidebar {
+            font-size: 0.65rem;
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #e9ecef;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .capacity-full-sidebar {
+            background-color: #fff5f5;
+            color: #e03131;
+            border-color: #ffc9c9;
+        }
+
+        /* Modal Info Bar Fix for 3-column layout */
+        .modal-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+
+        .modal-info-item {
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -464,6 +498,7 @@
                                     String status = (pos.getStatus() != null) ? pos.getStatus() : "Pending";
                                     boolean isVisibleStatus = "Open".equalsIgnoreCase(status);
                                     boolean canSeePrivate = isOwner || "Admin".equals(sessionRole) || "Faculty".equals(sessionRole);
+                                    boolean isFull = pos.getAcceptedCount() >= pos.getMaxSpots();
 
                                     // Privacy Guard: Hide pending positions from students/guests
                                     if (isVisibleStatus || canSeePrivate) {
@@ -479,18 +514,22 @@
                                             <div class="fw-bold"><%= pos.getTitle() %></div>
                                             <%-- Logic applied: Adding the badge to the list --%>
                                             <span class="pos-status-badge <%= badgeClass %>">
-                            <%= status %>
-                        </span>
+                                               <%= status %>
+                                            </span>
                                         </div>
                                         <div class="small text-muted">
                                             <i class="fa-regular fa-calendar me-1"></i>Deadline: <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "N/A" %>
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center gap-3">
-                                        <span class="badge bg-light text-primary border"><%= pos.getMaxSpots() %> Spots</span>
-                                        <button class="btn-manage-eye" data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </button>
+                                        <div class="d-flex align-items-center">
+                                            <span class="capacity-badge-sidebar <%= isFull ? "capacity-full-sidebar" : "" %>">
+                                               <%= pos.getAcceptedCount() %>/<%= pos.getMaxSpots() %>
+                                            </span>
+                                            <button class="btn-manage-eye" data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -550,10 +589,23 @@
                                                     <% } %>
                                                 </div>
 
-                                                <div class="alert alert-light border mt-4 m-0">
-                                                    <div class="d-flex justify-content-between small">
-                                                        <span><i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
-                                                        <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                                <div class="alert alert-light border mt-4 m-0 p-2">
+                                                    <div class="modal-info-bar">
+                                                        <div class="modal-info-item small">
+                                                            <i class="fa-solid fa-calendar-day me-1 text-primary"></i>
+                                                            <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
+                                                        </div>
+                                                        <div class="modal-info-item small border-start border-end">
+                                                            <i class="fa-solid fa-users me-1 text-primary"></i>
+                                                            <strong>Applicants:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %>
+                                                        </div>
+                                                        <div class="modal-info-item small">
+                                                            <i class="fa-solid fa-user-check me-1 text-success"></i>
+                                                            <strong>Capacity:</strong>
+                                                            <span class="<%= isFull ? "text-danger fw-bold" : "" %>">
+                                                               <%= pos.getAcceptedCount() %> / <%= pos.getMaxSpots() %>
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

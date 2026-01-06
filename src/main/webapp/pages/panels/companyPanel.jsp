@@ -419,6 +419,7 @@
         .grade-internship {
             color: #0d6efd !important; /* Matches your brand blue or primary */
         }
+
         .grade-internship i.fa-star {
             color: #ffc107; /* Gold star */
         }
@@ -480,6 +481,40 @@
         .card-header {
             z-index: 20 !important;
             position: relative;
+        }
+
+        /* Sidebar Capacity Badge */
+        .capacity-badge-sidebar {
+            font-size: 0.65rem;
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #e9ecef;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .capacity-full-sidebar {
+            background-color: #fff5f5;
+            color: #e03131;
+            border-color: #ffc9c9;
+        }
+
+        /* Modal Info Bar Fix */
+        .modal-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            flex-wrap: nowrap;
+            gap: 10px;
+        }
+
+        .modal-info-item {
+            white-space: nowrap;
+            flex: 1;
+            text-align: center;
         }
     </style>
 </head>
@@ -662,16 +697,25 @@
 
                                             <%-- Dual-Grade Column (Faculty Style) --%>
                                             <td class="fw-bold text-muted small">
+                                                <%-- Study Grade is always visible (based on student's visibility settings handled in DTO) --%>
                                                 <span class="grade-val grade-study">
-                                                    <% if (!app.isStudyGradeAvailable()) { %>
-                                                       N/A
-                                                    <% } else { %>
-                                                       <%= app.getStudyGradeFormatted() %>
-                                                    <% } %>
+                                                <% if (!app.isStudyGradeAvailable()) { %>
+                                                   N/A
+                                                <% } else { %>
+                                                   <%= app.getStudyGradeFormatted() %>
+                                                <% } %>
                                                 </span>
-                                                <span class="grade-val grade-internship d-none text-primary">
-                                                   <i class="fa-solid fa-star me-1"></i>
-                                                   <%= app.getInternshipGradeFormatted()%>
+                                                <%-- Internship Grade Privacy Check --%>
+                                                <span class="grade-val grade-internship d-none">
+                                                <% if (isAccepted) { %>
+                                                <span class="text-primary">
+                                                   <i class="fa-solid fa-star me-1"></i><%= app.getInternshipGradeFormatted() %>
+                                                </span>
+                                                <% } else { %>
+                                                <span class="text-muted opacity-75 italic" style="font-size: 0.65rem;">
+                                                   <i class="fa-solid fa-lock me-1"></i>Not Accepted
+                                                </span>
+                                                <% } %>
                                                 </span>
                                             </td>
 
@@ -705,9 +749,15 @@
                                                                href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
                                                         </li>
                                                         <% } else if ("Rejected".equals(currentStatus)) { %>
+                                                        <%-- NEW: Check if the student is already accepted globally before allowing restore --%>
+                                                        <% if (!"Accepted".equalsIgnoreCase(app.getStudentStatus())) { %>
                                                         <li><a class="dropdown-item small"
                                                                href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Pending">Restore
                                                             to Pending</a></li>
+                                                        <% } else { %>
+                                                        <li><h6 class="dropdown-header x-small text-danger">Cannot
+                                                            Restore: Student Hired Elsewhere</h6></li>
+                                                        <% } %>
                                                         <% } %>
                                                     </ul>
                                                 </div>
@@ -722,6 +772,15 @@
                                             </td>
                                         </tr>
                                         <% } %>
+                                        <tr id="noResultsRow" style="display: none;">
+                                            <td colspan="5" class="text-center py-5">
+                                                <div class="opacity-25 mb-3">
+                                                    <i class="fa-solid fa-filter-circle-xmark fa-3x text-muted"></i>
+                                                </div>
+                                                <h5 class="fw-bold text-muted mb-1" id="noResultsHeader">No matches</h5>
+                                                <p class="text-muted small mb-0" id="noResultsMessage">Try changing your filter settings.</p>
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -771,6 +830,7 @@
                                         <%
                                             String status = pos.getStatus(); // Assumes getStatus() returns "Open", "Pending", etc.
                                             String posBadgeClass = "pos-status-pending";
+                                            boolean isFull = pos.getAcceptedCount() >= pos.getMaxSpots();
                                             if ("Open".equalsIgnoreCase(status)) posBadgeClass = "pos-status-open";
                                             else if ("Closed".equalsIgnoreCase(status))
                                                 posBadgeClass = "pos-status-closed";
@@ -785,10 +845,15 @@
                                         </span>
                                     </div>
                                 </div>
-                                <button class="btn-manage-eye" data-bs-toggle="modal"
-                                        data-bs-target="#applyModal<%= pos.getId() %>" title="View Details">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
+                                <div class="d-flex align-items-center">
+                                    <span class="capacity-badge-sidebar <%= isFull ? "capacity-full-sidebar" : "" %>">
+                                    <%= pos.getAcceptedCount() %>/<%= pos.getMaxSpots() %>
+                                    </span>
+                                    <button class="btn-manage-eye" data-bs-toggle="modal"
+                                            data-bs-target="#applyModal<%= pos.getId() %>" title="View Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
@@ -851,11 +916,23 @@
                                                 </div>
                                             </div>
 
-                                            <div class="alert alert-light border mt-4 m-0">
-                                                <div class="d-flex justify-content-between small">
-                                                    <span><i
-                                                            class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
-                                                    <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                            <div class="alert alert-light border mt-4 m-0 p-2">
+                                                <div class="modal-info-bar">
+                                                    <div class="modal-info-item small">
+                                                        <i class="fa-solid fa-calendar-day me-1 text-primary"></i>
+                                                        <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
+                                                    </div>
+                                                    <div class="modal-info-item small border-start border-end">
+                                                        <i class="fa-solid fa-users me-1 text-primary"></i>
+                                                        <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %>
+                                                    </div>
+                                                    <div class="modal-info-item small">
+                                                        <i class="fa-solid fa-user-check me-1 text-success"></i>
+                                                        <strong>Capacity:</strong>
+                                                        <span class="<%= (pos.getAcceptedCount() >= pos.getMaxSpots()) ? "text-danger fw-bold" : "" %>">
+                                                        <%= pos.getAcceptedCount() %> / <%= pos.getMaxSpots() %>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -890,16 +967,67 @@
         const filterLabel = document.getElementById('currentFilterLabel');
 
         function applyFilter(filterType) {
+            let visibleCount = 0;
+            const noResultsRow = document.getElementById('noResultsRow');
+            const noResultsHeader = document.getElementById('noResultsHeader');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+
+            // Filter the rows
             appRows.forEach(row => {
                 const status = row.getAttribute('data-status');
+                let isVisible = false;
+
                 if (filterType === 'All') {
-                    row.style.display = '';
+                    isVisible = true;
                 } else if (filterType === 'HideRejected') {
-                    row.style.display = (status === 'Rejected') ? 'none' : '';
+                    isVisible = (status !== 'Rejected');
                 } else {
-                    row.style.display = (status === filterType) ? '' : 'none';
+                    isVisible = (status === filterType);
                 }
+
+                row.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
             });
+
+            // Handle Context-Aware Messages
+            if (visibleCount === 0) {
+                noResultsRow.style.display = '';
+
+                let headerText = "Filtered Out";
+                let messageText = "No applications match this specific status.";
+
+                switch(filterType) {
+                    case 'Pending':
+                        headerText = "All Caught Up!";
+                        messageText = "You have no new pending applications to review.";
+                        break;
+                    case 'Discussion':
+                        headerText = "No Active Discussions";
+                        messageText = "No students are currently in the 'Discussion' phase.";
+                        break;
+                    case 'Interview':
+                        headerText = "No Interviews Found";
+                        messageText = "You don't have any students marked for an 'Interview'.";
+                        break;
+                    case 'Accepted':
+                        headerText = "No Accepted Students";
+                        messageText = "Finalized hires will appear here once accepted.";
+                        break;
+                    case 'Rejected':
+                        headerText = "Clean Slate";
+                        messageText = "You haven't rejected any applications yet.";
+                        break;
+                    case 'HideRejected':
+                        headerText = "No Active Applications";
+                        messageText = "All applications are currently hidden by your filter.";
+                        break;
+                }
+
+                noResultsHeader.innerText = headerText;
+                noResultsMessage.innerText = messageText;
+            } else {
+                noResultsRow.style.display = 'none';
+            }
         }
 
         filterOptions.forEach(opt => {
