@@ -153,7 +153,7 @@
 <jsp:include page="../blocks/header.jsp"/>
 
 <div class="container-fluid">
-    <div class="row w-100 m-0">
+    <div class="row">
         <% if (isFaculty) { %>
         <jsp:include page="../blocks/facultySidebar.jsp"/>
         <% } else { %>

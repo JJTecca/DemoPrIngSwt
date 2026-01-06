@@ -29,19 +29,36 @@ public class ImportStudentServlet extends HttpServlet {
     @Inject
     private StudentInfoBean studentInfoBean;
 
+    private boolean checkAccess(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        if (session == null || session.getAttribute("userEmail") == null) {
+            response.sendRedirect(request.getContextPath() + "/UserLogin");
+            return true;
+        }
+
+        String role = (String) session.getAttribute("userRole");
+        if (!"Faculty".equals(role)) {
+            // Log the unauthorized attempt
+            LOG.warning("Unauthorized access attempt to ImportStudents by user: " + session.getAttribute("userEmail"));
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Faculty role required.");
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
+        if (checkAccess(request, response, session)) return;
+
+        // Check for preview data
+        List<Map<String, String>> previewData = (List<Map<String, String>>) session.getAttribute("previewData");
 
         java.util.Enumeration<String> attrNames = session.getAttributeNames();
         while (attrNames.hasMoreElements()) {
             String name = attrNames.nextElement();
             LOG.info("Session attr: " + name + " = " + session.getAttribute(name));
         }
-
-        // Check for preview data
-        List<Map<String, String>> previewData = (List<Map<String, String>>) session.getAttribute("previewData");
 
         if (previewData != null) {
             request.setAttribute("previewData", previewData);
@@ -59,7 +76,9 @@ public class ImportStudentServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        HttpSession session = request.getSession();
+
+        HttpSession session = request.getSession(false);
+        if (checkAccess(request, response, session)) return;
 
         LOG.info("=== DEBUG doPost() ===");
         LOG.info("Action: " + action);

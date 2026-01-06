@@ -29,6 +29,7 @@ public class InternshipApplicationDto {
     private LocalDateTime interview;
     private String studentStatus;
     private Float studyGrade;
+    private boolean studyGradeVisibility;
     /************************************************
      *        Constructors
      *  - we have more type of constructors
@@ -54,7 +55,7 @@ public class InternshipApplicationDto {
     // Update this constructor in InternshipApplicationDto.java
     public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId,
                                     String studentName, String studentStatus, String status,
-                                    Float grade, Float studyGrade, LocalDateTime appliedAt,
+                                    Float grade, Float studyGrade, boolean studyGradeVisibility, LocalDateTime appliedAt,
                                     String chatIds, String positionTitle, String companyName,
                                     Long companyId, String description, String requirements, Date deadline) {
         this.id = id;
@@ -65,6 +66,7 @@ public class InternshipApplicationDto {
         this.status = status;
         this.grade = grade;
         this.studyGrade = studyGrade;
+        this.studyGradeVisibility = studyGradeVisibility;
         this.appliedAt = appliedAt;
         this.chatIds = chatIds;
         this.positionTitle = positionTitle;
@@ -232,5 +234,13 @@ public class InternshipApplicationDto {
 
     public String getInternshipGradeFormatted() {
         return (grade != null) ? String.format("%.2f", grade) : "N/A";
+    }
+
+    public boolean isStudyGradeAvailable() {
+        return studyGradeVisibility;
+    }
+
+    public void setStudyGradeVisibility(boolean studyGradeVisibility) {
+        this.studyGradeVisibility = studyGradeVisibility;
     }
 }
