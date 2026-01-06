@@ -14,7 +14,7 @@
     Long sessionCompanyId = (Long) session.getAttribute("companyId");
 
     String globalStudentStatus = (String) session.getAttribute("studentStatus");
-    boolean isAcceptedGlobally = "Accepted".equalsIgnoreCase(globalStudentStatus);
+    boolean isAvailableGlobally = !"Available".equalsIgnoreCase(globalStudentStatus);
 
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
@@ -532,7 +532,7 @@
 
                                 <% if ("Student".equals(sessionRole)) {%>
                                 <%-- 1. Master Lock (Business Rule No2): Student is already hired --%>
-                                <% if (isAcceptedGlobally) { %>
+                                <% if (isAvailableGlobally) { %>
                                 <button class="btn btn-secondary px-5 opacity-75" disabled style="cursor: not-allowed;">
                                     <i class="fa-solid fa-ban me-2"></i> Selection Locked (Hired)
                                 </button>
