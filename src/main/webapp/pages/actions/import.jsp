@@ -205,29 +205,61 @@
         </div>
     </c:if>
 
-    <%-- Load Excel Button --%>
-    <c:if test="${empty previewData}">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fa-solid fa-database me-2"></i>Load Excel Data</h5>
-            </div>
-            <div class="card-body">
-                <div class="text-center py-4">
-                    <i class="fa-solid fa-file-excel fa-4x text-success mb-4"></i>
-                    <h4 class="mb-3">Load Students from Excel</h4>
-                    <p class="text-muted mb-4">
-                        Click the button below to load student data from <strong>Import.xlsx</strong> file.
-                        You'll be able to preview the data before importing.
-                    </p>
-                    <form action="ImportStudents" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fa-solid fa-magnifying-glass me-2"></i>Load and Preview Excel Data
-                        </button>
-                    </form>
+        <%-- Load Excel Button --%>
+        <c:if test="${empty previewData}">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa-solid fa-database me-2"></i>Upload Excel File</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center py-4">
+                        <i class="fa-solid fa-file-excel fa-4x text-success mb-4"></i>
+                        <h4 class="mb-3">Upload Student Excel File</h4>
+                        <p class="text-muted mb-4">
+                            Drag & drop your Excel file or click to browse. Supported formats: .xlsx
+                        </p>
+
+                            <%-- Drag & Drop Area --%>
+                        <div id="dropArea"
+                             class="border-dashed rounded-3 p-5 mb-4 text-center"
+                             style="border: 2px dashed #dee2e6; background-color: #f8f9fa; cursor: pointer;">
+                            <i class="fa-solid fa-cloud-arrow-up fa-3x text-muted mb-3"></i>
+                            <h5>Drag & Drop Excel File Here</h5>
+                            <p class="text-muted mb-2">or click to browse</p>
+                            <p class="small text-muted">Supports .xlsx format</p>
+                        </div>
+
+                            <%-- File Input (hidden) --%>
+                        <form id="uploadForm" action="ImportStudents" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="uploadExcel">
+                            <input type="file" id="fileInput" name="excelFile" accept=".xlsx" class="d-none">
+                            <div id="fileInfo" class="d-none">
+                                <div class="alert alert-info d-flex align-items-center">
+                                    <i class="fa-solid fa-file-excel me-3 fa-lg"></i>
+                                    <div>
+                                        <strong id="fileName"></strong>
+                                        <div class="small" id="fileSize"></div>
+                                    </div>
+                                    <button type="button" id="removeFile" class="btn btn-sm btn-outline-danger ms-auto">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="uploadBtn" type="submit" class="btn btn-primary btn-lg d-none">
+                                <i class="fa-solid fa-upload me-2"></i>Upload and Preview
+                            </button>
+                        </form>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                File should have columns: Full Name, Username, Email, Study Year, Last Year Grade, Status, Enrolled, Password
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </c:if>
+        </c:if>
 
         <%-- Preview Section --%>
         <c:if test="${not empty previewData}">
@@ -369,6 +401,128 @@
             bsAlert.close();
         });
     }, 5000);
+</script>
+<script>
+    // Drag & Drop functionality
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const removeFile = document.getElementById('removeFile');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    // Highlight drop area when dragging over
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    // Handle dropped files
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    // Click to browse
+    dropArea.addEventListener('click', () => fileInput.click());
+
+    // Handle file selection
+    fileInput.addEventListener('change', handleFiles);
+
+    // Remove selected file
+    removeFile.addEventListener('click', resetFileSelection);
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function highlight(e) {
+        dropArea.style.borderColor = '#0E2B58';
+        dropArea.style.backgroundColor = '#e9f7fe';
+    }
+
+    function unhighlight(e) {
+        dropArea.style.borderColor = '#dee2e6';
+        dropArea.style.backgroundColor = '#f8f9fa';
+    }
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFiles({ target: { files: files } });
+        }
+    }
+
+    function handleFiles(e) {
+        const files = e.target.files;
+
+        if (files.length > 0) {
+            const file = files[0];
+
+            // Validate file type
+            if (!file.name.endsWith('.xlsx')) {
+                alert('Please select an Excel file (.xlsx)');
+                resetFileSelection();
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size should be less than 10MB');
+                resetFileSelection();
+                return;
+            }
+
+            // Display file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+
+            fileInfo.classList.remove('d-none');
+            uploadBtn.classList.remove('d-none');
+            dropArea.classList.add('d-none');
+        }
+    }
+
+    function resetFileSelection() {
+        fileInput.value = '';
+        fileInfo.classList.add('d-none');
+        uploadBtn.classList.add('d-none');
+        dropArea.classList.remove('d-none');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Show upload progress
+    uploadForm.addEventListener('submit', function(e) {
+        const file = fileInput.files[0];
+        if (!file) {
+            e.preventDefault();
+            alert('Please select a file first');
+            return;
+        }
+
+        // Disable button and show loading
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i>Uploading...';
+    });
 </script>
 </body>
 </html>
