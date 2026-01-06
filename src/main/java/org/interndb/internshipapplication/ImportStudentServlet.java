@@ -38,7 +38,7 @@ public class ImportStudentServlet extends HttpServlet {
     private boolean checkAccess(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
         if (session == null || session.getAttribute("userEmail") == null) {
             response.sendRedirect(request.getContextPath() + "/UserLogin");
-            return false;
+            return true;
         }
 
         String role = (String) session.getAttribute("userRole");
@@ -46,9 +46,9 @@ public class ImportStudentServlet extends HttpServlet {
             // Log the unauthorized attempt
             LOG.warning("Unauthorized access attempt to ImportStudents by user: " + session.getAttribute("userEmail"));
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Faculty role required.");
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override
@@ -56,12 +56,7 @@ public class ImportStudentServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        if (!checkAccess(request, response, session)) return;
-
-        if (!"Faculty".equals(session.getAttribute("userRole"))) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Faculty access required.");
-            return;
-        }
+        if (checkAccess(request, response, session)) return;
 
         // Check for preview data
         List<Map<String, String>> previewData = (List<Map<String, String>>) session.getAttribute("previewData");
@@ -85,7 +80,7 @@ public class ImportStudentServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         HttpSession session = request.getSession(false);
-        if (!checkAccess(request, response, session)) return;
+        if (checkAccess(request, response, session)) return;
 
         LOG.info("=== DEBUG doPost() ===");
         LOG.info("Action: " + action);
