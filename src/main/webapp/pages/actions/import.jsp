@@ -7,22 +7,17 @@
     <title>Import Students</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/global.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        .container {
-            max-width: 1200px;
-            margin-top: 30px;
-            margin-bottom: 50px;
-        }
-
         .card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
 
@@ -105,298 +100,398 @@
             color: #6c757d;
             font-size: 14px;
         }
+
+        /* Professional Faculty Return Button */
+        .btn-return-faculty {
+            background-color: #f8f9fa;
+            color: var(--brand-blue-dark);
+            border: 1.5px solid #dee2e6;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.6rem 1.4rem;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .btn-return-faculty i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-return-faculty:hover {
+            background-color: var(--brand-blue);
+            color: white !important;
+            border-color: var(--brand-blue);
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(14, 43, 88, 0.2);
+        }
+
+        .btn-return-faculty:hover i {
+            transform: translateX(-3px);
+        }
+
+        .btn-return-faculty:active {
+            transform: translateX(-2px) scale(0.98);
+        }
+
+        /* Import Action Buttons */
+        .btn-import-confirm {
+            background-color: #198754;
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(25, 135, 84, 0.2);
+        }
+
+        .btn-import-confirm:hover {
+            background-color: #157347;
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 6px 15px rgba(25, 135, 84, 0.3);
+            color: white;
+        }
+
+        .btn-import-cancel {
+            background-color: #f1f3f5;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-import-cancel:hover {
+            background-color: #e9ecef;
+            color: #212529;
+            border-color: #ced4da;
+            transform: translateY(-1px);
+        }
+
+        .btn-import-confirm i, .btn-import-cancel i {
+            transition: transform 0.2s ease;
+        }
+
+        .btn-import-confirm:hover i {
+            transform: rotate(10deg) scale(1.2);
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <%-- Header --%>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">
-                <i class="fa-solid fa-file-import text-primary me-2"></i>Import Students
-            </h2>
-            <p class="text-muted mb-0">Import student data from Excel file</p>
-        </div>
-        <a href="${pageContext.request.contextPath}/facultyPanel.jsp" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-arrow-left me-1"></i>Back
-        </a>
-    </div>
+<jsp:include page="../blocks/header.jsp"/>
 
-    <%-- Messages --%>
-    <c:if test="${not empty successMessage}">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fa-solid fa-circle-check me-2"></i>${successMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    </c:if>
+<div class="container-fluid flex-grow-1">
+    <div class="row">
+        <%-- Sidebar on the left --%>
+        <jsp:include page="../blocks/facultySidebar.jsp"/>
 
-    <c:if test="${not empty errorMessage}">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fa-solid fa-circle-exclamation me-2"></i>${errorMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    </c:if>
-
-    <%-- Debug Section --%>
-    <c:if test="${not empty previewData and not empty previewData[0]}">
-        <div class="alert alert-info">
-            <p><strong>Debug Info:</strong> Found ${studentCount} rows</p>
-            <p><strong>First row keys:</strong>
-                <c:forEach items="${previewData[0].keySet()}" var="key" varStatus="loop">
-                    "${key}"<c:if test="${!loop.last}">, </c:if>
-                </c:forEach>
-            </p>
-            <p><strong>First row values:</strong>
-                <c:forEach items="${previewData[0].values()}" var="value" varStatus="loop">
-                    "${value}"<c:if test="${!loop.last}">, </c:if>
-                </c:forEach>
-            </p>
-        </div>
-    </c:if>
-
-    <%-- Import Results --%>
-    <c:if test="${not empty importResult}">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fa-solid fa-chart-column me-2"></i>Import Results</h5>
-            </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-value text-success">${importResult.imported}</div>
-                            <div class="stat-label">Imported</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-value text-warning">${importResult.skipped}</div>
-                            <div class="stat-label">Skipped</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-value text-primary">${importResult.totalInFile}</div>
-                            <div class="stat-label">Total in File</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="stat-box">
-                            <div class="stat-value text-info">${importResult.imported + importResult.skipped}</div>
-                            <div class="stat-label">Processed</div>
-                        </div>
-                    </div>
+        <%-- Content on the right --%>
+        <div class="col-md-9 col-lg-10 main-content py-4">
+            <%-- Header --%>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">
+                        <i class="fa-solid fa-file-import text-primary me-2"></i>Import Students
+                    </h2>
+                    <p class="text-muted mb-0">Import student data from Excel file</p>
                 </div>
-
-                <c:if test="${importResult.skipped > 0}">
-                    <div class="alert alert-warning">
-                        <h6 class="fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>Skipped Items:</h6>
-                        <ul class="mb-0">
-                            <c:forEach items="${importResult.skippedDetails}" var="detail" end="3">
-                                <li class="small">${detail}</li>
-                            </c:forEach>
-                            <c:if test="${fn:length(importResult.skippedDetails) > 3}">
-                                <li class="small">... and ${fn:length(importResult.skippedDetails) - 3} more</li>
-                            </c:if>
-                        </ul>
-                    </div>
-                </c:if>
+                <a href="${pageContext.request.contextPath}/FacultyDashboard" class="btn-return-faculty">
+                    <i class="fa-solid fa-chevron-left me-2"></i> Back to Dashboard
+                </a>
             </div>
-        </div>
-    </c:if>
 
-        <%-- Load Excel Button --%>
-        <c:if test="${empty previewData}">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fa-solid fa-database me-2"></i>Upload Excel File</h5>
+            <%-- Messages --%>
+            <c:if test="${not empty successMessage}">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i>${successMessage}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="card-body">
-                    <div class="text-center py-4">
-                        <i class="fa-solid fa-file-excel fa-4x text-success mb-4"></i>
-                        <h4 class="mb-3">Upload Student Excel File</h4>
-                        <p class="text-muted mb-4">
-                            Drag & drop your Excel file or click to browse. Supported formats: .xlsx
-                        </p>
+            </c:if>
 
-                            <%-- Drag & Drop Area --%>
-                        <div id="dropArea"
-                             class="border-dashed rounded-3 p-5 mb-4 text-center"
-                             style="border: 2px dashed #dee2e6; background-color: #f8f9fa; cursor: pointer;">
-                            <i class="fa-solid fa-cloud-arrow-up fa-3x text-muted mb-3"></i>
-                            <h5>Drag & Drop Excel File Here</h5>
-                            <p class="text-muted mb-2">or click to browse</p>
-                            <p class="small text-muted">Supports .xlsx format</p>
-                        </div>
+            <c:if test="${not empty errorMessage}">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>${errorMessage}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </c:if>
 
-                            <%-- File Input (hidden) --%>
-                        <form id="uploadForm" action="ImportStudents" method="post" enctype="multipart/form-data">
-                            <input type="hidden" name="action" value="uploadExcel">
-                            <input type="file" id="fileInput" name="excelFile" accept=".xlsx" class="d-none">
-                            <div id="fileInfo" class="d-none">
-                                <div class="alert alert-info d-flex align-items-center">
-                                    <i class="fa-solid fa-file-excel me-3 fa-lg"></i>
-                                    <div>
-                                        <strong id="fileName"></strong>
-                                        <div class="small" id="fileSize"></div>
-                                    </div>
-                                    <button type="button" id="removeFile" class="btn btn-sm btn-outline-danger ms-auto">
-                                        <i class="fa-solid fa-times"></i>
-                                    </button>
+            <%-- Debug Section --%>
+            <c:if test="${not empty previewData and not empty previewData[0]}">
+                <div class="alert alert-info">
+                    <p><strong>Debug Info:</strong> Found ${studentCount} rows</p>
+                    <p><strong>First row keys:</strong>
+                        <c:forEach items="${previewData[0].keySet()}" var="key" varStatus="loop">
+                            "${key}"<c:if test="${!loop.last}">, </c:if>
+                        </c:forEach>
+                    </p>
+                    <p><strong>First row values:</strong>
+                        <c:forEach items="${previewData[0].values()}" var="value" varStatus="loop">
+                            "${value}"<c:if test="${!loop.last}">, </c:if>
+                        </c:forEach>
+                    </p>
+                </div>
+            </c:if>
+
+            <%-- Import Results --%>
+            <c:if test="${not empty importResult}">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-chart-column me-2"></i>Import Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value text-success">${importResult.imported}</div>
+                                    <div class="stat-label">Imported</div>
                                 </div>
                             </div>
-                            <button id="uploadBtn" type="submit" class="btn btn-primary btn-lg d-none">
-                                <i class="fa-solid fa-upload me-2"></i>Upload and Preview
-                            </button>
-                        </form>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value text-warning">${importResult.skipped}</div>
+                                    <div class="stat-label">Skipped</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value text-primary">${importResult.totalInFile}</div>
+                                    <div class="stat-label">Total in File</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-box">
+                                    <div class="stat-value text-info">${importResult.imported + importResult.skipped}</div>
+                                    <div class="stat-label">Processed</div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                <i class="fa-solid fa-info-circle me-1"></i>
-                                File should have columns: Full Name, Username, Email, Study Year, Last Year Grade, Status, Enrolled, Password
-                            </small>
+                        <c:if test="${importResult.skipped > 0}">
+                            <div class="alert alert-warning">
+                                <h6 class="fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>Skipped Items:
+                                </h6>
+                                <ul class="mb-0">
+                                    <c:forEach items="${importResult.skippedDetails}" var="detail" end="3">
+                                        <li class="small">${detail}</li>
+                                    </c:forEach>
+                                    <c:if test="${fn:length(importResult.skippedDetails) > 3}">
+                                        <li class="small">... and ${fn:length(importResult.skippedDetails) - 3} more
+                                        </li>
+                                    </c:if>
+                                </ul>
+                            </div>
+                        </c:if>
+                    </div>
+                </div>
+            </c:if>
+
+            <%-- Load Excel Button --%>
+            <c:if test="${empty previewData}">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fa-solid fa-database me-2"></i>Upload Excel File</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-4">
+                            <i class="fa-solid fa-file-excel fa-4x text-success mb-4"></i>
+                            <h4 class="mb-3">Upload Student Excel File</h4>
+                            <p class="text-muted mb-4">
+                                Drag & drop your Excel file or click to browse. Supported formats: .xlsx
+                            </p>
+
+                                <%-- Drag & Drop Area --%>
+                            <div id="dropArea"
+                                 class="border-dashed rounded-3 p-5 mb-4 text-center"
+                                 style="border: 2px dashed #dee2e6; background-color: #f8f9fa; cursor: pointer;">
+                                <i class="fa-solid fa-cloud-arrow-up fa-3x text-muted mb-3"></i>
+                                <h5>Drag & Drop Excel File Here</h5>
+                                <p class="text-muted mb-2">or click to browse</p>
+                                <p class="small text-muted">Supports .xlsx format</p>
+                            </div>
+
+                                <%-- File Input (hidden) --%>
+                            <form id="uploadForm" action="ImportStudents" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="uploadExcel">
+                                <input type="file" id="fileInput" name="excelFile" accept=".xlsx" class="d-none">
+                                <div id="fileInfo" class="d-none">
+                                    <div class="alert alert-info d-flex align-items-center">
+                                        <i class="fa-solid fa-file-excel me-3 fa-lg"></i>
+                                        <div>
+                                            <strong id="fileName"></strong>
+                                            <div class="small" id="fileSize"></div>
+                                        </div>
+                                        <button type="button" id="removeFile"
+                                                class="btn btn-sm btn-outline-danger ms-auto">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button id="uploadBtn" type="submit" class="btn btn-primary btn-lg d-none">
+                                    <i class="fa-solid fa-upload me-2"></i>Upload and Preview
+                                </button>
+                            </form>
+
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    File should have columns: Full Name, Username, Email, Study Year, Last Year Grade,
+                                    Status, Enrolled, Password
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </c:if>
+            </c:if>
 
-        <%-- Preview Section --%>
-        <c:if test="${not empty previewData}">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fa-solid fa-eye me-2"></i>Preview Data (${studentCount} students)
-                    </h5>
-                    <div>
-                        <form action="ImportStudents" method="post" class="d-inline me-2">
-                            <input type="hidden" name="action" value="confirmImport">
-                            <button type="submit" class="btn btn-success">
-                                <i class="fa-solid fa-check me-1"></i>Confirm Import
-                            </button>
-                        </form>
-                        <a href="ImportStudents" class="btn btn-secondary">
-                            <i class="fa-solid fa-xmark me-1"></i>Cancel
-                        </a>
+            <%-- Preview Section --%>
+            <c:if test="${not empty previewData}">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-eye me-2"></i>Preview Data (${studentCount} students)
+                        </h5>
+                        <div class="mt-3">
+                            <form action="ImportStudents" method="post" class="d-inline me-2">
+                                <input type="hidden" name="action" value="confirmImport">
+                                <button type="submit" class="btn btn-import-confirm">
+                                    <i class="fa-solid fa-circle-check me-2"></i>Confirm Import
+                                </button>
+                            </form>
+
+                            <form action="ImportStudents" method="post" class="d-inline">
+                                <input type="hidden" name="action" value="cancelImport">
+                                <button type="submit" class="btn btn-import-cancel">
+                                    <i class="fa-solid fa-circle-xmark me-2"></i>Cancel
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Full Name</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Study Year</th>
-                                <th>Last Year Grade</th>
-                                <th>Status</th>
-                                <th>Enrolled</th>
-                                <th>Password</th> <!-- ADDED -->
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:forEach items="${previewData}" var="row" varStatus="loop">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
                                 <tr>
-                                    <td>${loop.index + 1}</td>
-                                    <td class="fw-semibold">${row['Full Name']}</td>
-                                    <td><code>${row['Username']}</code></td>
-                                    <td>${row['Email']}</td>
-                                    <td>${row['Study Year']}</td>
-                                    <td>
-                                        <c:set var="gradeStr" value="${row['Last Year Grade']}" />
-                                        <c:choose>
-                                            <c:when test="${not empty gradeStr and gradeStr != ''}">
-                                                <c:catch var="parseError">
-                                                    <c:set var="grade" value="${Double.parseDouble(gradeStr)}" />
-                                                    <c:choose>
-                                                        <c:when test="${grade >= 9}">
-                                                            <span class="badge-success">${grade}</span>
-                                                        </c:when>
-                                                        <c:when test="${grade >= 5}">
-                                                            <span class="badge-warning">${grade}</span>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="badge-danger">${grade}</span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </c:catch>
-                                                <c:if test="${not empty parseError}">
-                                                    <span class="badge bg-secondary">${gradeStr}</span>
-                                                </c:if>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-secondary">N/A</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <c:set var="status" value="${row['Status']}" />
-                                        <c:choose>
-                                            <c:when test="${status eq 'Available'}">
-                                                <span class="badge bg-success">Available</span>
-                                            </c:when>
-                                            <c:when test="${status eq 'Accepted'}">
-                                                <span class="badge bg-primary">Accepted</span>
-                                            </c:when>
-                                            <c:when test="${status eq 'Completed'}">
-                                                <span class="badge bg-secondary">Completed</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-warning">${status}</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${row['Enrolled'] eq 'Yes'}">
-                                                <span class="badge bg-success">Yes</span>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span class="badge bg-secondary">No</span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td><code>${row['Password']}</code></td> <!-- ADDED -->
+                                    <th>#</th>
+                                    <th>Full Name</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Study Year</th>
+                                    <th>Last Year Grade</th>
+                                    <th>Status</th>
+                                    <th>Enrolled</th>
+                                    <th>Password</th> <!-- ADDED -->
                                 </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                <c:forEach items="${previewData}" var="row" varStatus="loop">
+                                    <tr>
+                                        <td>${loop.index + 1}</td>
+                                        <td class="fw-semibold">${row['Full Name']}</td>
+                                        <td><code>${row['Username']}</code></td>
+                                        <td>${row['Email']}</td>
+                                        <td>${row['Study Year']}</td>
+                                        <td>
+                                            <c:set var="gradeStr" value="${row['Last Year Grade']}"/>
+                                            <c:choose>
+                                                <c:when test="${not empty gradeStr and gradeStr != ''}">
+                                                    <c:catch var="parseError">
+                                                        <c:set var="grade" value="${Double.parseDouble(gradeStr)}"/>
+                                                        <c:choose>
+                                                            <c:when test="${grade >= 9}">
+                                                                <span class="badge-success">${grade}</span>
+                                                            </c:when>
+                                                            <c:when test="${grade >= 5}">
+                                                                <span class="badge-warning">${grade}</span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <span class="badge-danger">${grade}</span>
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                    </c:catch>
+                                                    <c:if test="${not empty parseError}">
+                                                        <span class="badge bg-secondary">${gradeStr}</span>
+                                                    </c:if>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-secondary">N/A</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>
+                                            <c:set var="status" value="${row['Status']}"/>
+                                            <c:choose>
+                                                <c:when test="${status eq 'Available'}">
+                                                    <span class="badge bg-success">Available</span>
+                                                </c:when>
+                                                <c:when test="${status eq 'Accepted'}">
+                                                    <span class="badge bg-primary">Accepted</span>
+                                                </c:when>
+                                                <c:when test="${status eq 'Completed'}">
+                                                    <span class="badge bg-secondary">Completed</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-warning">${status}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td>
+                                            <c:choose>
+                                                <c:when test="${row['Enrolled'] eq 'Yes'}">
+                                                    <span class="badge bg-success">Yes</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-secondary">No</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </td>
+                                        <td><code>${row['Password']}</code></td> <!-- ADDED -->
+                                    </tr>
+                                </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="alert alert-info mb-0">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            <strong>Note:</strong> Students will be created with passwords from Excel file.
+                        </div>
                     </div>
                 </div>
-                <div class="card-footer">
-                    <div class="alert alert-info mb-0">
-                        <i class="fa-solid fa-info-circle me-2"></i>
-                        <strong>Note:</strong> Students will be created with passwords from Excel file.
-                    </div>
+            </c:if>
+
+            <%-- Instructions --%>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fa-solid fa-circle-info me-2"></i>Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li>Drop the Excel file <strong>.xlsx</strong></li>
+                        <li>Click "Upload and Preview" to see the data</li>
+                        <li>Review the student information in the preview table</li>
+                        <li>Click "Confirm Import" to create student accounts</li>
+                        <li>Students can login with their username and password: <code>username123</code></li>
+                    </ol>
                 </div>
             </div>
-        </c:if>
-
-    <%-- Instructions --%>
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fa-solid fa-circle-info me-2"></i>Instructions</h5>
-        </div>
-        <div class="card-body">
-            <ol class="mb-0">
-                <li>The Excel file <strong>Import.xlsx</strong> must be placed in the project's resources folder</li>
-                <li>Click "Load and Preview Excel Data" to see the data</li>
-                <li>Review the student information in the preview table</li>
-                <li>Click "Confirm Import" to create student accounts</li>
-                <li>Students can login with their username and password: <code>username123</code></li>
-            </ol>
         </div>
     </div>
 </div>
 
+<jsp:include page="../blocks/footer.jsp"/>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Auto-dismiss alerts after 5 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         var alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function(alert) {
+        alerts.forEach(function (alert) {
             var bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();
         });
@@ -461,7 +556,7 @@
 
         if (files.length > 0) {
             fileInput.files = files;
-            handleFiles({ target: { files: files } });
+            handleFiles({target: {files: files}});
         }
     }
 
@@ -511,7 +606,7 @@
     }
 
     // Show upload progress
-    uploadForm.addEventListener('submit', function(e) {
+    uploadForm.addEventListener('submit', function (e) {
         const file = fileInput.files[0];
         if (!file) {
             e.preventDefault();

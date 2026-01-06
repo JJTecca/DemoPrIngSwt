@@ -282,7 +282,7 @@
         }
 
         .applications-scroll-container {
-            height: 400px; /* Adjust this value to your liking */
+            max-height: 400px; /* Adjust this value to your liking */
             overflow-y: auto;
         }
 
@@ -297,6 +297,47 @@
         .applications-scroll-container::-webkit-scrollbar-thumb {
             background: var(--brand-blue);
             border-radius: 4px;
+        }
+
+        /* Upgrade the "Eye" button to Faculty Style */
+        .btn-manage-eye {
+            background-color: #f8f9fa;
+            color: var(--brand-blue);
+            border: 1px solid #e9ecef;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+        }
+
+        .btn-manage-eye:hover {
+            background-color: var(--brand-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(14, 43, 88, 0.2);
+        }
+
+        /* Modal Company Header Styling */
+        .modal-company-banner {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            padding: 2rem 1rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .company-logo-modal {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -334,7 +375,7 @@
                             <div>
                                 <h2 class="stat-value" style="font-size: 1.4rem;"><%= student.getStatus() %>
                                 </h2>
-                                <span class="stat-label">Academic Status</span>
+                                <span class="stat-label">Status</span>
                             </div>
                             <i class="fa-solid fa-user-check stat-icon"></i>
                         </div>
@@ -388,7 +429,7 @@
                                 <h2 class="stat-value" style="font-size: 1.4rem;">
                                     <%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %>
                                 </h2>
-                                <span class="stat-label">Status</span>
+                                <span class="stat-label">Academic Status</span>
                             </div>
                             <i class="fa-solid fa-school stat-icon"></i>
                         </div>
@@ -481,7 +522,7 @@
                                             String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
 
                                             // Company Logo Logic
-                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getInternshipPositionId() + "&targetRole=Company";
+                                            String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getCompanyId() + "&targetRole=Company";
                                             String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
                                         %>
                                         <tr>
@@ -498,7 +539,7 @@
                                                             <%= app.getPositionTitle() %>
                                                         </a>
                                                         <div class="small">
-                                                            <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
+                                                            <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getCompanyId() %>"
                                                                class="company-link text-decoration-none" style="font-size: 0.85rem;">
                                                                 <%= app.getCompanyName() %>
                                                             </a>
@@ -519,61 +560,63 @@
                                                 <% } %>
                                             </td>
                                             <td class="text-end pe-4">
-                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                <button type="button" class="btn-manage-eye"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#detailsModal_<%= app.getId() %>"
                                                         title="View Details">
-                                                    <i class="fa-regular fa-eye"></i>
+                                                    <i class="fa-solid fa-eye"></i>
                                                 </button>
 
-                                                <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>"
-                                                     tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-light">
-                                                                <h5 class="modal-title fw-bold">Application Details</h5>
-                                                                <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal"></button>
+                                                <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content border-0 shadow-lg">
+                                                            <div class="modal-company-banner">
+                                                                <button type="button" class="btn-close position-absolute" style="top: 15px; right: 15px;" data-bs-dismiss="modal"></button>
+                                                                <img src="<%= companyLogoUrl %>"
+                                                                     onerror="this.onerror=null;this.src='<%= companyFallback %>';"
+                                                                     class="company-logo-modal border">
+                                                                <h4 class="fw-bold text-dark mb-0"><%= app.getPositionTitle() %></h4>
+                                                                <p class="text-muted mb-2"><%= app.getCompanyName() %></p>
+                                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
                                                             </div>
+
                                                             <div class="modal-body p-4">
-                                                                <div class="text-center mb-4">
-                                                                    <h4 class="fw-bold text-primary mb-1"><%= app.getPositionTitle() %>
-                                                                    </h4>
-                                                                    <p class="text-muted fw-bold">
-                                                                        <i class="fa-solid fa-building me-2"></i>
-                                                                        <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getInternshipPositionId() %>"
-                                                                           class="company-link text-muted text-decoration-none">
-                                                                            <%= app.getCompanyName() %>
-                                                                        </a>
-                                                                    </p>
-                                                                    <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
-                                                                </div>
-                                                                <div class="mb-3">
-                                                                    <small class="text-uppercase text-muted fw-bold">Applied
-                                                                        On</small>
-                                                                    <div class="text-dark"><i
-                                                                            class="fa-regular fa-calendar-check me-2"></i> <%= appliedDate %>
+                                                                <div class="row g-3">
+                                                                    <div class="col-6">
+                                                                        <small class="text-uppercase text-muted fw-bold d-block">Applied Date</small>
+                                                                        <span class="text-dark small"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> <%= appliedDate %></span>
+                                                                    </div>
+                                                                    <div class="col-6 text-end">
+                                                                        <small class="text-uppercase text-muted fw-bold d-block">Deadline</small>
+                                                                        <span class="text-danger small fw-bold"><i class="fa-regular fa-clock me-1"></i> <%= deadlineDate %></span>
                                                                     </div>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <small class="text-uppercase text-muted fw-bold">Description</small>
-                                                                    <div class="bg-light p-3 rounded text-secondary small"><%= app.getDescription() %>
+
+                                                                <hr class="my-4 opacity-25">
+
+                                                                <div class="mb-4">
+                                                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-align-left me-2 text-primary"></i>Description</h6>
+                                                                    <div class="text-secondary small lh-base" style="text-align: justify;">
+                                                                        <%= app.getDescription() %>
                                                                     </div>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <small class="text-uppercase text-muted fw-bold">Requirements</small>
-                                                                    <div class="bg-light p-3 rounded text-secondary small"><%= app.getRequirements() %>
+
+                                                                <div class="mb-4">
+                                                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-list-check me-2 text-primary"></i>Requirements</h6>
+                                                                    <div class="text-secondary small lh-base">
+                                                                        <%= app.getRequirements() %>
                                                                     </div>
                                                                 </div>
-                                                                <div class="alert alert-light border d-flex justify-content-between m-0">
-                                                                    <span class="small fw-bold text-muted">Deadline:</span>
-                                                                    <span class="fw-bold text-danger"><%= deadlineDate %></span>
-                                                                </div>
+
+                                                                <% { %>
+                                                                <% } %>
                                                             </div>
-                                                            <div class="modal-footer border-0">
-                                                                <button type="button" class="btn btn-secondary btn-sm"
-                                                                        data-bs-dismiss="modal">Close
-                                                                </button>
+
+                                                            <div class="modal-footer bg-light border-0">
+                                                                <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+                                                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getCompanyId() %>" class="btn btn-brand btn-sm px-4 rounded-pill">
+                                                                    View Company
+                                                                </a>
                                                             </div>
                                                         </div>
                                                     </div>

@@ -69,8 +69,8 @@
         <a class="nav-link <%= originUri.contains("internshippositions") ? "active" : "" %>" href="${pageContext.request.contextPath}/InternshipPositions">
             <i class="fa-solid fa-briefcase"></i> Internships
         </a>
-        <a class="nav-link <%= originUri.contains("chats") ? "active" : "" %>" href="${pageContext.request.contextPath}/Chats">
-            <i class="fa-solid fa-comments"></i> Chats
+        <a class="nav-link <%= originUri.contains("internshipapplications") ? "active" : "" %>" href="${pageContext.request.contextPath}/Chats">
+            <i class="fa-solid fa-comments"></i> Applications
         </a>
     </div>
     <div class="mt-3 border-top pt-3">

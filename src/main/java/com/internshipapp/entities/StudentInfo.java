@@ -103,6 +103,8 @@ public class StudentInfo {
         this.lastName = lastName;
     }
 
+    public String getFullName() { return firstName + " " + middleName + " " + lastName; }
+
     public Integer getStudyYear() {
         return studyYear;
     }

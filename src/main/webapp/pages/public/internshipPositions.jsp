@@ -13,6 +13,9 @@
     // We assume the Company user has their Company ID stored in session to check ownership
     Long sessionCompanyId = (Long) session.getAttribute("companyId");
 
+    String globalStudentStatus = (String) session.getAttribute("studentStatus");
+    boolean isAvailableGlobally = !"Available".equalsIgnoreCase(globalStudentStatus);
+
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
 %>
@@ -496,7 +499,7 @@
                                             <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
                                             <div class="applicant-item">
                                                 <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff&size=100';"
                                                      class="applicant-pfp">
                                                 <div class="overflow-hidden">
                                                     <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
@@ -526,20 +529,27 @@
                             </div>
                             <div class="modal-footer border-0 justify-content-center pb-4">
                                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
-                                <% if ("Student".equals(sessionRole)) { %>
 
-                                <% if ("Closed".equalsIgnoreCase(modalStatus)) { %>
+                                <% if ("Student".equals(sessionRole)) {%>
+                                <%-- 1. Master Lock (Business Rule No2): Student is already hired --%>
+                                <% if (isAvailableGlobally) { %>
+                                <button class="btn btn-secondary px-5 opacity-75" disabled style="cursor: not-allowed;">
+                                    <i class="fa-solid fa-ban me-2"></i> Selection Locked (Hired)
+                                </button>
+
+                                <%-- 2. Position Status Check: Position is closed --%>
+                                <% } else if ("Closed".equalsIgnoreCase(modalStatus)) { %>
                                 <button class="btn btn-secondary px-5 opacity-50" disabled style="cursor: not-allowed;">
                                     <i class="fa-solid fa-lock me-2"></i> Position Closed
                                 </button>
 
-                                <%-- 3. Then check if they already applied --%>
+                                <%-- 3. Application History Check: Already applied to this specific position --%>
                                 <% } else if (pos.isAlreadyApplied()) { %>
                                 <button class="btn btn-applied px-5" disabled>
                                     <i class="fa-solid fa-check me-2"></i> Application Sent
                                 </button>
 
-                                <%-- 4. Only if Open and Not Applied, show the form --%>
+                                <%-- 4. Final Action: Position is open, Student is available, and no existing application --%>
                                 <% } else { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">
@@ -622,29 +632,54 @@
             });
         }
 
-        // --- SORTING LOGIC ---
+// Variable to store the "base" sort text
+        let currentSortLabel = "Sort By";
+
         document.querySelectorAll('.sort-btn').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const criteria = this.getAttribute('data-criteria');
+                const sortLabelElement = document.getElementById('sortLabel');
 
-                // Update Button Label UI
-                document.getElementById('sortLabel').innerText = this.innerText;
-
+                // CASE 1: TOGGLE FILTER (Open Only)
                 if (criteria === 'openOnly') {
                     openOnlyFilterActive = !openOnlyFilterActive;
-                    this.classList.toggle('bg-light', openOnlyFilterActive);
+
+                    // Toggle visual state of the specific dropdown item
+                    this.classList.toggle('fw-bold', openOnlyFilterActive);
+                    this.classList.toggle('text-primary', openOnlyFilterActive);
+                    this.querySelector('i').classList.toggle('text-success', openOnlyFilterActive);
+
+                    // Update Label: If filter is OFF, go back to the base sort. If ON, show filter.
+                    sortLabelElement.innerText = openOnlyFilterActive ? "Only Open Positions" : currentSortLabel;
+
                     applyAllFilters();
                     return;
                 }
 
-                // CHRONOLOGICAL / CAPACITY SORTING
+                // CASE 2: ACTUAL SORTING (Newest, Oldest, Spots)
+                // 1. Remove active effect from all OTHER sort-only buttons
+                document.querySelectorAll('.sort-btn[data-criteria]:not([data-criteria="openOnly"])')
+                    .forEach(b => b.classList.remove('fw-bold', 'text-primary'));
+
+                // 2. Add active effect to THIS button
+                this.classList.add('fw-bold', 'text-primary');
+
+                // 3. Update the "Memory" of what the sort is
+                currentSortLabel = this.innerText;
+
+                // 4. Update UI: If "Open Only" is active, don't overwrite the label yet
+                if (!openOnlyFilterActive) {
+                    sortLabelElement.innerText = currentSortLabel;
+                }
+
+                // Execution of the Sort
                 const items = Array.from(positionsGrid.querySelectorAll('.position-item'));
                 items.sort((a, b) => {
-                    const dateA = parseInt(a.getAttribute('data-date'));
-                    const dateB = parseInt(b.getAttribute('data-date'));
-                    const spotsA = parseInt(a.getAttribute('data-spots'));
-                    const spotsB = parseInt(b.getAttribute('data-spots'));
+                    const dateA = parseInt(a.getAttribute('data-date')) || 0;
+                    const dateB = parseInt(b.getAttribute('data-date')) || 0;
+                    const spotsA = parseInt(a.getAttribute('data-spots')) || 0;
+                    const spotsB = parseInt(b.getAttribute('data-spots')) || 0;
 
                     if (criteria === 'newest') return dateB - dateA;
                     if (criteria === 'oldest') return dateA - dateB;
@@ -652,10 +687,7 @@
                     return 0;
                 });
 
-                // Re-append items in new order
                 items.forEach(item => positionsGrid.appendChild(item));
-
-                // CRUCIAL: Re-run filters so sorted hidden items stay hidden
                 applyAllFilters();
             });
         });

@@ -286,7 +286,7 @@ public class InternshipPositionBean {
         }
     }
 
-    public Long createPosition(Long companyId, String title, String description,
+    public void createPosition(Long companyId, String title, String description,
                                String requirements, Date deadline, Integer maxSpots, String status) {
         LOG.info("createPosition with status: " + status);
         try {
@@ -311,9 +311,9 @@ public class InternshipPositionBean {
             // Persist
             entityManager.persist(position);
             entityManager.flush(); // Get the generated ID
+            entityManager.refresh(position);
 
             LOG.info("Created position with ID: " + position.getId());
-            return position.getId();
 
         } catch (Exception ex) {
             LOG.severe("Error in createPosition: " + ex.getMessage());
