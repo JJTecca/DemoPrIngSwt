@@ -35,11 +35,33 @@ public class ImportStudentServlet extends HttpServlet {
     // Fixed Excel file name
     private static final String EXCEL_FILE = "Import.xlsx";
 
+    private boolean checkAccess(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
+        if (session == null || session.getAttribute("userEmail") == null) {
+            response.sendRedirect(request.getContextPath() + "/UserLogin");
+            return false;
+        }
+
+        String role = (String) session.getAttribute("userRole");
+        if (!"Faculty".equals(role)) {
+            // Log the unauthorized attempt
+            LOG.warning("Unauthorized access attempt to ImportStudents by user: " + session.getAttribute("userEmail"));
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Faculty role required.");
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
 
+        HttpSession session = request.getSession(false);
+        if (!checkAccess(request, response, session)) return;
+
+        if (!"Faculty".equals(session.getAttribute("userRole"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Faculty access required.");
+            return;
+        }
 
         // Check for preview data
         List<Map<String, String>> previewData = (List<Map<String, String>>) session.getAttribute("previewData");
@@ -61,7 +83,9 @@ public class ImportStudentServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-        HttpSession session = request.getSession();
+
+        HttpSession session = request.getSession(false);
+        if (!checkAccess(request, response, session)) return;
 
         LOG.info("=== DEBUG doPost() ===");
         LOG.info("Action: " + action);

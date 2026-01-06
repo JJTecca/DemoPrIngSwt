@@ -531,7 +531,7 @@
                                                             <% for (com.internshipapp.common.InternshipApplicationDto app : pos.getApplicants()) { %>
                                                             <div class="applicant-item">
                                                                 <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=random';"
+                                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff';"
                                                                      class="applicant-pfp">
                                                                 <div class="overflow-hidden">
                                                                     <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"

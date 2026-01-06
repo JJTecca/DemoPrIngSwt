@@ -663,7 +663,11 @@
                                             <%-- Dual-Grade Column (Faculty Style) --%>
                                             <td class="fw-bold text-muted small">
                                                 <span class="grade-val grade-study">
-                                                   <%= app.getStudyGradeFormatted()%>
+                                                    <% if (!app.isStudyGradeAvailable()) { %>
+                                                       N/A
+                                                    <% } else { %>
+                                                       <%= app.getStudyGradeFormatted() %>
+                                                    <% } %>
                                                 </span>
                                                 <span class="grade-val grade-internship d-none text-primary">
                                                    <i class="fa-solid fa-star me-1"></i>

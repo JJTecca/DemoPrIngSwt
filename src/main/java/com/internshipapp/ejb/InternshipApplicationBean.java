@@ -86,6 +86,7 @@ public class InternshipApplicationBean {
                     app.getStatus().toString(),
                     app.getGrade(),
                     app.getStudent().getLastYearGrade(),
+                    app.getStudent().getGradeVisibility(),
                     app.getAppliedAt(),
                     app.getChatIds(),
                     posTitle,

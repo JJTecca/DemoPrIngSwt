@@ -496,12 +496,12 @@
                                     Filter: <span id="currentStudentFilterLabel">All Students</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                    <li><a class="dropdown-item student-filter-opt" data-filter="All" href="#">Show
+                                    <li><a class="dropdown-item student-filter-opt active" data-filter="All" href="#">Show
                                         All</a></li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
-                                    <li><a class="dropdown-item student-filter-opt active" data-filter="Available"
+                                    <li><a class="dropdown-item student-filter-opt" data-filter="Available"
                                            href="#">Available Only</a></li>
                                     <li><a class="dropdown-item student-filter-opt" data-filter="Accepted" href="#">Accepted
                                         Only</a></li>
@@ -924,7 +924,7 @@
                 applyStudentFilter(this.getAttribute('data-filter'));
             });
         });
-        applyStudentFilter('Available');
+        applyStudentFilter('All');
 
         const gradeToggleOpts = document.querySelectorAll('.toggle-grade');
         const gradeLabel = document.getElementById('gradeColumnLabel');
