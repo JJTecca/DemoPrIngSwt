@@ -367,6 +367,40 @@
             box-shadow: 0 6px 15px rgba(14, 43, 88, 0.3);
             filter: brightness(1.1);
         }
+
+        /* Sidebar Capacity Badge */
+        .capacity-badge-sidebar {
+            font-size: 0.65rem;
+            background-color: #f8f9fa;
+            color: #666;
+            border: 1px solid #e9ecef;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .capacity-full-sidebar {
+            background-color: #fff5f5;
+            color: #e03131;
+            border-color: #ffc9c9;
+        }
+
+        /* Modal Info Bar Fix */
+        .modal-info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            flex-wrap: nowrap; /* Prevents jumping to new line */
+            gap: 10px;
+        }
+
+        .modal-info-item {
+            white-space: nowrap; /* Keeps text on one line */
+            flex: 1;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -493,7 +527,7 @@
                                 <button id="studentFilterBtn" class="btn btn-sm dropdown-toggle rounded-pill px-3"
                                         type="button" data-bs-toggle="dropdown">
                                     <i class="fa-solid fa-filter me-1"></i>
-                                    Filter: <span id="currentStudentFilterLabel">All Students</span>
+                                    Filter: <span id="currentStudentFilterLabel">Show All</span>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                     <li><a class="dropdown-item student-filter-opt active" data-filter="All" href="#">Show
@@ -676,19 +710,25 @@
                                                                 <% if (hasApplied) { %>
                                                                 <optgroup label="Applications to Accept">
                                                                     <% for (InternshipPositionDto aPos : appliedPositions) { %>
+                                                                    <%if (!(aPos.getAcceptedCount() >= aPos.getMaxSpots())) { %>
                                                                     <option value="<%= aPos.getId() %>"
                                                                             data-type="accept">
                                                                         [Accept] <%= aPos.getTitle() %>
+                                                                        (<%= aPos.getAcceptedCount() %>
+                                                                        / <%= aPos.getMaxSpots() %>)
                                                                     </option>
+                                                                    <% } %>
                                                                     <% } %>
                                                                 </optgroup>
                                                                 <% } %>
                                                                 <optgroup label="Direct Faculty Assignment">
                                                                     <% for (InternshipPositionDto pos : tutoringPositions) {
-                                                                        if (appliedPositions.stream().noneMatch(p -> p.getId().equals(pos.getId()))) { %>
+                                                                        if (appliedPositions.stream().noneMatch(p -> p.getId().equals(pos.getId())) && !(pos.getAcceptedCount() >= pos.getMaxSpots())) { %>
                                                                     <option value="<%= pos.getId() %>"
                                                                             data-type="assign">
                                                                         [Assign] <%= pos.getTitle() %>
+                                                                        (<%= pos.getAcceptedCount() %>
+                                                                        / <%= pos.getMaxSpots() %>)
                                                                     </option>
                                                                     <% }
                                                                     } %>
@@ -696,7 +736,7 @@
                                                             </select>
                                                             <div class="alert alert-warning border-0 small mt-3 mb-0">
                                                                 <strong>Notice:</strong> Acceptance will automatically
-                                                                Reject all other pending applications.
+                                                                Reject all other in-progress applications for this student.
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer border-0">
@@ -727,23 +767,31 @@
 
                                             if (extApp != null) {
                                         %>
-                                        <div class="modal fade" id="externalModal<%= student.getId() %>" tabindex="-1" aria-hidden="true">
+                                        <div class="modal fade" id="externalModal<%= student.getId() %>" tabindex="-1"
+                                             aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-sm"> <%-- modal-sm for a "small popup" feel --%>
                                                 <div class="modal-content border-0 shadow-lg">
                                                     <div class="modal-header border-0 pb-0">
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"></button>
                                                     </div>
                                                     <div class="modal-body p-4 text-center">
                                                         <div class="mb-3">
                                                             <img src="<%= request.getContextPath() %>/ProfilePicture?id=<%= extApp.getCompanyId() %>&targetRole=Company"
                                                                  onerror="this.src='https://ui-avatars.com/api/?name=<%= extApp.getCompanyName() %>&background=0E2B58&color=fff';"
-                                                                 class="rounded-3 shadow-sm" style="width: 70px; height: 70px; object-fit: cover;">
+                                                                 class="rounded-3 shadow-sm"
+                                                                 style="width: 70px; height: 70px; object-fit: cover;">
                                                         </div>
-                                                        <h6 class="fw-bold mb-1"><%= extApp.getPositionTitle() %></h6>
-                                                        <p class="text-muted small mb-3">at <%= extApp.getCompanyName() %></p>
+                                                        <h6 class="fw-bold mb-1"><%= extApp.getPositionTitle() %>
+                                                        </h6>
+                                                        <p class="text-muted small mb-3">
+                                                            at <%= extApp.getCompanyName() %>
+                                                        </p>
 
-                                                        <a href="CompanyProfile?id=<%= extApp.getCompanyId() %>" class="btn btn-zinc-utility btn-sm w-100 rounded-pill">
-                                                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Visit Company
+                                                        <a href="CompanyProfile?id=<%= extApp.getCompanyId() %>"
+                                                           class="btn btn-zinc-utility btn-sm w-100 rounded-pill">
+                                                            <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>
+                                                            Visit Company
                                                         </a>
                                                     </div>
                                                 </div>
@@ -786,6 +834,7 @@
                                         <%
                                             String status = pos.getStatus();
                                             String posBadgeClass = "pos-status-pending";
+                                            boolean isFull = pos.getAcceptedCount() >= pos.getMaxSpots();
                                             if ("Open".equalsIgnoreCase(status)) posBadgeClass = "pos-status-open";
                                             else if ("Closed".equalsIgnoreCase(status))
                                                 posBadgeClass = "pos-status-closed";
@@ -799,6 +848,9 @@
                                          </span>
                                     </div>
                                 </div>
+                                <span class="capacity-badge-sidebar <%= isFull ? "capacity-full-sidebar" : "" %>">
+                                <%= pos.getAcceptedCount() %>/<%= pos.getMaxSpots() %>
+                                </span>
                                 <button class="btn-manage-eye" data-bs-toggle="modal"
                                         data-bs-target="#applyModal<%= pos.getId() %>">
                                     <i class="fa-solid fa-eye"></i>
@@ -866,11 +918,23 @@
                                                 </div>
                                             </div>
 
-                                            <div class="alert alert-light border mt-4 m-0">
-                                                <div class="d-flex justify-content-between small">
-                                                    <span><i
-                                                            class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() %></span>
-                                                    <span><i class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                            <div class="alert alert-light border mt-4 m-0 p-2">
+                                                <div class="modal-info-bar">
+                                                    <div class="modal-info-item small">
+                                                        <i class="fa-solid fa-calendar-day me-1 text-primary"></i>
+                                                        <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "N/A" %>
+                                                    </div>
+                                                    <div class="modal-info-item small border-start border-end">
+                                                        <i class="fa-solid fa-users me-1 text-primary"></i>
+                                                        <strong>Applicants:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %>
+                                                    </div>
+                                                    <div class="modal-info-item small">
+                                                        <i class="fa-solid fa-user-check me-1 text-success"></i>
+                                                        <strong>Capacity:</strong>
+                                                        <span class="<%= (pos.getAcceptedCount() >= pos.getMaxSpots()) ? "text-danger fw-bold" : "" %>">
+                                                        <%= pos.getAcceptedCount() %> / <%= pos.getMaxSpots() %>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
