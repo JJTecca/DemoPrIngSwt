@@ -45,6 +45,8 @@ public class CompanyInfo {
     private String biography;
     @Column(name = "contact_email", length = 255)
     private String contactEmail;
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
 
     public CompanyInfo() {
     }
@@ -120,4 +122,8 @@ public class CompanyInfo {
     public String getContactEmail() { return this.contactEmail; }
 
     public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
+
+    public String getPhoneNumber() { return this.phoneNumber; }
+
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 }

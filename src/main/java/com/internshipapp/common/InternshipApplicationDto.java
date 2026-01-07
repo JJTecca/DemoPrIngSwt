@@ -19,7 +19,6 @@ public class InternshipApplicationDto {
     private String status;
     private Float grade;
     private LocalDateTime appliedAt;
-    private String chatIds;
     private String positionTitle;
     private String companyName;
     private String description;
@@ -27,6 +26,8 @@ public class InternshipApplicationDto {
     private Date deadline;
     private Long companyId;
     private LocalDateTime interview;
+    private String interviewLocation;
+    private boolean chatInitiated;
     private String studentStatus;
     private Float studyGrade;
     private boolean studyGradeVisibility;
@@ -49,14 +50,14 @@ public class InternshipApplicationDto {
         this.status = status;
         this.grade = grade;
         this.appliedAt = appliedAt;
-        this.chatIds = chatIds;
     }
 
     // Update this constructor in InternshipApplicationDto.java
     public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId,
                                     String studentName, String studentStatus, String status,
-                                    Float grade, Float studyGrade, boolean studyGradeVisibility, LocalDateTime appliedAt,
-                                    String chatIds, String positionTitle, String companyName,
+                                    Float grade, Float studyGrade, boolean studyGradeVisibility,
+                                    LocalDateTime appliedAt, LocalDateTime interview, String interviewLocation,
+                                    boolean chatInitiated, String positionTitle, String companyName,
                                     Long companyId, String description, String requirements, Date deadline) {
         this.id = id;
         this.internshipPositionId = internshipPositionId;
@@ -68,7 +69,9 @@ public class InternshipApplicationDto {
         this.studyGrade = studyGrade;
         this.studyGradeVisibility = studyGradeVisibility;
         this.appliedAt = appliedAt;
-        this.chatIds = chatIds;
+        this.interview = interview;
+        this.interviewLocation = interviewLocation;
+        this.chatInitiated = chatInitiated;
         this.positionTitle = positionTitle;
         this.companyName = companyName;
         this.companyId = companyId;
@@ -77,14 +80,13 @@ public class InternshipApplicationDto {
         this.deadline = deadline;
     }
 
-    public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Float grade, LocalDateTime appliedAt, String chatIds, String posTitle, String compName) {
+    public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Float grade, LocalDateTime appliedAt, String posTitle, String compName) {
         this.id = id;
         this.internshipPositionId = aLong;
         this.studentId = id1;
         this.status = string;
         this.grade = grade;
         this.appliedAt = appliedAt;
-        this.chatIds = chatIds;
         this.positionTitle = posTitle;
         this.companyName = compName;
     }
@@ -164,14 +166,6 @@ public class InternshipApplicationDto {
         this.appliedAt = appliedAt;
     }
 
-    public String getChatIds() {
-        return chatIds;
-    }
-
-    public void setChatIds(String chatIds) {
-        this.chatIds = chatIds;
-    }
-
     public String getPositionTitle() {
         return positionTitle;
     }
@@ -242,5 +236,22 @@ public class InternshipApplicationDto {
 
     public void setStudyGradeVisibility(boolean studyGradeVisibility) {
         this.studyGradeVisibility = studyGradeVisibility;
+    }
+
+    public LocalDateTime getInterviewTime(){
+        return interview;
+    }
+
+    public void setInterviewTime(LocalDateTime interviewTime){ this.interview = interviewTime; }
+
+    public String getInterviewLocation() { return interviewLocation; }
+    public void setInterviewLocation(String interviewLocation) { this.interviewLocation = interviewLocation; }
+
+    public boolean isChatInitiated() {
+        return chatInitiated;
+    }
+
+    public void setChatInitiated(boolean chatInitiated) {
+        this.chatInitiated = chatInitiated;
     }
 }

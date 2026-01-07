@@ -19,6 +19,7 @@ public class CompanyInfoDto {
     private String studentsApplied;
     private String biography; // ADDED
     private String contactEmail;
+    private String phoneNumber;
 
     private String userEmail; // ADDED for session data retrieval
     private String username;  // ADDED for display
@@ -44,7 +45,7 @@ public class CompanyInfoDto {
     public CompanyInfoDto(Long id, String name, String shortName, String website,
                           String compDescription, String openedPositions,
                           String studentsApplied, String biography, // NEW BIOGRAPHY
-                          AttachmentDto attachment, String contactEmail, // NEW ATTACHMENT DTO
+                          AttachmentDto attachment, String contactEmail, String phoneNumber, // NEW ATTACHMENT DTO
                           String userEmail, String username, Long userId) { // NEW USER INFO
         this.id = id;
         this.name = name;
@@ -56,6 +57,7 @@ public class CompanyInfoDto {
         this.biography = biography;
         this.attachment = attachment;
         this.contactEmail = contactEmail;
+        this.phoneNumber = phoneNumber;
         this.userEmail = userEmail;
         this.username = username;
         this.userId = userId;
@@ -124,4 +126,11 @@ public class CompanyInfoDto {
 
     public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 }

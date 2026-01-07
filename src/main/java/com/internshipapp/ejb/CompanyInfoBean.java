@@ -86,6 +86,7 @@ public class CompanyInfoBean {
                 entity.getBiography(),
                 getAttachmentDto(entity.getAttachment()),
                 entity.getContactEmail(),
+                entity.getPhoneNumber(),
                 userEmail,
                 username,
                 userId

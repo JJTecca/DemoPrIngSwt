@@ -47,21 +47,23 @@ public class InternshipApplication {
     @Column(name = "applied_at", nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();
 
-    @Column(name = "chat_ids", columnDefinition = "JSON", nullable = false)
-    private String chatIds; // Or use @Convert with List<String>
-
     @Column(name = "interview")
     private LocalDateTime interview;
 
+    @Column(name = "interview_location", length = 255)
+    private String interviewLocation;
+
+    @Column(name = "chat_initiated")
+    private boolean chatInitiated;
+
     public InternshipApplication() {}
-    public InternshipApplication(Long id, InternshipPosition internshipPosition, StudentInfo student, ApplicationStatus status, Float grade, LocalDateTime appliedAt, String chatIds) {
+    public InternshipApplication(Long id, InternshipPosition internshipPosition, StudentInfo student, ApplicationStatus status, Float grade, LocalDateTime appliedAt) {
         this.id = id;
         this.internshipPosition = internshipPosition;
         this.student = student;
         this.status = status;
         this.grade = grade;
         this.appliedAt = appliedAt;
-        this.chatIds = chatIds;
     }
 
     // Getters and setters
@@ -101,15 +103,15 @@ public class InternshipApplication {
         this.appliedAt = appliedAt;
     }
 
-    public String getChatIds() {
-        return chatIds;
-    }
-
-    public void setChatIds(String chatIds) {
-        this.chatIds = chatIds;
-    }
-
     public LocalDateTime getInterview() { return interview; }
 
     public void setInterview(LocalDateTime interview) { this.interview = interview; }
+
+    public String getInterviewLocation() { return interviewLocation; }
+
+    public void setInterviewLocation(String interviewLocation) { this.interviewLocation = interviewLocation; }
+
+    public boolean isChatInitiated() { return chatInitiated; }
+
+    public void setChatInitiated(boolean chatInitiated) { this.chatInitiated = chatInitiated; }
 }

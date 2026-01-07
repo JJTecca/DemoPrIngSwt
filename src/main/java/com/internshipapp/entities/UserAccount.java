@@ -30,17 +30,16 @@ public class UserAccount {
     private String email;
 
     // Relationship with StudentInfo
-    @OneToOne(optional = false)
+    @OneToOne
     @JoinColumn(name = "id_student")
     private StudentInfo studentInfo;
     // Relationship with CompanyInfo
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "id_company")
     private CompanyInfo companyInfo;
 
     //Constructors
-    public UserAccount() {
-    }
+    public UserAccount() {}
 
     public UserAccount(String username, Long userId, String email, String password, CompanyInfo companyInfo, StudentInfo studentInfo) {
         this.username = username;
