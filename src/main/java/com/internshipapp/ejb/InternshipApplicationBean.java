@@ -4,6 +4,7 @@ import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.entities.InternshipApplication;
 import com.internshipapp.entities.InternshipPosition;
 import com.internshipapp.entities.StudentInfo;
+import com.internshipapp.entities.UserAccount;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -88,13 +89,15 @@ public class InternshipApplicationBean {
                     app.getStudent().getLastYearGrade(),
                     app.getStudent().getGradeVisibility(),
                     app.getAppliedAt(),
-                    app.getChatIds(),
+                    app.getInterview(),
+                    app.getInterviewLocation(),
+                    app.isChatInitiated(),
                     posTitle,
                     compName,
                     compId,
-                    description,   // Passed here
-                    requirements,  // Passed here
-                    deadline       // Passed here
+                    description,
+                    requirements,
+                    deadline
             );
             dtos.add(dto);
         }
@@ -213,7 +216,6 @@ public class InternshipApplicationBean {
         app.setStudent(student);
         app.setInternshipPosition(position);
         app.setStatus(InternshipApplication.ApplicationStatus.Pending);
-        app.setChatIds("[]");
         app.setAppliedAt(LocalDateTime.now());
 
         if (position.getApplicationsCount() == null) position.setApplicationsCount(0);
@@ -355,6 +357,75 @@ public class InternshipApplicationBean {
 
         // DELEGATE: Use the centralized logic to handle rejections, counts, and status sync
         updateApplicationStatus(targetApp.getId(), "Accepted");
+    }
+
+    public List<InternshipApplicationDto> getApplicationsForUser(Long userId, String role) {
+        // 1. Resolve the specific Info ID from the UserAccount
+        UserAccount user = entityManager.find(UserAccount.class, userId);
+        if (user == null) return new ArrayList<>();
+
+        // 2. Route based on role
+        if ("Student".equals(role) && user.getStudentInfo() != null) {
+            return findApplicationsByStudentId(user.getStudentInfo().getId());
+        }
+
+        // Faculty and Company both use the CompanyInfo relationship
+        if (("Company".equals(role) || "Faculty".equals(role)) && user.getCompanyInfo() != null) {
+            return findApplicationsByCompanyId(user.getCompanyInfo().getId());
+        }
+
+        return new ArrayList<>();
+    }
+
+    public InternshipApplicationDto getApplicationDtoById(Long appId) {
+        try {
+            // Fetch with all necessary joins to prevent LazyInitializationException in the DTO copier
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "JOIN FETCH a.student s " +
+                            "JOIN FETCH a.internshipPosition p " +
+                            "JOIN FETCH p.company c " +
+                            "WHERE a.id = :appId", InternshipApplication.class);
+
+            query.setParameter("appId", appId);
+            InternshipApplication entity = query.getSingleResult();
+
+            // Wrap in a list because copyApplicationsToDto expects a list
+            List<InternshipApplication> list = new ArrayList<>();
+            list.add(entity);
+
+            List<InternshipApplicationDto> dtos = copyApplicationsToDto(list);
+            return dtos.isEmpty() ? null : dtos.get(0);
+
+        } catch (NoResultException e) {
+            LOG.warning("No application found with ID: " + appId);
+            return null;
+        } catch (Exception e) {
+            LOG.severe("Error fetching application DTO: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public UserAccount getUserAccountById(Long userId) {
+        try {
+            // We use LEFT JOIN FETCH because a user will have either studentInfo or companyInfo, but not both.
+            // This ensures the associated objects are loaded in a single database hit.
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u " +
+                            "LEFT JOIN FETCH u.studentInfo " +
+                            "LEFT JOIN FETCH u.companyInfo " +
+                            "WHERE u.id = :userId", UserAccount.class);
+
+            query.setParameter("userId", userId);
+            return query.getSingleResult();
+
+        } catch (NoResultException e) {
+            LOG.warning("UserAccount not found for ID: " + userId);
+            return null;
+        } catch (Exception e) {
+            LOG.severe("Error retrieving UserAccount: " + e.getMessage());
+            return null;
+        }
     }
 
     public List<InternshipApplicationDto> findAllApplications() {
