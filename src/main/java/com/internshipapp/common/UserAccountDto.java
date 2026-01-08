@@ -17,6 +17,7 @@ public class UserAccountDto {
     private String studentName;
     private Long companyId;
     private String companyName;
+    private String studentStatus;
 
     /************************************************
      *        Constructors
@@ -28,13 +29,11 @@ public class UserAccountDto {
      *  - Lazy relationships should not be initialized in constructors
      *   - Consider using factory methods for complex object creation
      **************************************************************/
-
     public UserAccountDto() {
     }
 
     public UserAccountDto(Long userId, String username, String password, String email,
-                          Long studentId, String studentName,
-                          Long companyId, String companyName) {
+                          Long studentId, String studentName, Long companyId, String companyName) {
         this.userId = userId;
         this.username = username;
         this.password = password;
@@ -64,11 +63,11 @@ public class UserAccountDto {
 
     public String getPassword() {
         return password;
-    }  // ADDED
+    }
 
     public void setPassword(String password) {
         this.password = password;
-    }  // ADDED
+    }
 
     public String getEmail() {
         return email;
@@ -110,7 +109,14 @@ public class UserAccountDto {
         this.companyName = companyName;
     }
 
-    // Helper methods
+    public String getStudentStatus() {
+        return studentStatus;
+    }
+
+    public void setStudentStatus(String studentStatus) {
+        this.studentStatus = studentStatus;
+    }
+
     @Override
     public String toString() {
         return "UserAccountDto{" +

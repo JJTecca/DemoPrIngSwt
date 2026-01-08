@@ -803,6 +803,11 @@
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-solid fa-plus-circle me-2"></i> Post New Internship
                                 </a>
+                                <!-- Request Interview Button -->
+                                <a href="${pageContext.request.contextPath}/RequestInterview"
+                                   class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
+                                    <i class="fa-solid fa-calendar-check me-2"></i> Request Interview
+                                </a>
                                 <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= request.getAttribute("facultyId") %>"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-regular fa-envelope me-2"></i> Contact Faculty

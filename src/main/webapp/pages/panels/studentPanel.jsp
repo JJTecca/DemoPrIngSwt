@@ -320,24 +320,143 @@
             box-shadow: 0 4px 8px rgba(14, 43, 88, 0.2);
         }
 
-        /* Modal Company Header Styling */
-        .modal-company-banner {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #eee;
-            padding: 2rem 1rem;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
+        /* Interview Response Buttons Styling */
+        .interview-response-buttons {
+            max-width: 200px;
         }
 
-        .company-logo-modal {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            background: white;
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 1rem;
+        .interview-response-buttons .btn-group {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .interview-response-buttons .btn-outline-success {
+            border-color: #28a745;
+            color: #28a745;
+            transition: all 0.3s ease;
+        }
+
+        .interview-response-buttons .btn-outline-success:hover {
+            background-color: #28a745;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .interview-response-buttons .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+            transition: all 0.3s ease;
+        }
+
+        .interview-response-buttons .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Enhanced status badges to match image */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.4em 0.8em;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .status-accepted {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #842029;
+            border: 1px solid #f5c2c7;
+        }
+
+        .status-interview {
+            background-color: #cff4fc;
+            color: #055160;
+            border: 1px solid #b6effb;
+        }
+
+        .status-discussion {
+            background-color: #e7d7ff;
+            color: #4a148c;
+            border: 1px solid #d1c4e9;
+        }
+
+        /* Table styling to match image */
+        .table td {
+            vertical-align: middle;
+            padding: 1rem 0.75rem;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+            padding: 1rem 0.75rem;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(14, 43, 88, 0.02);
+        }
+
+        /* Position title styling */
+        .position-title-link {
+            font-weight: 600;
+            color: var(--brand-blue-dark);
+            text-decoration: none;
+            transition: color 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .position-title-link:hover {
+            color: var(--ulbs-red);
+            text-decoration: underline;
+        }
+
+        .company-link {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s ease;
+        }
+
+        .company-link:hover {
+            color: var(--ulbs-red);
+        }
+
+        /* Card header enhancement */
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .card-header .badge {
+            font-size: 0.75rem;
+            padding: 0.35em 0.75em;
+        }
+
+        /* For better button styling */
+        .btn-group .btn {
+            padding: 0.5rem 1rem;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -488,12 +607,11 @@
                         </div>
                     </div>
 
+                    <!-- Updated Applications Table Section -->
                     <div class="card custom-card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fa-solid fa-file-signature me-2"></i> My Internship Applications</span>
-                            <% if (myApplications != null) { %>
-                            <span class="badge bg-light text-primary border"><%= totalApplicationsCount %> total</span>
-                            <% } %>
+                            <span class="badge bg-light text-dark border"><%= totalApplicationsCount %> Total</span>
                         </div>
                         <div class="card-body p-0">
                             <div class="applications-scroll-container">
@@ -512,11 +630,23 @@
                                         <tbody>
                                         <% for (InternshipApplicationDto app : myApplications) {
                                             String badgeClass = "bg-secondary";
-                                            if ("Pending".equals(app.getStatus())) badgeClass = "status-pending";
-                                            else if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
-                                            else if ("Rejected".equals(app.getStatus())) badgeClass = "status-rejected";
-                                            else if ("Interview".equals(app.getStatus()))
+                                            String badgeIcon = "";
+                                            if ("Pending".equals(app.getStatus())) {
+                                                badgeClass = "status-pending";
+                                                badgeIcon = "fa-clock";
+                                            } else if ("Accepted".equals(app.getStatus())) {
+                                                badgeClass = "status-accepted";
+                                                badgeIcon = "fa-check-double";
+                                            } else if ("Rejected".equals(app.getStatus())) {
+                                                badgeClass = "status-rejected";
+                                                badgeIcon = "fa-xmark";
+                                            } else if ("Interview".equals(app.getStatus())) {
                                                 badgeClass = "status-interview";
+                                                badgeIcon = "fa-calendar-check";
+                                            } else if ("Discussion".equals(app.getStatus())) {
+                                                badgeClass = "status-discussion";
+                                                badgeIcon = "fa-comments";
+                                            }
 
                                             String appliedDate = app.getAppliedAt() != null ? app.getAppliedAt().toString().substring(0, 10) : "N/A";
                                             String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
@@ -525,7 +655,7 @@
                                             String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getCompanyId() + "&targetRole=Company";
                                             String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
                                         %>
-                                        <tr>
+                                        <tr class="application-row" data-id="<%= app.getId() %>" data-status="<%= app.getStatus() %>">
                                             <td class="ps-4">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <img src="<%= companyLogoUrl %>"
@@ -547,10 +677,31 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="small text-muted"><%= appliedDate %>
-                                            </td>
+                                            <td class="small text-muted"><%= appliedDate %></td>
                                             <td>
-                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+                            <span class="status-badge <%= badgeClass %>">
+                                <i class="fa-solid <%= badgeIcon %> me-1"></i> <%= app.getStatus() %>
+                            </span>
+
+                                                <%-- Interview Response Buttons --%>
+                                                <% if ("Interview".equals(app.getStatus())) { %>
+                                                <div class="d-inline-flex gap-1 ms-2">
+                                                    <button type="button"
+                                                            class="btn btn-outline-success btn-sm px-2 py-1"
+                                                            onclick="respondToInterview(<%= app.getId() %>, 'accept')"
+                                                            title="Accept Interview"
+                                                            style="font-size: 0.75rem; font-weight: 600;">
+                                                        <i class="fa-solid fa-check"></i> Accept
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-danger btn-sm px-2 py-1"
+                                                            onclick="respondToInterview(<%= app.getId() %>, 'reject')"
+                                                            title="Reject Interview"
+                                                            style="font-size: 0.75rem; font-weight: 600;">
+                                                        <i class="fa-solid fa-xmark"></i> Reject
+                                                    </button>
+                                                </div>
+                                                <% } %>
                                             </td>
                                             <td>
                                                 <% if (app.getGrade() != null) { %>
@@ -566,61 +717,6 @@
                                                         title="View Details">
                                                     <i class="fa-solid fa-eye"></i>
                                                 </button>
-
-                                                <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content border-0 shadow-lg">
-                                                            <div class="modal-company-banner">
-                                                                <button type="button" class="btn-close position-absolute" style="top: 15px; right: 15px;" data-bs-dismiss="modal"></button>
-                                                                <img src="<%= companyLogoUrl %>"
-                                                                     onerror="this.onerror=null;this.src='<%= companyFallback %>';"
-                                                                     class="company-logo-modal border">
-                                                                <h4 class="fw-bold text-dark mb-0"><%= app.getPositionTitle() %></h4>
-                                                                <p class="text-muted mb-2"><%= app.getCompanyName() %></p>
-                                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
-                                                            </div>
-
-                                                            <div class="modal-body p-4">
-                                                                <div class="row g-3">
-                                                                    <div class="col-6">
-                                                                        <small class="text-uppercase text-muted fw-bold d-block">Applied Date</small>
-                                                                        <span class="text-dark small"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> <%= appliedDate %></span>
-                                                                    </div>
-                                                                    <div class="col-6 text-end">
-                                                                        <small class="text-uppercase text-muted fw-bold d-block">Deadline</small>
-                                                                        <span class="text-danger small fw-bold"><i class="fa-regular fa-clock me-1"></i> <%= deadlineDate %></span>
-                                                                    </div>
-                                                                </div>
-
-                                                                <hr class="my-4 opacity-25">
-
-                                                                <div class="mb-4">
-                                                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-align-left me-2 text-primary"></i>Description</h6>
-                                                                    <div class="text-secondary small lh-base" style="text-align: justify;">
-                                                                        <%= app.getDescription() %>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="mb-4">
-                                                                    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-list-check me-2 text-primary"></i>Requirements</h6>
-                                                                    <div class="text-secondary small lh-base">
-                                                                        <%= app.getRequirements() %>
-                                                                    </div>
-                                                                </div>
-
-                                                                <% { %>
-                                                                <% } %>
-                                                            </div>
-
-                                                            <div class="modal-footer bg-light border-0">
-                                                                <button type="button" class="btn btn-secondary btn-sm px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
-                                                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getCompanyId() %>" class="btn btn-brand btn-sm px-4 rounded-pill">
-                                                                    View Company
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </td>
                                         </tr>
                                         <% } %>
@@ -838,6 +934,125 @@
         while(backdrops.length > 0){
             backdrops[0].parentNode.removeChild(backdrops[0]);
         }
+
+        function respondToInterview(applicationId, response) {
+            const row = document.querySelector(`.application-row[data-id="${applicationId}"]`);
+            const statusCell = row.querySelector('td:nth-child(3)');
+            const currentStatus = row.getAttribute('data-status');
+
+            // Verify it's still in interview status
+            if (currentStatus !== 'Interview') {
+                alert('This application is no longer in interview status.');
+                return;
+            }
+
+            const action = response === 'accept' ? 'accept' : 'reject';
+            const confirmMessage = response === 'accept'
+                ? 'Are you sure you want to accept this internship offer? This action is final.'
+                : 'Are you sure you want to reject this interview request?';
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Show loading state
+            const responseButtons = statusCell.querySelector('.interview-response-buttons');
+            const originalHTML = responseButtons.innerHTML;
+            responseButtons.innerHTML = `
+        <div class="text-center">
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <span class="small ms-2">Processing...</span>
+        </div>
+    `;
+
+            // Send AJAX request
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '${pageContext.request.contextPath}/StudentInterviewResponse', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        if (result.success) {
+                            // Update UI
+                            const newStatus = response === 'accept' ? 'Accepted' : 'Rejected';
+                            const badgeClass = response === 'accept' ? 'status-accepted' : 'status-rejected';
+                            const badgeIcon = response === 'accept' ? 'fa-check-double' : 'fa-xmark';
+
+                            // Update status badge
+                            const statusBadge = statusCell.querySelector('.status-badge');
+                            statusBadge.className = `status-badge ${badgeClass}`;
+                            statusBadge.innerHTML = `<i class="fa-solid ${badgeIcon} me-1"></i> ${newStatus}`;
+
+                            // Remove response buttons
+                            responseButtons.remove();
+
+                            // Update row data attribute
+                            row.setAttribute('data-status', newStatus);
+
+                            // Show success message
+                            showToast('Success', result.message, 'success');
+
+                            // If accepted, reload page to reflect all status changes
+                            if (response === 'accept') {
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1500);
+                            }
+                        } else {
+                            responseButtons.innerHTML = originalHTML;
+                            showToast('Error', result.message, 'error');
+                        }
+                    } catch (e) {
+                        responseButtons.innerHTML = originalHTML;
+                        showToast('Error', 'Invalid server response', 'error');
+                    }
+                } else {
+                    responseButtons.innerHTML = originalHTML;
+                    showToast('Error', 'Server error: ' + xhr.status, 'error');
+                }
+            };
+
+            xhr.onerror = function() {
+                responseButtons.innerHTML = originalHTML;
+                showToast('Error', 'Network error', 'error');
+            };
+
+            xhr.send(`applicationId=${applicationId}&response=${response}`);
+        }
+
+// Helper function to show toast notifications
+        function showToast(title, message, type) {
+            // Remove any existing toasts
+            const existingToasts = document.querySelectorAll('.custom-toast');
+            existingToasts.forEach(toast => toast.remove());
+
+            // Create toast
+            const toastHtml = `
+        <div class="custom-toast position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <div class="toast show" role="alert">
+                <div class="toast-header ${type == 'success' ? 'bg-success text-white' : 'bg-danger text-white'}">
+                    <strong class="me-auto">${title}</strong>
+                    <button type="button" class="btn-close btn-close-white" onclick="this.closest('.custom-toast').remove()"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        </div>
+    `;
+
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                const toast = document.querySelector('.custom-toast');
+                if (toast) toast.remove();
+            }, 5000);
+        }
+
+
     }
 </script>
 

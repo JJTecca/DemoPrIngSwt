@@ -3,10 +3,7 @@ package com.internshipapp.ejb;
 import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.UserAccountDto;
-import com.internshipapp.entities.UserAccount;
-import com.internshipapp.entities.CompanyInfo;
-import com.internshipapp.entities.Permission;
-import com.internshipapp.entities.Request;
+import com.internshipapp.entities.*;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -58,6 +55,12 @@ public class UserAccountBean {
                     user.getCompanyInfo() != null ? user.getCompanyInfo().getId() : null,
                     user.getCompanyInfo() != null ? user.getCompanyInfo().getName() : null
             );
+
+            // Set the student status from the enum
+            if (user.getStudentInfo() != null && user.getStudentInfo().getStatus() != null) {
+                userDto.setStudentStatus(user.getStudentInfo().getStatus().name());
+            }
+
             dtos.add(userDto);
         }
         return dtos;
@@ -357,6 +360,36 @@ public class UserAccountBean {
             return query.getSingleResult().name();
         } catch (NoResultException e) {
             return "Unknown";
+        }
+    }
+
+    public List<UserAccountDto> getAllStudentUsers() {
+        LOG.info("getAllStudentUsers");
+        try {
+            // Query to get students with their status
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT DISTINCT u FROM UserAccount u " +
+                            "LEFT JOIN FETCH u.studentInfo s " +
+                            "WHERE EXISTS (SELECT p FROM Permission p WHERE p.user = u AND p.role = com.internshipapp.entities.Permission.Role.Student) " +
+                            "AND s IS NOT NULL " +
+                            "ORDER BY s.firstName, s.lastName",
+                    UserAccount.class
+            );
+
+            List<UserAccount> users = query.getResultList();
+
+            if (users.isEmpty()) {
+                LOG.warning("No student users found in the system");
+                return new ArrayList<>();
+            }
+
+            LOG.info("Found " + users.size() + " student users");
+            return copyUsersToDto(users);
+
+        } catch (Exception e) {
+            LOG.severe("Error fetching student users: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }
