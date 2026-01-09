@@ -1,10 +1,7 @@
 package com.internshipapp.ejb;
 
 import com.internshipapp.common.InternshipApplicationDto;
-import com.internshipapp.entities.InternshipApplication;
-import com.internshipapp.entities.InternshipPosition;
-import com.internshipapp.entities.StudentInfo;
-import com.internshipapp.entities.UserAccount;
+import com.internshipapp.entities.*;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
@@ -236,13 +233,46 @@ public class InternshipApplicationBean {
             InternshipApplication.ApplicationStatus targetStatus =
                     InternshipApplication.ApplicationStatus.valueOf(statusName);
 
-            // 1. ILLEGAL SCENARIO: Status Regression
+            // 1. ILLEGAL SCENARIO: If trying to move to 'Discussion' (Student clicked "Accept")
+            if (targetStatus == InternshipApplication.ApplicationStatus.Discussion) {
+                if (app.getStatus() != InternshipApplication.ApplicationStatus.Request) {
+                    LOG.warning("BLOCKED: Attempt to move App " + appId + " to Discussion from " + app.getStatus());
+                    throw new IllegalStateException("You can only accept an interview if it was explicitly requested.");
+                }
+            }
+
+            // 2. ILLEGAL SCENARIO: If the current status is NOT 'Request', block the student from Rejecting/Declining via this specific dashboard flow
+            // (This prevents students from "cancelling" an application that has already moved to Interview/Accepted/Discussion)
+            if (targetStatus == InternshipApplication.ApplicationStatus.Rejected &&
+                    app.getStatus() != InternshipApplication.ApplicationStatus.Request) {
+
+                // Logic: Once a request is accepted (Discussion/Interview), it follows the standard company rejection path.
+                // We only want the student-led rejection to work during the 'Request' phase.
+                if (app.getStatus() != InternshipApplication.ApplicationStatus.Pending) {
+                    LOG.warning("BLOCKED: Student attempted to reject a non-request application in state: " + app.getStatus());
+                    throw new IllegalStateException("This application is already in progress and cannot be declined now.");
+                }
+            }
+
+            // 3. ILLEGAL SCENARIO: If the application is currently a 'Request'
+            if (app.getStatus() == InternshipApplication.ApplicationStatus.Request) {
+
+                // Block Company from moving it back to Pending or straight to Interview
+                if (targetStatus == InternshipApplication.ApplicationStatus.Pending ||
+                        targetStatus == InternshipApplication.ApplicationStatus.Interview) {
+
+                    LOG.warning("SECURITY ALERT: Attempt to bypass workflow. Cannot move 'Request' to '" + statusName + "'");
+                    throw new IllegalStateException("This application is waiting for a student response. You cannot change the state manually.");
+                }
+            }
+
+            // 4. ILLEGAL SCENARIO: Status Regression
             if (app.getStatus() == InternshipApplication.ApplicationStatus.Accepted ||
                     student.getStatus() == StudentInfo.StudentStatus.Completed) {
                 throw new IllegalStateException("Finalized applications cannot be modified.");
             }
 
-            // 2. ILLEGAL SCENARIO: Prevent restoring a rejected app if the student is globally Accepted
+            // 5. ILLEGAL SCENARIO: Prevent restoring a rejected app if the student is globally Accepted
             if (app.getStatus() == InternshipApplication.ApplicationStatus.Rejected &&
                     targetStatus == InternshipApplication.ApplicationStatus.Pending) {
 
@@ -251,7 +281,7 @@ public class InternshipApplicationBean {
                 }
             }
 
-            // 3. LOGIC: Moving to "Accepted"
+            // 6. LOGIC: Moving to "Accepted"
             if (targetStatus == InternshipApplication.ApplicationStatus.Accepted &&
                     app.getStatus() != InternshipApplication.ApplicationStatus.Accepted) {
 
@@ -406,6 +436,71 @@ public class InternshipApplicationBean {
         }
     }
 
+    public void initiateInterviewRequest(Long studentId, Long positionId, String initialMessage, Long senderUserId) throws Exception {
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
+        UserAccount sender = entityManager.find(UserAccount.class, senderUserId);
+
+        // 1. Fetch current application if it exists
+        TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                "SELECT a FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid",
+                InternshipApplication.class);
+        query.setParameter("sid", studentId).setParameter("pid", positionId);
+
+        List<InternshipApplication> results = query.getResultList();
+
+        if (!results.isEmpty()) {
+            InternshipApplication existing = results.get(0);
+            // HARDLOCK: If it's already Pending, do NOT allow moving to Request
+            if (existing.getStatus() == InternshipApplication.ApplicationStatus.Pending) {
+                throw new IllegalStateException("Student already applied. Please use the Chat function.");
+            }
+        }
+
+        if (student == null || position == null || sender == null) {
+            throw new IllegalArgumentException("Invalid data provided for request.");
+        }
+
+        // Check if student is already hired elsewhere
+        if (student.getStatus() == StudentInfo.StudentStatus.Accepted) {
+            throw new IllegalStateException("Student is already accepted for another internship.");
+        }
+
+        // Check if an application already exists
+        InternshipApplication app = findApplication(studentId, positionId);
+
+        if (app == null) {
+            // Create NEW application with 'Request' status
+            app = new InternshipApplication();
+            app.setStudent(student);
+            app.setInternshipPosition(position);
+            app.setStatus(InternshipApplication.ApplicationStatus.Request); // Critical Change
+            app.setAppliedAt(LocalDateTime.now());
+            app.setChatInitiated(true); // Since company is messaging first
+
+            // Update position application count
+            position.setApplicationsCount((position.getApplicationsCount() != null ? position.getApplicationsCount() : 0) + 1);
+
+            entityManager.persist(app);
+            entityManager.merge(position);
+        } else {
+            // If it exists (e.g. Student applied earlier), we move it to Discussion/Interview
+            // depending on your preference. For now, let's just update the existing one to Request
+            app.setStatus(InternshipApplication.ApplicationStatus.Request);
+            entityManager.merge(app);
+        }
+
+        // Persist the initial message in the Chat system
+        Message msg = new Message();
+        msg.setApplication(app);
+        msg.setSender(sender);
+        msg.setMessageText(initialMessage);
+        msg.setSenderRole(Message.SenderRole.Company); // Assuming sender is company/faculty
+        msg.setTimeSent(LocalDateTime.now());
+
+        entityManager.persist(msg);
+    }
+
     public UserAccount getUserAccountById(Long userId) {
         try {
             // We use LEFT JOIN FETCH because a user will have either studentInfo or companyInfo, but not both.
@@ -425,6 +520,56 @@ public class InternshipApplicationBean {
         } catch (Exception e) {
             LOG.severe("Error retrieving UserAccount: " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Retrieves all applications associated with a specific company.
+     * Uses the existing copyApplicationsToDto method to ensure all 12 parameters
+     * and position details are correctly mapped.
+     */
+    public List<InternshipApplicationDto> findApplicationsByCompany(Long companyId) {
+        try {
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "JOIN FETCH a.student " +
+                            "JOIN FETCH a.internshipPosition p " +
+                            "WHERE p.company.id = :companyId",
+                    InternshipApplication.class
+            );
+            query.setParameter("companyId", companyId);
+            List<InternshipApplication> entities = query.getResultList();
+
+            // Utilize your specific conversion method that handles position titles,
+            // company names, and interview locations.
+            return copyApplicationsToDto(entities);
+        } catch (Exception e) {
+            LOG.warning("Error fetching applications for company: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Returns UserAccount IDs of students linked to this company.
+     * Fixed the Enum reference by using the standard Enum object comparison.
+     */
+    public List<Long> getStudentIdsByCompany(Long companyId) {
+        try {
+            // We select the ID of the UserAccount associated with the StudentInfo
+            // participating in an application for this company.
+            return entityManager.createQuery(
+                            "SELECT DISTINCT u.id FROM UserAccount u " +
+                                    "WHERE u.studentInfo.id IN (" +
+                                    "   SELECT a.student.id FROM InternshipApplication a " +
+                                    "   WHERE a.internshipPosition.company.id = :companyId " +
+                                    "   AND a.status <> InternshipApplication.ApplicationStatus.Rejected" +
+                                    ")",
+                            Long.class)
+                    .setParameter("companyId", companyId)
+                    .getResultList();
+        } catch (Exception e) {
+            LOG.warning("Error fetching linked student IDs: " + e.getMessage());
+            return new ArrayList<>();
         }
     }
 

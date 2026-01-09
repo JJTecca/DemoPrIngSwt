@@ -47,4 +47,5 @@ public class Message {
     public void setMessageText(String messageText) { this.messageText = messageText; }
 
     public LocalDateTime getTimeSent() { return timeSent; }
+    public void setTimeSent(LocalDateTime timeSent) { this.timeSent = timeSent; }
 }

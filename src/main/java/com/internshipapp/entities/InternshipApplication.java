@@ -34,7 +34,8 @@ public class InternshipApplication {
         Interview,
         Accepted,
         Rejected,
-        Discussion
+        Discussion,
+        Request
     }
 
     @Enumerated(EnumType.STRING)

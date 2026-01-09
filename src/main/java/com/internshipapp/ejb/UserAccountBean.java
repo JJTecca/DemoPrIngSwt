@@ -363,6 +363,32 @@ public class UserAccountBean {
         }
     }
 
+    public UserAccountDto getUserById(Long userId) {
+        LOG.info("getUserAccountDtoById: " + userId);
+        try {
+            // Fetch with FETCH JOINs to ensure related Info objects are available for the copier
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u " +
+                            "LEFT JOIN FETCH u.studentInfo " +
+                            "LEFT JOIN FETCH u.companyInfo " +
+                            "WHERE u.id = :userId", UserAccount.class);
+            query.setParameter("userId", userId);
+            UserAccount user = query.getSingleResult();
+
+            // Use your existing copy logic to ensure consistency
+            List<UserAccount> userList = new ArrayList<>();
+            userList.add(user);
+            return copyUsersToDto(userList).get(0);
+
+        } catch (NoResultException ex) {
+            LOG.warning("UserAccount not found with ID: " + userId);
+            return null;
+        } catch (Exception ex) {
+            LOG.severe("Error retrieving user account by ID: " + ex.getMessage());
+            return null;
+        }
+    }
+
     public List<UserAccountDto> getAllStudentUsers() {
         LOG.info("getAllStudentUsers");
         try {
