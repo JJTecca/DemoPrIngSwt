@@ -21,7 +21,7 @@ import java.util.*;
 /****************************************************************************
  * StudentsServlet logic:
  *  -doGet :  Set User Attributes we want to display 
- *  -doPost : TODO
+ *  -doPost : Handle Students Update Requested Applications
  ****************************************************************************/
 @WebServlet(name = "StudentDashboardServlet", value = "/StudentDashboard")
 public class StudentDashboardServlet extends HttpServlet {
@@ -218,5 +218,39 @@ public class StudentDashboardServlet extends HttpServlet {
         }
 
         return stats;
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null || !"Student".equals(session.getAttribute("userRole"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if ("updateStatus".equals(action)) {
+            try {
+                Long appId = Long.parseLong(request.getParameter("id"));
+                String newStatus = request.getParameter("status");
+
+                // Perform update via Bean
+                internshipAppBean.updateApplicationStatus(appId, newStatus);
+
+                // Log the acceptance/rejection
+                System.out.println("DEBUG: Student " + session.getAttribute("userEmail") +
+                        " updated App ID " + appId + " to " + newStatus);
+
+                response.sendRedirect("StudentDashboard?update=success");
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendRedirect("StudentDashboard?update=error");
+            }
+        } else {
+            // Fallback for other post actions if necessary
+            doGet(request, response);
+        }
     }
 }

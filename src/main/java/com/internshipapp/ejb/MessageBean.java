@@ -5,6 +5,8 @@ import com.internshipapp.entities.*;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -49,32 +51,32 @@ public class MessageBean {
     }
 
     public void sendMessage(Long appId, Long senderUserId, String text, String role) {
-        try {
-            LOG.log(Level.INFO, "Sending message for application {0} by user {1}", new Object[]{appId, senderUserId});
+        InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
+        UserAccount sender = entityManager.find(UserAccount.class, senderUserId);
 
-            InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
-            UserAccount sender = entityManager.find(UserAccount.class, senderUserId);
+        if (app == null || sender == null) return;
 
-            Message msg = new Message();
-            msg.setApplication(app);
-            msg.setSender(sender);
-            msg.setMessageText(text);
-            msg.setSenderRole(Message.SenderRole.valueOf(role));
-
-            if (Message.SenderRole.Company.name().equals(role) && !app.isChatInitiated()) {
-                LOG.info("First company message detected. Initiating chat and moving to Discussion.");
+        // 1. If Company initiates chat, update Application state
+        if ("Company".equals(role) || "Faculty".equals(role)) {
+            if (!app.isChatInitiated()) {
                 app.setChatInitiated(true);
+                // Only move to Discussion if it's currently Pending
                 if (app.getStatus() == InternshipApplication.ApplicationStatus.Pending) {
                     app.setStatus(InternshipApplication.ApplicationStatus.Discussion);
                 }
                 entityManager.merge(app);
             }
-
-            entityManager.persist(msg);
-        } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Error sending message: " + e.getMessage(), e);
-            throw e;
         }
+
+        // 2. Create and Persist Message
+        Message msg = new Message();
+        msg.setApplication(app);
+        msg.setSender(sender);
+        msg.setMessageText(text);
+        msg.setSenderRole(Message.SenderRole.valueOf(role));
+        msg.setTimeSent(LocalDateTime.now());
+
+        entityManager.persist(msg);
     }
 
     public List<MessageDto> getChatHistory(Long appId) {

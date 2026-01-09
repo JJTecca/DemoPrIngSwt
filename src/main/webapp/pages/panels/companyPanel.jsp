@@ -327,11 +327,64 @@
             font-size: 0.65rem;
         }
 
+        /* --- High Contrast Application Status Badges --- */
         .status-badge {
-            font-size: 0.75rem;
-            padding: 0.3em 0.7em;
+            font-size: 0.72rem;
+            padding: 0.4em 0.9em;
             border-radius: 50px;
-            font-weight: 600;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        /* Discussion: Deep Purple / Lavender */
+        .status-discussion {
+            background-color: #f3e5f5 !important;
+            color: #6a1b9a !important;
+            border-color: #e1bee7 !important;
+        }
+
+        /* Request: Royal Indigo (Company Led) */
+        .status-request {
+            background-color: #e8eaf6 !important;
+            color: #283593 !important;
+            border-color: #c5cae9 !important;
+        }
+
+        /* Pending: Warning Yellow */
+        .status-pending {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border-color: #ffeeba !important;
+        }
+
+        /* Interview: Info Blue (Cyan) */
+        .status-interview {
+            background-color: #e0f7fa !important;
+            color: #006064 !important;
+            border-color: #b2ebf2 !important;
+        }
+
+        /* Accepted: Success Green */
+        .status-accepted {
+            background-color: #d1e7dd !important;
+            color: #0f5132 !important;
+            border-color: #badbcc !important;
+        }
+
+        /* Rejected: Danger Red */
+        .status-rejected {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border-color: #f5c2c7 !important;
+        }
+
+        /* Dropdown specific border overrides (Cleanup) */
+        .status-pending, .status-interview, .status-accepted, .status-rejected, .status-discussion, .status-request {
+            border-left-width: 1px !important; /* Reverts the 4px left-only border */
         }
 
         /* --- Position Status Badges --- */
@@ -403,33 +456,12 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Active State Badge Colors (Text remains high contrast) */
-        .status-pending {
-            border-left: 4px solid #ffc107;
-        }
-
-        .status-interview {
-            border-left: 4px solid #0dcaf0;
-        }
-
-        .status-accepted {
-            border-left: 4px solid #198754;
-        }
-
         .grade-internship {
             color: #0d6efd !important; /* Matches your brand blue or primary */
         }
 
         .grade-internship i.fa-star {
             color: #ffc107; /* Gold star */
-        }
-
-        .status-rejected {
-            border-left: 4px solid #dc3545;
-        }
-
-        .status-discussion {
-            border-left: 4px solid #6610f2;
         }
 
         .status-dropdown-btn:hover {
@@ -631,6 +663,8 @@
                                                href="#">Accepted</a></li>
                                         <li><a class="dropdown-item filter-opt" data-filter="Rejected" href="#">Rejected
                                             Only</a></li>
+                                        <li><a class="dropdown-item filter-opt" data-filter="Request" href="#">Interview
+                                            Requests</a></li>
                                     </ul>
                                 </div>
                                 <span class="badge bg-light text-primary border"><%= totalAppsCount %> Total</span>
@@ -680,6 +714,7 @@
                                                     badgeClass = "status-rejected";
                                                 else if ("Discussion".equals(currentStatus))
                                                     badgeClass = "status-discussion";
+                                                else if ("Request".equals(currentStatus)) badgeClass = "status-request";
                                         %>
                                         <tr class="app-row" data-status="<%= currentStatus %>">
                                             <td class="ps-4">
@@ -739,20 +774,20 @@
 
                                                         <% if ("Pending".equals(currentStatus) || "Discussion".equals(currentStatus)) { %>
                                                         <li><a class="dropdown-item small"
-                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
+                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
                                                         </li>
                                                         <% } else if ("Interview".equals(currentStatus)) { %>
                                                         <li><a class="dropdown-item small text-success fw-bold"
-                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Accepted">Accept
+                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Accepted">Accept
                                                             Student</a></li>
                                                         <li><a class="dropdown-item small"
-                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
+                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
                                                         </li>
                                                         <% } else if ("Rejected".equals(currentStatus)) { %>
                                                         <%-- NEW: Check if the student is already accepted globally before allowing restore --%>
                                                         <% if (!"Accepted".equalsIgnoreCase(app.getStudentStatus())) { %>
                                                         <li><a class="dropdown-item small"
-                                                               href="InternshipApplication?id=<%= app.getId() %>&action=updateStatus&status=Pending">Restore
+                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Pending">Restore
                                                             to Pending</a></li>
                                                         <% } else { %>
                                                         <li><h6 class="dropdown-header x-small text-danger">Cannot
@@ -764,12 +799,94 @@
                                                 <% } %>
                                             </td>
                                             <td class="text-end pe-4">
-                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isRejected ? "disabled" : "" %>"
-                                                        <%= isRejected ? "disabled" : "" %>
-                                                        onclick="window.location.href='Chat?appId=<%= app.getId() %>'">
+                                                <%
+                                                    boolean isRequestedState = "Request".equals(currentStatus);
+                                                    if (!app.isChatInitiated() && !isRejected && !isRequestedState) {
+                                                %>
+                                                <%-- TRIGGER MODAL FOR INITIAL CHAT (Standard flow) --%>
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#initiateChatModal<%= app.getId() %>">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
                                                 </button>
+                                                <% } else if (isRequestedState) { %>
+                                                <%-- DISABLED CHAT FOR REQUESTED STATE --%>
+                                                <button class="btn btn-sm btn-chat disabled rounded-pill px-3"
+                                                        style="opacity: 0.6; cursor: not-allowed;"
+                                                        title="Waiting for student to accept the interview request">
+                                                    <i class="fa-solid fa-hourglass-start me-1"></i> Requested
+                                                </button>
+                                                <% } else { %>
+                                                <%-- DIRECT LINK FOR EXISTING CHAT --%>
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isRejected ? "disabled" : "" %>"
+                                                        <%= isRejected ? "disabled" : "" %>
+                                                        onclick="window.location.href='InternshipApplications?id=<%= app.getId() %>'">
+                                                    <i class="fa-regular fa-comments me-1"></i> Chat
+                                                </button>
+                                                <% } %>
                                             </td>
+                                            <div class="modal fade" id="initiateChatModal<%= app.getId() %>"
+                                                 tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-0 shadow-lg">
+                                                        <div class="modal-header bg-light border-0">
+                                                            <h5 class="modal-title fw-bold">Start Conversation</h5>
+                                                            <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <form action="SendMessage" method="POST">
+                                                            <input type="hidden" name="appId"
+                                                                   value="<%= app.getId() %>">
+                                                            <%-- Optional: flag to help servlet identify this is the first message --%>
+                                                            <input type="hidden" name="isInitial" value="true">
+
+                                                            <div class="modal-body p-4">
+                                                                <div class="d-flex align-items-center mb-4">
+                                                                    <%-- Profile Picture Logic with ULBS Blue Fallback --%>
+                                                                    <%
+                                                                        String studentPfp = request.getContextPath() + "/ProfilePicture?id=" + app.getStudentId() + "&targetRole=Student";
+                                                                        String studentFallback = "https://ui-avatars.com/api/?name=" + app.getStudentName().replace(" ", "+") + "&background=0E2B58&color=fff";
+                                                                    %>
+                                                                    <img src="<%= studentPfp %>"
+                                                                         onerror="this.onerror=null;this.src='<%= studentFallback %>';"
+                                                                         class="rounded-circle me-3 shadow-sm"
+                                                                         style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #fff;">
+                                                                    <div>
+                                                                        <h6 class="fw-bold mb-0"><%= app.getStudentName() %>
+                                                                        </h6>
+                                                                        <span class="text-muted small">Candidate for <%= app.getPositionTitle() %></span>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-bold text-muted text-uppercase">Your
+                                                                        Message</label>
+                                                                    <textarea name="message"
+                                                                              class="form-control border-0 bg-light p-3"
+                                                                              rows="4"
+                                                                              placeholder="Type your first message to start the discussion..."
+                                                                              required></textarea>
+                                                                </div>
+
+                                                                <div class="alert alert-info border-0 py-2 small mb-0">
+                                                                    <i class="fa-solid fa-circle-info me-2"></i> This
+                                                                    will move the application to
+                                                                    <strong>Discussion</strong> status.
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer border-0 pt-0">
+                                                                <button type="button" class="btn btn-light btn-sm px-3"
+                                                                        data-bs-dismiss="modal">Cancel
+                                                                </button>
+                                                                <button type="submit"
+                                                                        class="btn btn-primary btn-sm px-4 fw-bold">Send
+                                                                    Message
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </tr>
                                         <% } %>
                                         <tr id="noResultsRow" style="display: none;">
@@ -778,7 +895,8 @@
                                                     <i class="fa-solid fa-filter-circle-xmark fa-3x text-muted"></i>
                                                 </div>
                                                 <h5 class="fw-bold text-muted mb-1" id="noResultsHeader">No matches</h5>
-                                                <p class="text-muted small mb-0" id="noResultsMessage">Try changing your filter settings.</p>
+                                                <p class="text-muted small mb-0" id="noResultsMessage">Try changing your
+                                                    filter settings.</p>
                                             </td>
                                         </tr>
                                         </tbody>
@@ -1001,7 +1119,7 @@
                 let headerText = "Filtered Out";
                 let messageText = "No applications match this specific status.";
 
-                switch(filterType) {
+                switch (filterType) {
                     case 'Pending':
                         headerText = "All Caught Up!";
                         messageText = "You have no new pending applications to review.";
@@ -1009,6 +1127,10 @@
                     case 'Discussion':
                         headerText = "No Active Discussions";
                         messageText = "No students are currently in the 'Discussion' phase.";
+                        break;
+                    case 'Request':
+                        headerText = "No Sent Requests";
+                        messageText = "You have no pending interview requests yet.";
                         break;
                     case 'Interview':
                         headerText = "No Interviews Found";

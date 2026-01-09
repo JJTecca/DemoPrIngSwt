@@ -198,6 +198,51 @@
             text-align: right;
         }
 
+        /* --- Refined Professional Badges --- */
+        .badge-soft-primary {
+            background-color: #e8effe;
+            color: #0d6efd;
+            border: 1px solid #d0e0fc;
+            font-weight: 700;
+            padding: 0.4em 0.8em;
+        }
+
+        .badge-soft-success {
+            background-color: #e6f6ec;
+            color: #0f5132;
+            border: 1px solid #d1ead9;
+            font-weight: 700;
+            padding: 0.4em 0.8em;
+        }
+
+        .badge-soft-danger {
+            background-color: #fdf2f2;
+            color: #9b1c1c;
+            border: 1px solid #f8d7da;
+            font-weight: 700;
+            padding: 0.4em 0.8em;
+        }
+
+        /* --- Info List Layout Polish --- */
+        .info-list-item {
+            padding: 14px 0; /* Slightly more breathing room */
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            color: #718096; /* Professional slate gray */
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--brand-blue-dark);
+            font-weight: 600;
+        }
+
         /* --- Action Buttons --- */
         .btn-action {
             text-align: left;
@@ -226,12 +271,16 @@
             color: white;
         }
 
-        /* --- Table Badges --- */
         .status-badge {
-            font-size: 0.8rem;
-            padding: 0.4em 0.8em;
+            font-size: 0.72rem;
+            padding: 0.4em 0.9em;
             border-radius: 50px;
-            font-weight: 600;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            border-width: 1px;
+            border-style: solid;
         }
 
         .status-pending {
@@ -256,6 +305,69 @@
             background-color: #cff4fc;
             color: #055160;
             border: 1px solid #b6effb;
+        }
+
+        /* NEW: Discussion - Deep Purple */
+        .status-discussion {
+            background-color: #f3e5f5;
+            color: #6a1b9a;
+            border: 1px solid #e1bee7;
+        }
+
+        /* NEW: Request - Indigo/Violet */
+        .status-request {
+            background-color: #e8eaf6;
+            color: #283593;
+            border: 1px solid #c5cae9;
+        }
+
+        .btn-accept-request {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white !important;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+
+        .btn-accept-request:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.35);
+            filter: brightness(1.1);
+        }
+
+        .btn-decline-request {
+            background: white;
+            color: #dc3545 !important;
+            border: 2px solid #f8d7da;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-decline-request:hover {
+            background-color: #fff5f5;
+            border-color: #dc3545;
+        }
+
+        .request-footer-container {
+            padding: 1.25rem;
+            width: 100%;
+            background-color: #f8f9fa; /* Light gray to distinguish the action area */
+            border-top: 1px solid #dee2e6;
+            border-radius: 0 0 8px 8px;
+        }
+
+        /* Ensure the form doesn't add extra margin */
+        .request-footer-container form {
+            margin: 0;
         }
 
         .position-title-link {
@@ -290,10 +402,12 @@
         .applications-scroll-container::-webkit-scrollbar {
             width: 6px;
         }
+
         .applications-scroll-container::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 4px;
         }
+
         .applications-scroll-container::-webkit-scrollbar-thumb {
             background: var(--brand-blue);
             border-radius: 4px;
@@ -320,143 +434,77 @@
             box-shadow: 0 4px 8px rgba(14, 43, 88, 0.2);
         }
 
-        /* Interview Response Buttons Styling */
-        .interview-response-buttons {
-            max-width: 200px;
+        /* Modal Company Header Styling */
+        .modal-company-banner {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+            padding: 2rem 1rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
         }
 
-        .interview-response-buttons .btn-group {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        .company-logo-modal {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1rem;
         }
 
-        .interview-response-buttons .btn-outline-success {
-            border-color: #28a745;
-            color: #28a745;
-            transition: all 0.3s ease;
+        /* --- Requested Application High-Priority Styling --- */
+        .bg-requested-highlight {
+            background-color: #fdf2f2 !important; /* Very light red/indigo tint */
+            border-left: 4px solid #dc3545 !important;
         }
 
-        .interview-response-buttons .btn-outline-success:hover {
-            background-color: #28a745;
-            color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-
-        .interview-response-buttons .btn-outline-danger {
-            border-color: #dc3545;
-            color: #dc3545;
-            transition: all 0.3s ease;
-        }
-
-        .interview-response-buttons .btn-outline-danger:hover {
+        .btn-request-alert {
             background-color: #dc3545;
             color: white;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        }
-
-        /* Enhanced status badges to match image */
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.4em 0.8em;
-            border-radius: 50px;
-            font-weight: 600;
+            border: none;
+            width: 34px;
+            height: 34px;
             display: inline-flex;
             align-items: center;
-            white-space: nowrap;
+            justify-content: center;
+            border-radius: 8px;
+            animation: pulse-red 2.5s infinite;
         }
 
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
+        .btn-request-alert:hover {
+            background-color: #bb2d3b;
+            color: white;
+            transform: scale(1.1);
         }
 
-        .status-accepted {
-            background-color: #d1e7dd;
-            color: #0f5132;
-            border: 1px solid #badbcc;
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
         }
 
-        .status-rejected {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
+        .modal-requested-header {
+            background: linear-gradient(135deg, #dc3545 0%, #283593 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
         }
 
-        .status-interview {
-            background-color: #cff4fc;
-            color: #055160;
-            border: 1px solid #b6effb;
+        /* FIXED: Modal Stacking Z-index */
+        #confirmDeclineModal {
+            z-index: 1090 !important;
         }
-
-        .status-discussion {
-            background-color: #e7d7ff;
-            color: #4a148c;
-            border: 1px solid #d1c4e9;
-        }
-
-        /* Table styling to match image */
-        .table td {
-            vertical-align: middle;
-            padding: 1rem 0.75rem;
-        }
-
-        .table th {
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #dee2e6;
-            padding: 1rem 0.75rem;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(14, 43, 88, 0.02);
-        }
-
-        /* Position title styling */
-        .position-title-link {
-            font-weight: 600;
-            color: var(--brand-blue-dark);
-            text-decoration: none;
-            transition: color 0.3s ease;
-            font-size: 0.95rem;
-        }
-
-        .position-title-link:hover {
-            color: var(--ulbs-red);
-            text-decoration: underline;
-        }
-
-        .company-link {
-            color: #6c757d;
-            text-decoration: none;
-            font-size: 0.85rem;
-            transition: color 0.3s ease;
-        }
-
-        .company-link:hover {
-            color: var(--ulbs-red);
-        }
-
-        /* Card header enhancement */
-        .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #e9ecef;
-            padding: 1.25rem 1.5rem;
-        }
-
-        .card-header .badge {
-            font-size: 0.75rem;
-            padding: 0.35em 0.75em;
-        }
-
-        /* For better button styling */
-        .btn-group .btn {
-            padding: 0.5rem 1rem;
-            font-weight: 600;
+        .modal-backdrop.show:nth-of-type(2) {
+            z-index: 1085 !important;
         }
     </style>
 </head>
@@ -474,6 +522,13 @@
             <div class="d-flex justify-content-between align-items-end mb-4">
                 <div>
                     <h1 class="h2 page-title">Welcome, <%= student.getFirstName() %>!</h1>
+                    <% if ("success".equals(request.getParameter("update"))) { %>
+                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                        <i class="fa-solid fa-circle-check me-2"></i><strong>Action Successful!</strong> Your response
+                        has been recorded.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
                     <p class="text-muted mb-0">
                         <i class="fa-solid fa-user-graduate me-1"></i>
                         Student <strong>
@@ -519,7 +574,6 @@
                                 <div>
                                     <h2 class="stat-value">
                                         <%= student.getGradeFormatted() %>
-                                        <%-- Small icon indicator next to the big number --%>
                                         <span class="ms-1" style="font-size: 1rem;">
                                             <% if (student.getGradeVisibility()) { %>
                                                 <i class="fa-solid fa-eye text-success opacity-25"></i>
@@ -584,22 +638,30 @@
                                     <h6 class="text-uppercase text-muted small fw-bold mb-3">Academic & Account</h6>
                                     <div class="info-list-item">
                                         <span class="info-label">Account Role</span>
-                                        <span class="badge bg-primary text-white"><%= sessionRole %></span>
+                                        <span class="badge badge-soft-primary rounded-pill">
+                                          <i class="fa-solid fa-shield-user me-1"></i><%= sessionRole %>
+                                        </span>
                                     </div>
                                     <div class="info-list-item">
                                         <span class="info-label">CV Uploaded</span>
-                                        <span class="badge <%= student.hasCv() ? "bg-success" : "bg-danger text-white" %>">
-                                            <%= student.hasCv() ? "Yes" : "Missing" %>
+                                        <% if (student.hasCv()) { %>
+                                        <span class="badge badge-soft-success rounded-pill">
+                                           <i class="fa-solid fa-circle-check me-1"></i>Uploaded
                                         </span>
+                                        <% } else { %>
+                                        <span class="badge badge-soft-danger rounded-pill">
+                                           <i class="fa-solid fa-circle-xmark me-1"></i>Missing
+                                        </span>
+                                        <% } %>
                                     </div>
                                     <div class="mt-4">
                                         <div class="d-flex justify-content-between small mb-1">
                                             <span class="text-muted">Profile Completion</span>
                                             <span class="fw-bold <%= completionTextColor %>"><%= completeness %>% (<%= completionText %>)</span>
                                         </div>
-                                        <div class="progress" style="height: 6px;">
+                                        <div class="progress" style="height: 6px; background-color: #edf2f7;">
                                             <div class="progress-bar <%= completionBarClass %>" role="progressbar"
-                                                 style="width: <%= completeness %>%;"></div>
+                                                 style="width: <%= completeness %>%; border-radius: 10px;"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -607,11 +669,12 @@
                         </div>
                     </div>
 
-                    <!-- Updated Applications Table Section -->
                     <div class="card custom-card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="fa-solid fa-file-signature me-2"></i> My Internship Applications</span>
-                            <span class="badge bg-light text-dark border"><%= totalApplicationsCount %> Total</span>
+                            <% if (myApplications != null) { %>
+                            <span class="badge bg-light text-primary border"><%= totalApplicationsCount %> total</span>
+                            <% } %>
                         </div>
                         <div class="card-body p-0">
                             <div class="applications-scroll-container">
@@ -630,32 +693,26 @@
                                         <tbody>
                                         <% for (InternshipApplicationDto app : myApplications) {
                                             String badgeClass = "bg-secondary";
-                                            String badgeIcon = "";
-                                            if ("Pending".equals(app.getStatus())) {
-                                                badgeClass = "status-pending";
-                                                badgeIcon = "fa-clock";
-                                            } else if ("Accepted".equals(app.getStatus())) {
-                                                badgeClass = "status-accepted";
-                                                badgeIcon = "fa-check-double";
-                                            } else if ("Rejected".equals(app.getStatus())) {
-                                                badgeClass = "status-rejected";
-                                                badgeIcon = "fa-xmark";
-                                            } else if ("Interview".equals(app.getStatus())) {
+                                            if ("Pending".equals(app.getStatus())) badgeClass = "status-pending";
+                                            else if ("Accepted".equals(app.getStatus())) badgeClass = "status-accepted";
+                                            else if ("Rejected".equals(app.getStatus())) badgeClass = "status-rejected";
+                                            else if ("Interview".equals(app.getStatus()))
                                                 badgeClass = "status-interview";
-                                                badgeIcon = "fa-calendar-check";
-                                            } else if ("Discussion".equals(app.getStatus())) {
+                                            else if ("Discussion".equals(app.getStatus()))
                                                 badgeClass = "status-discussion";
-                                                badgeIcon = "fa-comments";
-                                            }
+                                            else if ("Request".equals(app.getStatus())) badgeClass = "status-request";
 
                                             String appliedDate = app.getAppliedAt() != null ? app.getAppliedAt().toString().substring(0, 10) : "N/A";
                                             String deadlineDate = app.getDeadline() != null ? app.getDeadline().toString().substring(0, 10) : "Open";
+
+                                            boolean isRequested = "Request".equals(app.getStatus());
+                                            String rowClass = isRequested ? "app-row bg-requested-highlight shadow-sm" : "app-row";
 
                                             // Company Logo Logic
                                             String companyLogoUrl = request.getContextPath() + "/ProfilePicture?id=" + app.getCompanyId() + "&targetRole=Company";
                                             String companyFallback = "https://ui-avatars.com/api/?name=" + app.getCompanyName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58&size=100";
                                         %>
-                                        <tr class="application-row" data-id="<%= app.getId() %>" data-status="<%= app.getStatus() %>">
+                                        <tr class="<%= rowClass %>">
                                             <td class="ps-4">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <img src="<%= companyLogoUrl %>"
@@ -670,38 +727,18 @@
                                                         </a>
                                                         <div class="small">
                                                             <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getCompanyId() %>"
-                                                               class="company-link text-decoration-none" style="font-size: 0.85rem;">
+                                                               class="company-link text-decoration-none"
+                                                               style="font-size: 0.85rem;">
                                                                 <%= app.getCompanyName() %>
                                                             </a>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="small text-muted"><%= appliedDate %></td>
+                                            <td class="small text-muted"><%= appliedDate %>
+                                            </td>
                                             <td>
-                            <span class="status-badge <%= badgeClass %>">
-                                <i class="fa-solid <%= badgeIcon %> me-1"></i> <%= app.getStatus() %>
-                            </span>
-
-                                                <%-- Interview Response Buttons --%>
-                                                <% if ("Interview".equals(app.getStatus())) { %>
-                                                <div class="d-inline-flex gap-1 ms-2">
-                                                    <button type="button"
-                                                            class="btn btn-outline-success btn-sm px-2 py-1"
-                                                            onclick="respondToInterview(<%= app.getId() %>, 'accept')"
-                                                            title="Accept Interview"
-                                                            style="font-size: 0.75rem; font-weight: 600;">
-                                                        <i class="fa-solid fa-check"></i> Accept
-                                                    </button>
-                                                    <button type="button"
-                                                            class="btn btn-outline-danger btn-sm px-2 py-1"
-                                                            onclick="respondToInterview(<%= app.getId() %>, 'reject')"
-                                                            title="Reject Interview"
-                                                            style="font-size: 0.75rem; font-weight: 600;">
-                                                        <i class="fa-solid fa-xmark"></i> Reject
-                                                    </button>
-                                                </div>
-                                                <% } %>
+                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
                                             </td>
                                             <td>
                                                 <% if (app.getGrade() != null) { %>
@@ -711,12 +748,142 @@
                                                 <% } %>
                                             </td>
                                             <td class="text-end pe-4">
-                                                <button type="button" class="btn-manage-eye"
+                                                <% if (isRequested) { %>
+                                                <button type="button" class="btn-request-alert"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#detailsModal_<%= app.getId() %>"
-                                                        title="View Details">
+                                                        title="Action Required!">
+                                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                                </button>
+                                                <% } else { %>
+                                                <button type="button" class="btn-manage-eye"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#detailsModal_<%= app.getId() %>">
                                                     <i class="fa-solid fa-eye"></i>
                                                 </button>
+                                                <% } %>
+
+                                                <div class="modal fade text-start" id="detailsModal_<%= app.getId() %>"
+                                                     tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content border-0 shadow-lg">
+                                                            <% if (isRequested) { %>
+                                                            <div class="modal-requested-header">
+                                                                <button type="button"
+                                                                        class="btn-close btn-close-white position-absolute"
+                                                                        style="top: 15px; right: 15px;"
+                                                                        data-bs-dismiss="modal"></button>
+                                                                <i class="fa-solid fa-envelope-open-text fa-3x mb-3"></i>
+                                                                <h4 class="fw-bold mb-0">Interview Invitation</h4>
+                                                                <p class="opacity-75 mb-0">Action Required by
+                                                                    Candidate</p>
+                                                            </div>
+                                                            <% } else { %>
+                                                            <div class="modal-company-banner">
+                                                                <button type="button"
+                                                                        class="btn-close position-absolute"
+                                                                        style="top: 15px; right: 15px;"
+                                                                        data-bs-dismiss="modal"></button>
+                                                                <img src="<%= companyLogoUrl %>"
+                                                                     onerror="this.src='<%= companyFallback %>';"
+                                                                     class="company-logo-modal border">
+                                                                <h4 class="fw-bold text-dark mb-0"><%= app.getPositionTitle() %>
+                                                                </h4>
+                                                                <p class="text-muted mb-2"><%= app.getCompanyName() %>
+                                                                </p>
+                                                                <span class="status-badge <%= badgeClass %>"><%= app.getStatus() %></span>
+                                                            </div>
+                                                            <% } %>
+
+                                                            <div class="modal-body p-4">
+                                                                <% if (isRequested) { %>
+                                                                <div class="alert alert-warning border-0 small mb-4">
+                                                                    <strong>Hello <%= student.getFirstName() %>
+                                                                        !</strong> <%= app.getCompanyName() %> has
+                                                                    requested an interview with you for the
+                                                                    <strong><%= app.getPositionTitle() %>
+                                                                    </strong> position. Please review the details and
+                                                                    respond below.
+                                                                </div>
+                                                                <% } %>
+
+                                                                <div class="mb-4">
+                                                                    <h6 class="fw-bold text-dark mb-2"><i
+                                                                            class="fa-solid fa-align-left me-2 text-primary"></i>Description
+                                                                    </h6>
+                                                                    <div class="text-secondary small"><%= app.getDescription() %>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div class="mb-4">
+                                                                    <h6 class="fw-bold text-dark mb-2"><i
+                                                                            class="fa-solid fa-list-check me-2 text-primary"></i>Requirements
+                                                                    </h6>
+                                                                    <div class="text-secondary small"><%= app.getRequirements() %>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="modal-footer bg-light border-0 justify-content-between">
+                                                                <% if (isRequested) { %>
+                                                                <div class="request-footer-container">
+                                                                    <div class="row g-2">
+                                                                        <div class="col-8">
+                                                                            <form action="StudentDashboard"
+                                                                                  method="POST" class="m-0">
+                                                                                <input type="hidden" name="action"
+                                                                                       value="updateStatus">
+                                                                                <input type="hidden" name="id"
+                                                                                       value="<%= app.getId() %>">
+                                                                                <input type="hidden" name="status"
+                                                                                       value="Discussion">
+                                                                                <button type="submit"
+                                                                                        class="btn btn-accept-request w-100">
+                                                                                    <i class="fa-solid fa-comments-medical me-2"></i>ACCEPT
+                                                                                    & START CHAT
+                                                                                </button>
+                                                                            </form>
+                                                                        </div>
+
+                                                                        <div class="col-4">
+                                                                            <button type="button"
+                                                                                    onclick="confirmDecline('<%= app.getId() %>')"
+                                                                                    class="btn btn-decline-request w-100">
+                                                                                DECLINE
+                                                                            </button>
+
+                                                                            <form id="declineForm_<%= app.getId() %>"
+                                                                                  action="StudentDashboard"
+                                                                                  method="POST" style="display:none;">
+                                                                                <input type="hidden" name="action"
+                                                                                       value="updateStatus">
+                                                                                <input type="hidden" name="id"
+                                                                                       value="<%= app.getId() %>">
+                                                                                <input type="hidden" name="status"
+                                                                                       value="Rejected">
+                                                                            </form>
+                                                                        </div>
+                                                                    </div>
+                                                                    <p class="text-center text-muted x-small mt-3 mb-0">
+                                                                        <i class="fa-solid fa-circle-info me-1"></i>
+                                                                        Accepting will open a direct discussion hub with
+                                                                        the company.
+                                                                    </p>
+                                                                </div>
+                                                                <% } else { %>
+                                                                <button type="button"
+                                                                        class="btn btn-secondary btn-sm px-4 rounded-pill"
+                                                                        data-bs-dismiss="modal">Close
+                                                                </button>
+                                                                <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= app.getCompanyId() %>"
+                                                                   class="btn btn-brand btn-sm px-4 rounded-pill">
+                                                                    View Company
+                                                                </a>
+                                                                <% } %>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                         <% } %>
@@ -753,7 +920,8 @@
                                 <button type="button"
                                         class="btn btn-action rounded-0 border-start-0 border-end-0 text-start w-100"
                                         data-bs-toggle="modal" data-bs-target="#uploadCvModal">
-                                    <i class="fa-solid <%= student.hasCv() ? "fa-file-arrow-up" : "fa-upload" %> me-2"></i> Update CV
+                                    <i class="fa-solid <%= student.hasCv() ? "fa-file-arrow-up" : "fa-upload" %> me-2"></i>
+                                    Update CV
                                 </button>
 
                                 <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= request.getAttribute("facultyId") %>"
@@ -764,7 +932,7 @@
                         </div>
                     </div>
 
-                    <jsp:include page="../blocks/activitySidebar.jsp" />
+                    <jsp:include page="../blocks/activitySidebar.jsp"/>
                 </div>
             </div>
 
@@ -807,7 +975,8 @@
                 <p class="small fw-bold text-muted mb-2">Update / Replace File:</p>
                 <% } %>
 
-                <form id="cvUploadForm" action="${pageContext.request.contextPath}/UploadCV" method="POST" enctype="multipart/form-data">
+                <form id="cvUploadForm" action="${pageContext.request.contextPath}/UploadCV" method="POST"
+                      enctype="multipart/form-data">
                     <div class="mb-3">
                         <label class="form-label small text-muted text-uppercase fw-bold">Select PDF File</label>
                         <input type="file" name="cvFile" id="cvFileInput" class="form-control" accept=".pdf" required>
@@ -833,7 +1002,8 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm Replacement</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i> Confirm
+                    Replacement</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center">
@@ -861,7 +1031,8 @@
             </div>
             <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <a href="${pageContext.request.contextPath}/DeleteCV" class="btn btn-danger btn-sm" onclick="hideAllModals()">
+                <a href="${pageContext.request.contextPath}/DeleteCV" class="btn btn-danger btn-sm"
+                   onclick="hideAllModals()">
                     Delete Permanently
                 </a>
             </div>
@@ -869,16 +1040,38 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmDeclineModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-triangle-exclamation me-2"></i>Are you sure?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="mb-0 text-secondary">You are about to decline this interview invitation. This action <strong>cannot
+                    be undone</strong>.</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Go Back</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" id="finalDeclineBtn">Yes,
+                    Decline
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
     // Initialize modals for manual control/hiding
-    var uploadModal, replaceConfirmModal, deleteConfirmModal;
+    let currentDeclineId = null;
+    var uploadModal, replaceConfirmModal, deleteConfirmModal, declineConfirmModal;
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Initialize Bootstrap Modals
         uploadModal = new bootstrap.Modal(document.getElementById('uploadCvModal'), {});
         replaceConfirmModal = new bootstrap.Modal(document.getElementById('confirmReplaceCvModal'), {});
         deleteConfirmModal = new bootstrap.Modal(document.getElementById('confirmDeleteCvModal'), {});
+        declineConfirmModal = new bootstrap.Modal(document.getElementById('confirmDeclineModal'), {});
 
         const hasCv = <%= student.hasCv() %>;
         const submitCvButton = document.getElementById('submitCvButton');
@@ -886,7 +1079,7 @@
         const cvErrorLabel = document.getElementById('cvErrorLabel');
 
         if (submitCvButton) {
-            submitCvButton.addEventListener('click', function() {
+            submitCvButton.addEventListener('click', function () {
                 // Check if a file is selected
                 if (cvFileInput.files.length === 0) {
                     // Display red error label instead of alert()
@@ -927,133 +1120,34 @@
         if (uploadModal) uploadModal.hide();
         if (replaceConfirmModal) replaceConfirmModal.hide();
         if (deleteConfirmModal) deleteConfirmModal.hide();
+        if (declineConfirmModal) declineConfirmModal.hide();
 
         // This is necessary because hide() only sets classes, we ensure backdrop is gone before navigation
         document.body.classList.remove('modal-open');
         const backdrops = document.getElementsByClassName('modal-backdrop');
-        while(backdrops.length > 0){
+        while (backdrops.length > 0) {
             backdrops[0].parentNode.removeChild(backdrops[0]);
         }
-
-        function respondToInterview(applicationId, response) {
-            const row = document.querySelector(`.application-row[data-id="${applicationId}"]`);
-            const statusCell = row.querySelector('td:nth-child(3)');
-            const currentStatus = row.getAttribute('data-status');
-
-            // Verify it's still in interview status
-            if (currentStatus !== 'Interview') {
-                alert('This application is no longer in interview status.');
-                return;
-            }
-
-            const action = response === 'accept' ? 'accept' : 'reject';
-            const confirmMessage = response === 'accept'
-                ? 'Are you sure you want to accept this internship offer? This action is final.'
-                : 'Are you sure you want to reject this interview request?';
-
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-
-            // Show loading state
-            const responseButtons = statusCell.querySelector('.interview-response-buttons');
-            const originalHTML = responseButtons.innerHTML;
-            responseButtons.innerHTML = `
-        <div class="text-center">
-            <span class="spinner-border spinner-border-sm" role="status"></span>
-            <span class="small ms-2">Processing...</span>
-        </div>
-    `;
-
-            // Send AJAX request
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '${pageContext.request.contextPath}/StudentInterviewResponse', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-            xhr.onload = function() {
-                if (xhr.status === 200) {
-                    try {
-                        const result = JSON.parse(xhr.responseText);
-                        if (result.success) {
-                            // Update UI
-                            const newStatus = response === 'accept' ? 'Accepted' : 'Rejected';
-                            const badgeClass = response === 'accept' ? 'status-accepted' : 'status-rejected';
-                            const badgeIcon = response === 'accept' ? 'fa-check-double' : 'fa-xmark';
-
-                            // Update status badge
-                            const statusBadge = statusCell.querySelector('.status-badge');
-                            statusBadge.className = `status-badge ${badgeClass}`;
-                            statusBadge.innerHTML = `<i class="fa-solid ${badgeIcon} me-1"></i> ${newStatus}`;
-
-                            // Remove response buttons
-                            responseButtons.remove();
-
-                            // Update row data attribute
-                            row.setAttribute('data-status', newStatus);
-
-                            // Show success message
-                            showToast('Success', result.message, 'success');
-
-                            // If accepted, reload page to reflect all status changes
-                            if (response === 'accept') {
-                                setTimeout(() => {
-                                    location.reload();
-                                }, 1500);
-                            }
-                        } else {
-                            responseButtons.innerHTML = originalHTML;
-                            showToast('Error', result.message, 'error');
-                        }
-                    } catch (e) {
-                        responseButtons.innerHTML = originalHTML;
-                        showToast('Error', 'Invalid server response', 'error');
-                    }
-                } else {
-                    responseButtons.innerHTML = originalHTML;
-                    showToast('Error', 'Server error: ' + xhr.status, 'error');
-                }
-            };
-
-            xhr.onerror = function() {
-                responseButtons.innerHTML = originalHTML;
-                showToast('Error', 'Network error', 'error');
-            };
-
-            xhr.send(`applicationId=${applicationId}&response=${response}`);
-        }
-
-// Helper function to show toast notifications
-        function showToast(title, message, type) {
-            // Remove any existing toasts
-            const existingToasts = document.querySelectorAll('.custom-toast');
-            existingToasts.forEach(toast => toast.remove());
-
-            // Create toast
-            const toastHtml = `
-        <div class="custom-toast position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-            <div class="toast show" role="alert">
-                <div class="toast-header ${type == 'success' ? 'bg-success text-white' : 'bg-danger text-white'}">
-                    <strong class="me-auto">${title}</strong>
-                    <button type="button" class="btn-close btn-close-white" onclick="this.closest('.custom-toast').remove()"></button>
-                </div>
-                <div class="toast-body">
-                    ${message}
-                </div>
-            </div>
-        </div>
-    `;
-
-            document.body.insertAdjacentHTML('beforeend', toastHtml);
-
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                const toast = document.querySelector('.custom-toast');
-                if (toast) toast.remove();
-            }, 5000);
-        }
-
-
     }
+
+    function confirmDecline(appId) {
+        currentDeclineId = appId;
+        declineConfirmModal.show();
+
+        // Stacked backdrop fix logic
+        setTimeout(() => {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            if (backdrops.length > 1) {
+                backdrops[backdrops.length - 1].style.zIndex = "1085";
+            }
+        }, 50);
+    }
+
+    document.getElementById('finalDeclineBtn').addEventListener('click', function () {
+        if (currentDeclineId) {
+            document.getElementById('declineForm_' + currentDeclineId).submit();
+        }
+    });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
