@@ -494,9 +494,25 @@
         .modal-requested-header {
             background: linear-gradient(135deg, #dc3545 0%, #283593 100%);
             color: white;
-            padding: 2rem 1rem;
+            padding: 3rem 1rem; /* Increased padding for better centering */
             text-align: center;
             border-radius: 8px 8px 0 0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Specific styling for the company logo when it's inside the red/indigo header */
+        .company-logo-requested {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            background: white;
+            padding: 8px;
+            border-radius: 3%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
         }
 
         /* FIXED: Modal Stacking Z-index */
@@ -773,10 +789,10 @@
                                                                         class="btn-close btn-close-white position-absolute"
                                                                         style="top: 15px; right: 15px;"
                                                                         data-bs-dismiss="modal"></button>
-                                                                <i class="fa-solid fa-envelope-open-text fa-3x mb-3"></i>
-                                                                <h4 class="fw-bold mb-0">Interview Invitation</h4>
-                                                                <p class="opacity-75 mb-0">Action Required by
-                                                                    Candidate</p>
+
+                                                                <img src="<%= companyLogoUrl %>"
+                                                                     onerror="this.src='<%= companyFallback %>';"
+                                                                     class="company-logo-requested">
                                                             </div>
                                                             <% } else { %>
                                                             <div class="modal-company-banner">

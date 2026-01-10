@@ -4,6 +4,9 @@
     --ulbs-red: #A30B0B;
     --bg-light: #f4f7f6;
     --brand-gradient: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
+    --faculty-blue: #2c3e50;
+    --faculty-gray: #f8f9fa;
+    --border-color: #edf2f7;
 }
 
 html, body {

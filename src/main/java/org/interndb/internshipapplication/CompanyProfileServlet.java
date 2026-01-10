@@ -33,15 +33,20 @@ public class CompanyProfileServlet extends HttpServlet {
     @Inject
     AccountActivityBean activityBean;
 
+    public boolean checkAuth(HttpServletRequest req, HttpServletResponse resp, HttpSession sess) throws ServletException, IOException {
+        if (sess == null || sess.getAttribute("userEmail") == null) {
+            resp.sendRedirect("UserLogin");
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userEmail") == null) {
-            response.sendRedirect("UserLogin");
-            return;
-        }
+        if (checkAuth(request, response, session)) { return; }
 
         String loggedInEmail = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
@@ -123,6 +128,7 @@ public class CompanyProfileServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
+        if (checkAuth(request, response, session)) { return; }
         String loggedInEmail = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
         String action = request.getParameter("action");

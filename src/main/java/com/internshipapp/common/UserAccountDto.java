@@ -33,7 +33,8 @@ public class UserAccountDto {
     }
 
     public UserAccountDto(Long userId, String username, String password, String email,
-                          Long studentId, String studentName, Long companyId, String companyName) {
+                          Long studentId, String studentName, Long companyId, String companyName)
+    {
         this.userId = userId;
         this.username = username;
         this.password = password;
