@@ -601,8 +601,10 @@
                     <div class="student-row-body">
                         <div class="d-flex flex-column align-items-center">
                             <a href="StudentProfile?id=<%= studentRow.getId() %>">
-                                <img src="https://ui-avatars.com/api/?name=<%= studentRow.getFullName().replace(" ","+") %>&background=0E2B58&color=fff&size=128&bold=true"
-                                     class="student-avatar-small">
+                                <img src="<%= request.getContextPath() %>/ProfilePicture?id=<%= studentRow.getId() %>&targetRole=Student"
+                                     onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=<%= studentRow.getFullName().replace(" ","+") %>&background=0E2B58&color=fff&size=128&bold=true';"
+                                     class="student-avatar-small"
+                                     alt="<%= studentRow.getFullName() %>">
                             </a>
                         </div>
 
@@ -640,7 +642,7 @@
                             </div>
 
                             <button id="btn-action-<%= studentRow.getUserId() %>"
-                                    onclick="showInterviewForm('<%= studentRow.getUserId() %>', '<%= studentRow.getUserEmail() %>', '<%= studentRow.getFullName() %>')"
+                                    onclick="showInterviewForm('<%= studentRow.getId() %>', '<%= studentRow.getUserEmail() %>', '<%= studentRow.getFullName() %>', '<%= studentRow.getUserId() %>')"
                                     class="btn-request-small action-button-dynamic"
                                     data-user-id="<%= studentRow.getUserId() %>">
                                 <i class="fa-solid fa-calendar-plus"></i>
@@ -664,7 +666,7 @@
             <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
                 <div class="position-relative">
                     <img src="" id="modalStudentAvatar" class="modal-student-avatar"
-                         onerror="this.src='https://ui-avatars.com/api/?name=' + document.getElementById('formTitle').textContent.replace(' ','+') + '&background=0E2B58&color=fff&size=128&bold=true';">
+                         onerror="this.onerror=null; const name = document.getElementById('formTitle').textContent.replace(' ','+'); this.src='https://ui-avatars.com/api/?name=' + name + '&background=0E2B58&color=fff&size=128&bold=true';">
                 </div>
                 <div class="text-start">
                     <h4 id="formTitle" class="fw-bold mb-0 text-dark">Student Name</h4>
@@ -789,8 +791,8 @@
         }, 200);
     }
 
-    function showInterviewForm(userId, email, name) {
-        const apps = appDataStore[userId] || [];
+    function showInterviewForm(id, email, name, uId) {
+        const apps = appDataStore[uId] || [];
         const modal = document.getElementById('interviewFormModal');
 
         // 1. SHOW MODAL
@@ -802,10 +804,18 @@
         // 2. IDENTITY & IMAGE
         document.getElementById('formTitle').textContent = name;
         document.getElementById('studentEmailSub').textContent = email;
-        document.getElementById('selectedStudentUserId').value = userId;
+        document.getElementById('selectedStudentUserId').value = uId;
 
         const avatarImg = document.getElementById('modalStudentAvatar');
-        avatarImg.src = `ProfilePicture?id=${userId}&targetRole=Student`;
+        avatarImg.onerror = null;
+
+        avatarImg.onerror = function() {
+            this.onerror = null; // Safety break
+            // Trim and encode name to ensure initials are generated
+            const cleanName = name.trim().replace(/\s+/g, "+");
+            this.src = "https://ui-avatars.com/api/?name=" + cleanName + "&background=0E2B58&color=fff&size=128&bold=true";
+        };
+        avatarImg.src = "<%= request.getContextPath() %>/ProfilePicture?id=" + id + "&targetRole=Student";
 
         // 3. RESET ACTION VISIBILITY
         document.getElementById('pendingActionArea').classList.add('d-none');

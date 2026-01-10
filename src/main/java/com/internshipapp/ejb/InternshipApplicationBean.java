@@ -326,6 +326,12 @@ public class InternshipApplicationBean {
                 entityManager.merge(student);
             }
 
+            // the company can use the "Initial Message" flow again to move back to Discussion.
+            if (targetStatus == InternshipApplication.ApplicationStatus.Rejected) {
+                app.setChatInitiated(false);
+                LOG.info("Chat reset for Application ID: " + appId + " due to Rejection.");
+            }
+
             app.setStatus(targetStatus);
             entityManager.merge(app);
 
