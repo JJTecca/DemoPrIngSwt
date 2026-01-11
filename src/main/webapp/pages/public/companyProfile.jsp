@@ -354,6 +354,34 @@
             flex: 1;
             text-align: center;
         }
+
+        .shortname-badge {
+            background-color: #eef2ff; /* Very soft indigo */
+            color: #4338ca; /* Deep indigo text */
+            border: 1px solid #c7d2fe;
+            border-left: 4px solid #4338ca; /* Accent bar */
+            padding: 0.5rem 1rem;
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* Matching the pen button color to the badge theme */
+        .btn-edit-inline {
+            color: #4338ca;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-edit-inline:hover {
+            color: var(--brand-blue-dark);
+            transform: scale(1.2);
+        }
     </style>
 </head>
 <body>
@@ -402,12 +430,18 @@
                         <p class="text-muted small"><%= company.getWebsite() != null ? company.getWebsite() : "No website listed" %>
                         </p>
 
-                        <div class="mb-4">
-                            <span class="badge rounded-pill bg-primary px-3 py-2">Short Name: <%= company.getShortName() %></span>
+                        <div class="mb-4 d-flex align-items-center justify-content-center">
+                            <div class="shortname-badge">
+                                <i class="fa-solid fa-hashtag me-2 opacity-50"></i>
+                                <%= company.getShortName() %>
+                            </div>
+
                             <% if (isOwner) { %>
-                            <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="modal"
-                                    data-bs-target="#editShortNameModal"><i class="fa-solid fa-pen-to-square"></i>
-                            </button>
+                            <a href="#" class="btn-edit-inline ms-2"
+                               data-bs-toggle="modal" data-bs-target="#editShortNameModal"
+                               title="Edit Short Reference">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
                             <% } %>
                         </div>
 

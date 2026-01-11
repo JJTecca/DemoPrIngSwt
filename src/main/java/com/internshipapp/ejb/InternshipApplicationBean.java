@@ -241,19 +241,6 @@ public class InternshipApplicationBean {
                 }
             }
 
-            // 2. ILLEGAL SCENARIO: If the current status is NOT 'Request', block the student from Rejecting/Declining via this specific dashboard flow
-            // (This prevents students from "cancelling" an application that has already moved to Interview/Accepted/Discussion)
-            if (targetStatus == InternshipApplication.ApplicationStatus.Rejected &&
-                    app.getStatus() != InternshipApplication.ApplicationStatus.Request) {
-
-                // Logic: Once a request is accepted (Discussion/Interview), it follows the standard company rejection path.
-                // We only want the student-led rejection to work during the 'Request' phase.
-                if (app.getStatus() != InternshipApplication.ApplicationStatus.Pending) {
-                    LOG.warning("BLOCKED: Student attempted to reject a non-request application in state: " + app.getStatus());
-                    throw new IllegalStateException("This application is already in progress and cannot be declined now.");
-                }
-            }
-
             // 3. ILLEGAL SCENARIO: If the application is currently a 'Request'
             if (app.getStatus() == InternshipApplication.ApplicationStatus.Request) {
 
@@ -337,6 +324,12 @@ public class InternshipApplicationBean {
                 student.setStatus(StudentInfo.StudentStatus.Accepted);
                 entityManager.merge(pos);
                 entityManager.merge(student);
+            }
+
+            // the company can use the "Initial Message" flow again to move back to Discussion.
+            if (targetStatus == InternshipApplication.ApplicationStatus.Rejected) {
+                app.setChatInitiated(false);
+                LOG.info("Chat reset for Application ID: " + appId + " due to Rejection.");
             }
 
             app.setStatus(targetStatus);
@@ -520,56 +513,6 @@ public class InternshipApplicationBean {
         } catch (Exception e) {
             LOG.severe("Error retrieving UserAccount: " + e.getMessage());
             return null;
-        }
-    }
-
-    /**
-     * Retrieves all applications associated with a specific company.
-     * Uses the existing copyApplicationsToDto method to ensure all 12 parameters
-     * and position details are correctly mapped.
-     */
-    public List<InternshipApplicationDto> findApplicationsByCompany(Long companyId) {
-        try {
-            TypedQuery<InternshipApplication> query = entityManager.createQuery(
-                    "SELECT a FROM InternshipApplication a " +
-                            "JOIN FETCH a.student " +
-                            "JOIN FETCH a.internshipPosition p " +
-                            "WHERE p.company.id = :companyId",
-                    InternshipApplication.class
-            );
-            query.setParameter("companyId", companyId);
-            List<InternshipApplication> entities = query.getResultList();
-
-            // Utilize your specific conversion method that handles position titles,
-            // company names, and interview locations.
-            return copyApplicationsToDto(entities);
-        } catch (Exception e) {
-            LOG.warning("Error fetching applications for company: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    /**
-     * Returns UserAccount IDs of students linked to this company.
-     * Fixed the Enum reference by using the standard Enum object comparison.
-     */
-    public List<Long> getStudentIdsByCompany(Long companyId) {
-        try {
-            // We select the ID of the UserAccount associated with the StudentInfo
-            // participating in an application for this company.
-            return entityManager.createQuery(
-                            "SELECT DISTINCT u.id FROM UserAccount u " +
-                                    "WHERE u.studentInfo.id IN (" +
-                                    "   SELECT a.student.id FROM InternshipApplication a " +
-                                    "   WHERE a.internshipPosition.company.id = :companyId " +
-                                    "   AND a.status <> InternshipApplication.ApplicationStatus.Rejected" +
-                                    ")",
-                            Long.class)
-                    .setParameter("companyId", companyId)
-                    .getResultList();
-        } catch (Exception e) {
-            LOG.warning("Error fetching linked student IDs: " + e.getMessage());
-            return new ArrayList<>();
         }
     }
 

@@ -230,11 +230,29 @@ public class StudentDashboardServlet extends HttpServlet {
             return;
         }
 
+        // 2. ILLEGAL SCENARIO: If the current status is NOT 'Request', block the student from Rejecting/Declining via this specific dashboard flow
+        // (This prevents students from "cancelling" an application that has already moved to Interview/Accepted/Discussion)
+
         String action = request.getParameter("action");
         if ("updateStatus".equals(action)) {
             try {
                 Long appId = Long.parseLong(request.getParameter("id"));
                 String newStatus = request.getParameter("status");
+
+                InternshipApplicationDto app = internshipAppBean.getApplicationDtoById(appId);
+
+                // STUDENT-SPECIFIC WORKFLOW LOCKS
+                if ("Discussion".equals(newStatus)) {
+                    if (!"Request".equals(app.getStatus())) {
+                        throw new IllegalStateException("You can only accept an interview if it was requested.");
+                    }
+                }
+
+                if ("Rejected".equals(newStatus)) {
+                    if (!"Request".equals(app.getStatus())) {
+                        throw new IllegalStateException("This application is already in progress and cannot be declined by you.");
+                    }
+                }
 
                 // Perform update via Bean
                 internshipAppBean.updateApplicationStatus(appId, newStatus);

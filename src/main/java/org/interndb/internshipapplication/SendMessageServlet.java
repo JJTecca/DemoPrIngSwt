@@ -15,9 +15,6 @@ public class SendMessageServlet extends HttpServlet {
     @Inject
     private MessageBean messageBean;
 
-    @Inject
-    private InternshipApplicationBean applicationBean;
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

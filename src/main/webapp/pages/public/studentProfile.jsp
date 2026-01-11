@@ -120,6 +120,41 @@
             text-transform: uppercase;
         }
 
+        /* --- Synced Status Badge Styles --- */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.3em 0.7em;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-accepted {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-available {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+
+        /* Enrolled vs Not Enrolled Logic sync */
+        .badge-enrolled {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .badge-not-enrolled {
+            background-color: #fdf2f2;
+            color: #9b1c1c;
+        }
+
         .info-value {
             font-size: 1.05rem;
             color: var(--brand-blue-dark);
@@ -370,9 +405,28 @@
 
                         <h3 class="fw-bold text-dark mb-1"><%= student.getFullName() %>
                         </h3>
-                        <div class="mb-4">
-                            <span class="badge rounded-pill bg-primary px-3 py-2"><%= student.getStatus() %></span>
-                            <span class="badge rounded-pill <%= student.getEnrolled() ? "bg-success" : "bg-danger" %> px-3 py-2 ms-1"><%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %></span>
+                        <div class="mb-4 d-flex justify-content-center gap-2">
+                            <%
+                                // Logic to match Faculty Dashboard coloring
+                                String statusValue = (student.getStatus() != null) ? student.getStatus() : "Available";
+                                String statusClass = "status-available"; // Default
+
+                                if ("Accepted".equalsIgnoreCase(statusValue) || "Enrolled".equalsIgnoreCase(statusValue)) {
+                                    statusClass = "status-accepted";
+                                } else if ("Completed".equalsIgnoreCase(statusValue)) {
+                                    statusClass = "status-completed";
+                                } else if ("Available".equalsIgnoreCase(statusValue)) {
+                                    statusClass = "status-available";
+                                }
+                            %>
+                            <span class="status-badge <%= statusClass %>">
+                                 <%= statusValue %>
+                            </span>
+
+                            <span class="status-badge <%= student.getEnrolled() ? "badge-enrolled" : "badge-not-enrolled" %>">
+                                <i class="fa-solid <%= student.getEnrolled() ? "fa-circle-check" : "fa-circle-xmark" %> me-1"></i>
+                                <%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %>
+                            </span>
                         </div>
 
                         <div class="editable-section text-start mb-4">
@@ -432,7 +486,7 @@
                                     <div class="info-label">Study Grade</div>
                                     <div class="info-value">
                                         <% if ("Company".equals(sessionRole) && !student.getGradeVisibility()) { %>
-                                        <span class="text-muted small fst-italic">Private</span>
+                                        <span class="text-muted small fst">Private</span>
                                         <% } else { %>
                                         <span class="fw-bold"><%= student.getGradeFormatted() %></span>
 

@@ -182,6 +182,28 @@ public class UserAccountBean {
         }
     }
 
+    public List<StudentInfoDto> getAllAvailableStudents() {
+        LOG.info("getAllAvailableStudents: Iterating through StudentInfo for full academic data");
+        try {
+            // Querying StudentInfo directly to ensure we get grade/year/privacy fields
+            TypedQuery<StudentInfo> query = entityManager.createQuery(
+                    "SELECT s FROM StudentInfo s WHERE s.status = com.internshipapp.entities.StudentInfo.StudentStatus.Available " +
+                            "ORDER BY s.lastName, s.firstName", StudentInfo.class);
+
+            List<StudentInfo> entities = query.getResultList();
+            List<StudentInfoDto> dtos = new ArrayList<>();
+
+            for (StudentInfo entity : entities) {
+                // Use your existing bean to transform entity to DTO
+                dtos.add(studentInfoBean.copyStudentToDto(entity));
+            }
+            return dtos;
+        } catch (Exception e) {
+            LOG.severe("Error fetching students: " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
     public List<UserAccountDto> findAllUsers() {
         LOG.info("findAllUsers");
         try {

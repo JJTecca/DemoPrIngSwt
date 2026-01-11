@@ -28,16 +28,21 @@ public class CompanyDashboardServlet extends HttpServlet {
     @Inject
     AccountActivityBean accountActivityBean;
 
+    public boolean checkAuth(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
+        if (session == null || session.getAttribute("userEmail") == null) {
+            response.sendRedirect("UserLogin");
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         // 1. Session & Security Check
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userEmail") == null) {
-            response.sendRedirect("UserLogin");
-            return;
-        }
+        if (checkAuth(request, response, session)) { return; }
 
         String email = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
