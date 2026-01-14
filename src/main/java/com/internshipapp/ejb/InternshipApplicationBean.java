@@ -74,6 +74,15 @@ public class InternshipApplicationBean {
                 }
             }
 
+            String studentEmail = "N/A";
+            if (app.getStudent() != null) {
+                // Use your existing helper method
+                UserAccount ua = getUserAccountByStudentId(app.getStudent().getId());
+                if (ua != null) {
+                    studentEmail = ua.getEmail();
+                }
+            }
+
             // 5. Create DTO using the NEW 12-parameter constructor
             InternshipApplicationDto dto = new InternshipApplicationDto(
                     app.getId(),
@@ -85,6 +94,7 @@ public class InternshipApplicationBean {
                     app.getGrade(),
                     app.getStudent().getLastYearGrade(),
                     app.getStudent().getGradeVisibility(),
+                    studentEmail,
                     app.getAppliedAt(),
                     app.getInterview(),
                     app.getInterviewLocation(),
@@ -225,6 +235,11 @@ public class InternshipApplicationBean {
     }
 
     public void updateApplicationStatus(Long appId, String statusName) {
+        // Simply delegate to the new detailed method with nulls
+        this.updateApplicationStatus(appId, statusName, null, null);
+    }
+
+    public void updateApplicationStatus(Long appId, String statusName, LocalDateTime interviewDate, String location) {
         try {
             InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
             InternshipPosition pos = app.getInternshipPosition();
@@ -233,12 +248,21 @@ public class InternshipApplicationBean {
             InternshipApplication.ApplicationStatus targetStatus =
                     InternshipApplication.ApplicationStatus.valueOf(statusName);
 
-            // 1. ILLEGAL SCENARIO: If trying to move to 'Discussion' (Student clicked "Accept")
-            if (targetStatus == InternshipApplication.ApplicationStatus.Discussion) {
-                if (app.getStatus() != InternshipApplication.ApplicationStatus.Request) {
-                    LOG.warning("BLOCKED: Attempt to move App " + appId + " to Discussion from " + app.getStatus());
-                    throw new IllegalStateException("You can only accept an interview if it was explicitly requested.");
+            // 1. RULE: Switching TO Interview requires Date and Location
+            if (targetStatus == InternshipApplication.ApplicationStatus.Interview) {
+                if (interviewDate == null || location == null || location.isEmpty()) {
+                    throw new IllegalStateException("Interview Date and Location are required to schedule an interview.");
                 }
+                app.setInterview(interviewDate);
+                app.setInterviewLocation(location);
+            }
+
+            // 2. RULE: Switching BACK to Discussion clears Date and Location
+            if (targetStatus == InternshipApplication.ApplicationStatus.Discussion &&
+                    app.getStatus() == InternshipApplication.ApplicationStatus.Interview) {
+                app.setInterview(null);
+                app.setInterviewLocation(null);
+                LOG.info("Application " + appId + " moved back to Discussion. Interview data cleared.");
             }
 
             // 3. ILLEGAL SCENARIO: If the application is currently a 'Request'
@@ -512,6 +536,24 @@ public class InternshipApplicationBean {
             return null;
         } catch (Exception e) {
             LOG.severe("Error retrieving UserAccount: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private UserAccount getUserAccountByStudentId(Long studentId) {
+        try {
+            TypedQuery<UserAccount> query = entityManager.createQuery(
+                    "SELECT u FROM UserAccount u WHERE u.studentInfo.id = :sid",
+                    UserAccount.class);
+
+            query.setParameter("sid", studentId);
+            return query.getSingleResult();
+
+        } catch (NoResultException e) {
+            // This happens if the student profile exists but is orphaned (no user account)
+            return null;
+        } catch (Exception e) {
+            LOG.warning("Error fetching UserAccount for Student ID " + studentId + ": " + e.getMessage());
             return null;
         }
     }

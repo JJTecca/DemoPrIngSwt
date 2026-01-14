@@ -683,7 +683,7 @@
                                                         <button type="button" class="btn-close"
                                                                 data-bs-dismiss="modal"></button>
                                                     </div>
-                                                    <form action="InternshipApplication" method="GET">
+                                                    <form action="InternshipApplications" method="GET">
                                                         <input type="hidden" name="action" value="assignTutoring">
                                                         <input type="hidden" name="studentId"
                                                                value="<%= student.getId() %>">

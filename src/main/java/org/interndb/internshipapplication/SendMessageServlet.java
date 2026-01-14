@@ -35,7 +35,11 @@ public class SendMessageServlet extends HttpServlet {
             // This Bean call triggers the Message creation AND the status
             // transition to 'Discussion' if the sender is a Company.
             if (messageText != null && !messageText.trim().isEmpty()) {
+                // 1. Save to DB via Bean
                 messageBean.sendMessage(appId, userId, messageText.trim(), role);
+
+                // 2. TRIGGER REAL-TIME NOTIFICATION
+                com.internshipapp.websocket.ChatSocket.notify(appId);
             }
 
             // REDIRECT: Redirect to the hub servlet (InternshipApplications)
