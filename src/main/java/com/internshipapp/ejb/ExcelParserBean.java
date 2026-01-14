@@ -1,9 +1,11 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.common.InternshipApplicationDto;
 import jakarta.ejb.Stateless;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Logger;
@@ -96,6 +98,40 @@ public class ExcelParserBean {
                 return cell.getCellFormula();
             default:
                 return "";
+        }
+    }
+
+    public byte[] createStudentExport(List<InternshipApplicationDto> apps) throws Exception {
+        try (Workbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            Sheet sheet = workbook.createSheet("Grades Export");
+
+            Row headerRow = sheet.createRow(0);
+            headerRow.createCell(0).setCellValue("Nr. matricol");
+            headerRow.createCell(1).setCellValue("Nota practica");
+
+            CellStyle gradeStyle = workbook.createCellStyle();
+            gradeStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+
+            int rowIndex = 1;
+            for (InternshipApplicationDto app : apps) {
+                Row row = sheet.createRow(rowIndex++);
+
+                row.createCell(0).setCellValue(app.getStudentId());
+
+                Cell gradeCell = row.createCell(1);
+                if (app.getGrade() != null) {
+                    gradeCell.setCellValue(app.getGrade());
+                    gradeCell.setCellStyle(gradeStyle);
+                }
+            }
+
+            sheet.autoSizeColumn(0);
+            sheet.autoSizeColumn(1);
+
+            workbook.write(out);
+            return out.toByteArray();
         }
     }
 }

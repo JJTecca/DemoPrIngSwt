@@ -267,7 +267,7 @@
             color: #212529;
         }
 
-        .btn-import-standout {
+        .btn-import-and-export-standout {
             background: linear-gradient(135deg, var(--brand-blue) 0%, #1a4a8d 100%);
             color: white;
             border: none;
@@ -280,7 +280,7 @@
             font-size: 0.85rem;
         }
 
-        .btn-import-standout:hover {
+        .btn-import-and-export-standout:hover {
             transform: scale(1.05);
             color: white;
         }
@@ -543,8 +543,11 @@
                                         Only</a></li>
                                 </ul>
                             </div>
-                            <a href="${pageContext.request.contextPath}/ImportStudents" class="btn-import-standout">
+                            <a href="${pageContext.request.contextPath}/ImportStudents" class="btn-import-and-export-standout">
                                 <i class="fa-solid fa-file-import me-2"></i> Import Students
+                            </a>
+                            <a href="${pageContext.request.contextPath}/ExportStudents" class="btn-import-and-export-standout">
+                                <i class="fa-solid fa-file-export me-2"></i> Export Grades
                             </a>
                         </div>
                         <div class="card-body p-0">
