@@ -13,6 +13,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @WebServlet(name = "InternshipApplicationServlet", value = "/InternshipApplications")
@@ -151,9 +152,17 @@ public class InternshipApplicationServlet extends HttpServlet {
         try {
             Long appId = Long.parseLong(request.getParameter("id"));
             String newStatus = request.getParameter("status");
+            String dateStr = request.getParameter("interviewDate");
+            String loc = request.getParameter("location");
+            LocalDateTime interviewDateTime = (dateStr != null && !dateStr.isEmpty())
+                    ? LocalDateTime.parse(dateStr) : null;
 
-            // Perform the update
-            applicationBean.updateApplicationStatus(appId, newStatus);
+            if ("Interview".equals(newStatus)){
+                applicationBean.updateApplicationStatus(appId, newStatus, interviewDateTime, loc);
+            } else {
+                // Perform the update
+                applicationBean.updateApplicationStatus(appId, newStatus);
+            }
 
             response.sendRedirect("CompanyDashboard?update=success");
         } catch (Exception e) {

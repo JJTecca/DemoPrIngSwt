@@ -17,36 +17,43 @@
             min-height: 100vh;
         }
 
-        /* --- Left Side: Form Area --- */
         .login-form-area {
             position: relative;
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
             padding: 2rem;
+            overflow: hidden;
+            background-color: #0E2B58;
+        }
+
+        #bg-fader, .login-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #bg-fader {
             background-image: url('images/background0.png');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        /* Background Overlay */
-        .login-form-area::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
+            transition: opacity 0.8s linear;
             z-index: 1;
+            opacity: 1;
         }
 
-        .login-form-area > * {
-            position: relative;
+        .login-overlay {
+            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
             z-index: 2;
         }
 
         .form-box {
+            position: relative;
+            z-index: 10;
             max-width: 500px;
             width: 100%;
             padding: 0;
@@ -57,7 +64,6 @@
         }
 
         .form-box-header {
-            /* FIXED: Added Branding Gradient */
             background: var(--brand-gradient);
             padding: 3rem 3rem 1rem 3rem;
             color: white;
@@ -94,7 +100,6 @@
         }
 
         .btn-main-login {
-            /* FIXED: Added Branding Gradient */
             background: var(--brand-gradient);
             border: none;
             color: white;
@@ -112,7 +117,7 @@
             color: white;
         }
 
-        .btn-contact-us {
+        .btn-company-reg {
             color: var(--brand-blue);
             border: 2px solid var(--brand-blue);
             font-weight: 600;
@@ -120,13 +125,12 @@
             transition: all 0.3s ease;
         }
 
-        .btn-contact-us:hover {
+        .btn-company-reg:hover {
             background: var(--brand-gradient);
             border-color: transparent;
             color: white;
         }
 
-        /* --- Right Side: Info Sidebar --- */
         .login-info-area {
             background: #fff;
             color: var(--brand-blue);
@@ -138,17 +142,6 @@
             padding: 3rem;
             position: relative;
             z-index: 5;
-        }
-
-        /* FIX: Gradient Vertical Bar with no white gap */
-        .login-info-area::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 12px;
-            height: 100%;
-            background: var(--brand-gradient);
         }
 
         .ulbs-logo {
@@ -167,6 +160,12 @@
             line-height: 1.6;
         }
 
+        .login-info-area img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .info-small-text { color: #555; font-weight: 600; }
         .highlight-text { color: var(--brand-blue); font-weight: 800; }
     </style>
@@ -176,6 +175,9 @@
 <div class="container-fluid p-0 login-container">
 
     <div class="col-lg-9 col-md-8 col-12 login-form-area">
+
+        <div id="bg-fader"></div>
+        <div class="login-overlay"></div>
 
         <div class="form-box">
 
@@ -211,9 +213,9 @@
                 <hr class="text-muted my-4">
 
                 <div class="text-center">
-                    <p class="text-muted small mb-3">Forgot your credentials or need assistance?</p>
-                    <a href="contact.jsp" class="btn btn-contact-us px-4 py-2">
-                        Contact Support
+                    <p class="text-muted small mb-3">Partner with CSEE and start recruiting.</p>
+                    <a href="CompanyRegister" class="btn btn-company-reg px-4 py-2">
+                        Company Register
                     </a>
                 </div>
             </div>
@@ -227,14 +229,15 @@
                  alt="ULBS Logo" class="ulbs-logo">
 
             <h2 class="h5 text-uppercase fw-bold mb-2 ls-2">Internship Program</h2>
-            <h1 class="h2 fw-bolder mb-4">CSEE ULBS</h1>
+            <div class="mb-4">
+                <img src="images/cseelogo.png" alt="CSEE Logo" style="max-width: 220px; height: auto;">
+            </div>
 
             <p class="info-lead-text mb-5">
                 Connecting Students, Faculty, and Companies for practical experience.
             </p>
 
-            <p class="info-small-text mt-auto small">
-                <span class="highlight-text">CSEE ULBS</span><br>
+            <p class="info-small-text mt-auto small" style="font-size: 12px">
                 Computer Science and <br>Electrical Engineering<br>
                 Lucian Blaga University of Sibiu
             </p>
@@ -245,5 +248,40 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <jsp:include page="../blocks/footer.jsp"/>
 
+<script>
+    (function() {
+        const fader = document.getElementById('bg-fader');
+        const images = [
+            'images/background0.png',
+            'images/background1.png',
+            'images/background4.jpg'
+        ];
+
+        let currentIndex = 0;
+
+        // Preload all images immediately
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        function changeBackground() {
+            // 1. Start Fade out
+            fader.style.opacity = '0';
+
+            // 2. Wait for the fade duration (1.5s) to swap the image
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                fader.style.backgroundImage = "url('" + images[currentIndex] + "')";
+
+                // 3. Immediately start Fade in
+                fader.style.opacity = '1';
+            }, 800);
+        }
+
+        // Set the interval
+        setInterval(changeBackground, 7000);
+    })();
+</script>
 </body>
 </html>

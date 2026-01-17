@@ -57,6 +57,9 @@ public class InternshipApplication {
     @Column(name = "chat_initiated")
     private boolean chatInitiated;
 
+    @Column(name = "feedback")
+    private String feedback;
+
     public InternshipApplication() {}
     public InternshipApplication(Long id, InternshipPosition internshipPosition, StudentInfo student, ApplicationStatus status, Float grade, LocalDateTime appliedAt) {
         this.id = id;
@@ -115,4 +118,8 @@ public class InternshipApplication {
     public boolean isChatInitiated() { return chatInitiated; }
 
     public void setChatInitiated(boolean chatInitiated) { this.chatInitiated = chatInitiated; }
+
+    public String getFeedback() { return feedback; }
+
+    public void setFeedback(String feedback) { this.feedback = feedback; }
 }

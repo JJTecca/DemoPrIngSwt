@@ -1,10 +1,20 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.internshipapp.common.*" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ArrayList" %>
 <%
-    List<InternshipApplicationDto> sidebarApps = (List<InternshipApplicationDto>) request.getAttribute("applications");
+    List<InternshipApplicationDto> rawApps = (List<InternshipApplicationDto>) request.getAttribute("applications");
     String userRole = (String) session.getAttribute("userRole");
     Long selectedId = (Long) request.getAttribute("selectedAppId");
+
+    List<InternshipApplicationDto> activeChats = new ArrayList<>();
+    if (rawApps != null) {
+        for (InternshipApplicationDto app : rawApps) {
+            if (app.isChatInitiated()) {
+                activeChats.add(app);
+            }
+        }
+    }
 %>
 
 <div class="applications-sidebar bg-white border-end h-100 d-flex flex-column shadow-sm"
@@ -14,18 +24,28 @@
             <i class="fa-solid fa-inbox me-2 text-primary"></i>My Applications
         </h5>
         <div class="text-muted x-small text-uppercase fw-bold mt-1" style="font-size: 0.65rem;">
-            <%= sidebarApps != null ? sidebarApps.size() : 0 %> Active Discussions
+            <%= activeChats != null ? activeChats.size() : 0 %> Active Discussions
         </div>
     </div>
 
     <div class="flex-grow-1 overflow-auto custom-scrollbar">
-        <% if (sidebarApps != null && !sidebarApps.isEmpty()) { %>
-        <% for (InternshipApplicationDto app : sidebarApps) {
+        <% if (activeChats != null && !activeChats.isEmpty()) { %>
+        <% for (InternshipApplicationDto app : activeChats) {
             boolean isActive = selectedId != null && selectedId.equals(app.getId());
             String displayName = "Student".equals(userRole) ? app.getCompanyName() : app.getStudentName();
             String pfpRole = "Student".equals(userRole) ? "Company" : "Student";
             Long pfpId = "Student".equals(userRole) ? app.getCompanyId() : app.getStudentId();
             String pfpShape = "Student".equals(userRole) ? "rounded-3" : "rounded-circle";
+
+            String status = app.getStatus();
+            String badgeClass = "bg-light text-muted border"; // Default fallback
+
+            if ("Accepted".equalsIgnoreCase(status)) badgeClass = "status-accepted";
+            else if ("Rejected".equalsIgnoreCase(status)) badgeClass = "status-rejected";
+            else if ("Pending".equalsIgnoreCase(status)) badgeClass = "status-pending";
+            else if ("Interview".equalsIgnoreCase(status)) badgeClass = "status-interview";
+            else if ("Discussion".equalsIgnoreCase(status)) badgeClass = "status-discussion";
+            else if ("Request".equalsIgnoreCase(status)) badgeClass = "status-request";
         %>
         <a href="InternshipApplications?id=<%= app.getId() %>"
            class="app-card border-bottom d-flex align-items-center p-3 text-decoration-none transition-all <%= isActive ? "bg-primary-subtle border-start border-primary border-4" : "text-dark" %>">
@@ -47,10 +67,9 @@
                 </div>
                 <div class="small text-muted text-truncate mb-1"><%= displayName %>
                 </div>
-                <span class="badge x-small fw-bold <%= "Accepted".equals(app.getStatus()) ? "bg-success" : "bg-light text-primary border" %>"
-                      style="font-size: 0.65rem;">
-                            <%= app.getStatus() %>
-                        </span>
+                <span class="status-badge <%= badgeClass %>">
+                    <%= status %>
+                </span>
             </div>
         </a>
         <% } %>

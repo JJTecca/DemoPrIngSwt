@@ -24,30 +24,38 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-direction: column;
             padding: 2rem;
-            background-image: url('images/background1.png');
+            overflow: hidden;
+            background-color: #0E2B58;
+        }
+
+        #bg-fader, .register-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #bg-fader {
+            background-image: url('images/background0.png');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
-        }
-
-        /* Background Overlay */
-        .register-form-area::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
+            transition: opacity 0.8s linear;
             z-index: 1;
+            opacity: 1;
         }
 
-        .register-form-area > * {
-            position: relative;
+        .register-overlay {
+            background: linear-gradient(to bottom, rgba(14, 43, 88, 0.50), rgba(14, 43, 88, 0.65));
             z-index: 2;
         }
 
         .form-box {
-            max-width: 550px;
+            position: relative;
+            z-index: 10;
+            max-width: 500px;
             width: 100%;
             padding: 0;
             border-radius: 1rem;
@@ -139,17 +147,6 @@
             z-index: 5;
         }
 
-        /* FIX: Gradient Vertical Bar with no white gap */
-        .register-info-area::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 12px;
-            height: 100%;
-            background: var(--brand-gradient);
-        }
-
         .ulbs-logo {
             max-width: 100%;
             height: auto;
@@ -162,6 +159,8 @@
             font-size: 1.2rem;
             line-height: 1.6;
         }
+
+        .info-small-text { color: #555; font-weight: 600; }
 
         .highlight-text { color: var(--brand-blue); font-weight: 800; }
 
@@ -186,6 +185,9 @@
 <div class="container-fluid p-0 register-container">
 
     <div class="col-lg-9 col-md-8 col-12 register-form-area">
+        <div id="bg-fader"></div>
+        <div class="register-overlay"></div>
+
         <div class="form-box">
 
             <div class="form-box-header">
@@ -240,7 +242,7 @@
                             <input type="tel" class="form-control form-control-lg" id="phoneNumber" name="phoneNumber"
                                    placeholder="Contact Phone Number" required>
                             <span class="input-group-text" data-bs-toggle="tooltip" data-bs-placement="right"
-                                  title="This number is for administrative use and student contact after acceptance; it won't be publicly displayed.">
+                                  title="This number is for administrative use and student contact after acceptance. It won't be publicly displayed.">
                                 <i class="fa-solid fa-circle-question"></i>
                             </span>
                         </div>
@@ -285,15 +287,15 @@
             <img src="images/logo_vert.png" alt="ULBS Logo" class="ulbs-logo">
 
             <h2 class="h5 text-uppercase fw-bold mb-2 ls-2">Partner With</h2>
-            <h1 class="h2 fw-bolder mb-4">CSEE ULBS</h1>
+            <div class="mb-4">
+                <img src="images/cseelogo.png" alt="CSEE Logo" style="max-width: 220px; height: auto;">
+            </div>
 
             <p class="info-lead-text mb-5">
-                <span class="highlight-text">Expand Your Talent Pool.</span><br>
                 Register now to find highly skilled students for your internship positions.
             </p>
 
-            <p class="info-small-text mt-auto small">
-                <span class="highlight-text">CSEE ULBS</span><br>
+            <p class="info-small-text mt-auto small" style="font-size: 12px;">
                 Computer Science and <br>Electrical Engineering<br>
                 Lucian Blaga University of Sibiu
             </p>
@@ -391,5 +393,41 @@
     }
 </script>
 <jsp:include page="../blocks/footer.jsp"/>
+
+<script>
+    (function() {
+        const fader = document.getElementById('bg-fader');
+        const images = [
+            'images/background0.png',
+            'images/background1.png',
+            'images/background4.jpg'
+        ];
+
+        let currentIndex = 0;
+
+        // Preload all images immediately
+        images.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+
+        function changeBackground() {
+            // 1. Start Fade out
+            fader.style.opacity = '0';
+
+            // 2. Wait for the fade duration (1.5s) to swap the image
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % images.length;
+                fader.style.backgroundImage = "url('" + images[currentIndex] + "')";
+
+                // 3. Immediately start Fade in
+                fader.style.opacity = '1';
+            }, 800);
+        }
+
+        // Set the interval
+        setInterval(changeBackground, 7000);
+    })();
+</script>
 </body>
 </html>

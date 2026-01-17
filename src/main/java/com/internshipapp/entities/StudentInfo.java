@@ -45,7 +45,7 @@ public class StudentInfo {
     private StudentStatus status = StudentStatus.Available; // default
     @Column(name = "enrolled")
     private Boolean enrolled = true; // default TRUE
-    @Column(name = "biography", length = 255)
+    @Column(name = "biography", length = 1000)
     private String biography;
     @Column(name = "grade_visibility", nullable = false)
     private boolean gradeVisibility;

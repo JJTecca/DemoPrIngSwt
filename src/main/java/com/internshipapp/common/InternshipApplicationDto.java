@@ -31,6 +31,8 @@ public class InternshipApplicationDto {
     private String studentStatus;
     private Float studyGrade;
     private boolean studyGradeVisibility;
+    private String studentEmail;
+    private String feedback;
     /************************************************
      *        Constructors
      *  - we have more type of constructors
@@ -55,10 +57,10 @@ public class InternshipApplicationDto {
     // Update this constructor in InternshipApplicationDto.java
     public InternshipApplicationDto(Long id, Long internshipPositionId, Long studentId,
                                     String studentName, String studentStatus, String status,
-                                    Float grade, Float studyGrade, boolean studyGradeVisibility,
+                                    Float grade, Float studyGrade, boolean studyGradeVisibility, String studentEmail,
                                     LocalDateTime appliedAt, LocalDateTime interview, String interviewLocation,
                                     boolean chatInitiated, String positionTitle, String companyName,
-                                    Long companyId, String description, String requirements, Date deadline) {
+                                    Long companyId, String description, String requirements, Date deadline, String feedback) {
         this.id = id;
         this.internshipPositionId = internshipPositionId;
         this.studentId = studentId;
@@ -68,6 +70,7 @@ public class InternshipApplicationDto {
         this.grade = grade;
         this.studyGrade = studyGrade;
         this.studyGradeVisibility = studyGradeVisibility;
+        this.studentEmail = studentEmail;
         this.appliedAt = appliedAt;
         this.interview = interview;
         this.interviewLocation = interviewLocation;
@@ -78,6 +81,8 @@ public class InternshipApplicationDto {
         this.description = description;
         this.requirements = requirements;
         this.deadline = deadline;
+        this.feedback = feedback;
+
     }
 
     public InternshipApplicationDto(Long id, Long aLong, Long id1, String string, Float grade, LocalDateTime appliedAt, String posTitle, String compName) {
@@ -254,4 +259,21 @@ public class InternshipApplicationDto {
     public void setChatInitiated(boolean chatInitiated) {
         this.chatInitiated = chatInitiated;
     }
+
+    public String getStudentEmail() {
+        return studentEmail;
+    }
+
+    public void setStudentEmail(String studentEmail) {
+        this.studentEmail = studentEmail;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
+    }
+
 }
