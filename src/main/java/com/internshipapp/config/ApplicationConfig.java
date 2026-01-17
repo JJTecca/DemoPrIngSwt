@@ -19,7 +19,7 @@ public class ApplicationConfig {
 
     private static final Logger LOG = Logger.getLogger(ApplicationConfig.class.getName());
 
-    private static final String CONFIG_FILE = "/application-config.properties";  // Changed!
+    private static final String CONFIG_FILE = "/application-config.properties";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private boolean applicationPeriodEnabled = true;

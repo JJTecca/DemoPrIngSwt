@@ -1,6 +1,5 @@
 package com.internshipapp.config;
 
-import com.internshipapp.config.ApplicationConfig;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
@@ -8,26 +7,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Centralized service for application period validation and status checking.
- * This service provides a single source of truth for period-related business logic.
- */
 @Stateless
 public class ApplicationPeriodService {
 
     @Inject
     private ApplicationConfig applicationConfig;
 
-    /**
-     * Check if applications are currently allowed
-     */
     public boolean canApply() {
         return applicationConfig.isApplicationPeriodActive();
     }
 
-    /**
-     * Get detailed status information for UI display
-     */
     public Map<String, Object> getApplicationPeriodStatus() {
         Map<String, Object> status = new HashMap<>();
 
@@ -61,9 +50,6 @@ public class ApplicationPeriodService {
         return status;
     }
 
-    /**
-     * Get user-friendly error message when applications are closed
-     */
     public String getBlockedApplicationMessage() {
         Map<String, Object> status = getApplicationPeriodStatus();
         String state = (String) status.get("periodState");
@@ -79,9 +65,6 @@ public class ApplicationPeriodService {
         return "Applications are currently closed.";
     }
 
-    /**
-     * Validate and throw exception if application is not allowed
-     */
     public void validateApplicationPeriod() throws IllegalStateException {
         if (!canApply()) {
             throw new IllegalStateException(getBlockedApplicationMessage());
