@@ -373,6 +373,117 @@
             background-color: #f8f9fa;
         }
 
+        /* Targeted Area: View Student Profile Button Style */
+        .btn-view-profile {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+
+            background-color: #ffffff;
+            color: var(--brand-blue);
+            border: 1.5px solid var(--brand-blue);
+            border-radius: 8px; /* Professional squared corners */
+            padding: 0.6rem 1.2rem;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-view-profile i {
+            font-size: 0.9rem;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-view-profile:hover {
+            background-color: #f0f4f8; /* Very light faculty blue tint */
+            color: var(--brand-blue-dark);
+            border-color: var(--brand-blue-dark);
+            box-shadow: 0 4px 12px rgba(14, 43, 88, 0.1);
+        }
+
+        .btn-view-profile:hover i {
+            transform: translateX(3px); /* Subtle directional hint */
+        }
+
+        .grading-header {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 1.25rem;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .grade-input-group {
+            background: #f8fafc;
+            border: 2px solid #eef2f5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .grade-input-group:focus-within {
+            border-color: var(--brand-blue);
+        }
+
+        .grade-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--brand-blue-dark);
+            max-width: 120px;
+            text-align: center;
+            border: none;
+            background: transparent;
+        }
+
+        .grade-number:focus {
+            outline: none;
+        }
+
+        .feedback-area {
+            height: 340px;
+            min-height: 1000px;
+            max-height: 1500px;
+
+            width: 100%;
+            resize: vertical;
+            border: none;
+            font-size: 1rem;
+            line-height: 1.7;
+            padding: 2rem !important;
+            background-color: #fff;
+
+            display: block;
+            overflow-y: auto;
+
+            transition: background-color 0.2s ease;
+        }
+
+        .feedback-area:focus {
+            background-color: #fcfdfe;
+            outline: none;
+        }
+
+        .btn-submit-evaluation {
+            background: var(--brand-gradient);
+            border: none;
+            color: white;
+            padding: 0.8rem 2.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: filter 0.2s ease;
+        }
+
+        .btn-submit-evaluation:hover {
+            filter: brightness(1.1);
+            color: white;
+        }
+
         .status-badge {
             font-size: 0.65rem;
             padding: 0.3em 0.7em;
@@ -577,37 +688,29 @@
 
                         <div class="col-lg-5">
                             <% if (!"Student".equals(role)) { %>
-                            <% if ("Accepted".equals(activeApp.getStatus())) { %>
-                            <div class="bg-light rounded-3 p-3 mb-4 border-start border-success border-4 text-start">
-                                <h6 class="small fw-bold text-uppercase text-muted mb-3" style="letter-spacing: 1px;">
-                                    Interview Details</h6>
-                                <% if (activeApp.getInterview() != null) { %>
-                                <div class="mb-2">
-                                    <i class="fa-regular fa-calendar text-success me-2"></i>
-                                    <span class="fw-bold"><%= activeApp.getInterview().toString().replace("T", " ") %></span>
-                                </div>
-                                <div>
-                                    <i class="fa-solid fa-location-dot text-success me-2"></i>
-                                    <span class="fw-bold"><%= activeApp.getInterviewLocation() %></span>
-                                </div>
-                                <% } else { %>
-                                <p class="text-muted small mb-0 italic">No formal interview was recorded for this
-                                    assignment.</p>
-                                <% } %>
+                            <div class="mb-4">
+                                <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= activeApp.getStudentId() %>"
+                                   class="btn btn-view-profile w-100 shadow-sm">
+                                    <i class="fa-solid fa-user-graduate me-2"></i> View Student Profile
+                                </a>
                             </div>
-                            <div class="card manage-card shadow-sm p-4 text-center border-success">
-                                <div class="mb-3 text-success">
-                                    <i class="fa-solid fa-circle-check fa-3x"></i>
+
+                            <% if (isHired) { %>
+                            <div class="card manage-card shadow-sm border-0 mb-4 overflow-hidden">
+                                <div class="grading-header">
+                                    <h6 class="m-0 fw-bold small text-uppercase"><i class="fa-solid fa-graduation-cap me-2"></i>Final Grade</h6>
                                 </div>
-                                <h5 class="fw-bold">Student Accepted</h5>
-                                <p class="text-muted small">
-                                    This internship has been finalized. You can now coordinate directly via the contact
-                                    information provided in the header.
-                                </p>
-                                <div class="status-badge status-accepted mt-2">Hiring Process Complete</div>
+                                <div class="card-body py-5 text-center">
+                                    <div class="grade-input-group d-inline-flex align-items-center gap-2">
+                                        <input type="number" form="gradingForm" name="grade" step="0.1" min="0" max="10"
+                                               class="grade-number" placeholder="0.0"
+                                               value="<%= activeApp.getGrade() != null ? activeApp.getGrade() : "" %>" required>
+                                        <span class="h3 m-0 text-muted opacity-50">/ 10</span>
+                                    </div>
+                                    <p class="text-muted small mt-2">Enter numeric score for student records.</p>
+                                </div>
                             </div>
                             <% } else if ("Request".equals(activeApp.getStatus())) { %>
-                            <%-- Blocked Message for Applications in 'Request' phase --%>
                             <div class="card manage-card shadow-sm p-4 text-center border-warning">
                                 <div class="mb-3 text-warning">
                                     <i class="fa-solid fa-hourglass-half fa-3x"></i>
@@ -689,6 +792,30 @@
                             <% } %>
                         </div>
                     </div>
+                    <% if (!"Student".equals(role) && isHired) { %>
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <form action="InternshipApplications" method="POST" id="gradingForm">
+                                <input type="hidden" name="action" value="gradeInternship">
+                                <input type="hidden" name="id" value="<%= activeApp.getId() %>">
+                                <%-- Grade input is handled by the form="gradingForm" attribute in the sidebar code above --%>
+
+                                <div class="feedback-container shadow-sm overflow-hidden mb-4">
+                                    <div class="grading-header">
+                                        <h6 class="m-0 fw-bold small text-uppercase"><i class="fa-solid fa-comment-medical me-2"></i>QUALITATIVE EVALUATION & REMARKS</h6>
+                                    </div>
+                                    <textarea name="feedback" class="form-control feedback-area p-4"
+                                              placeholder="Provide detailed remarks on performance and growth..."><%= activeApp.getFeedback() != null ? activeApp.getFeedback() : "" %></textarea>
+                                    <div class="p-3 bg-light border-top text-center">
+                                        <button type="submit" class="btn btn-submit-evaluation">
+                                            <i class="fa-solid fa-cloud-arrow-up me-2"></i> Finalize Evaluation & Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
             </div>
             <% } %>

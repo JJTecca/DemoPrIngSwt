@@ -40,7 +40,7 @@
     // 4. Study Year (10%)
     if (student.getStudyYear() != null) completenessValue += standardScore;
     // 5. Last Year Grade (10%)
-    if (student.getLastYearGrade() != null) completenessValue += standardScore;
+    if (student.getBiography() != null && !Objects.equals(student.getBiography(), "")) completenessValue += standardScore;
     // 6. Profile Picture Uploaded (10%)
     if (student.hasProfilePic()) completenessValue += standardScore;
 
@@ -169,11 +169,11 @@
         }
 
         .custom-card .card-header {
-            background-color: white;
+            background: white;
             border-bottom: 1px solid #eee;
             padding: 1.2rem;
             font-weight: 700;
-            color: var(--brand-blue);
+            color: #0E2B58;
         }
 
         .info-list-item {
@@ -198,7 +198,6 @@
             text-align: right;
         }
 
-        /* --- Refined Professional Badges --- */
         .badge-soft-primary {
             background-color: #e8effe;
             color: #0d6efd;
@@ -272,57 +271,56 @@
         }
 
         .status-badge {
-            font-size: 0.72rem;
-            padding: 0.4em 0.9em;
-            border-radius: 50px;
-            font-weight: 800;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.68rem;
+            padding: 0.45em 1em;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-            border-width: 1px;
-            border-style: solid;
+            display: inline-flex;
+            align-items: center;
+            border-width: 1.5px;
         }
 
         .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
+            background-color: #fefaf2;
+            color: #966e1e;
+            border-color: #f9ebcd;
         }
 
         .status-accepted {
-            background-color: #d1e7dd;
-            color: #0f5132;
-            border: 1px solid #badbcc;
+            background-color: #e3f7ea;
+            color: #2b6e44;
+            border-color: #c6e6d1;
         }
 
         .status-rejected {
-            background-color: #f8d7da;
-            color: #842029;
-            border: 1px solid #f5c2c7;
+            background-color: #fee2e2;
+            color: #a33b3b;
+            border-color: #fecaca;
         }
 
         .status-interview {
-            background-color: #cff4fc;
-            color: #055160;
-            border: 1px solid #b6effb;
+            background-color: #e0f2fe;
+            color: #2c5282;
+            border-color: #bae6fd;
         }
 
-        /* NEW: Discussion - Deep Purple */
         .status-discussion {
-            background-color: #f3e5f5;
-            color: #6a1b9a;
-            border: 1px solid #e1bee7;
+            background-color: #f3e8ff;
+            color: #553c9a;
+            border-color: #e9d5ff;
         }
 
-        /* NEW: Request - Indigo/Violet */
         .status-request {
-            background-color: #e8eaf6;
-            color: #283593;
-            border: 1px solid #c5cae9;
+            background-color: #f1f5f9;
+            color: #4a5568;
+            border-color: #cbd5e1;
         }
 
         .btn-accept-request {
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-dark) 100%);
             color: white !important;
             border: none;
             padding: 0.8rem 1.5rem;
@@ -331,7 +329,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+            box-shadow: 0 4px 12px rgba(14, 43, 88, 0.2);
         }
 
         .btn-accept-request:hover {
@@ -360,12 +358,11 @@
         .request-footer-container {
             padding: 1.25rem;
             width: 100%;
-            background-color: #f8f9fa; /* Light gray to distinguish the action area */
+            background-color: #f8f9fa;
             border-top: 1px solid #dee2e6;
             border-radius: 0 0 8px 8px;
         }
 
-        /* Ensure the form doesn't add extra margin */
         .request-footer-container form {
             margin: 0;
         }
@@ -394,11 +391,10 @@
         }
 
         .applications-scroll-container {
-            max-height: 400px; /* Adjust this value to your liking */
+            max-height: 400px;
             overflow-y: auto;
         }
 
-        /* Custom scrollbar for the table (matching the activity sidebar) */
         .applications-scroll-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -413,7 +409,6 @@
             border-radius: 4px;
         }
 
-        /* Upgrade the "Eye" button to Faculty Style */
         .btn-manage-eye {
             background-color: #f8f9fa;
             color: var(--brand-blue);
@@ -434,7 +429,6 @@
             box-shadow: 0 4px 8px rgba(14, 43, 88, 0.2);
         }
 
-        /* Modal Company Header Styling */
         .modal-company-banner {
             background-color: #f8f9fa;
             border-bottom: 1px solid #eee;
@@ -454,9 +448,8 @@
             margin-bottom: 1rem;
         }
 
-        /* --- Requested Application High-Priority Styling --- */
         .bg-requested-highlight {
-            background-color: #fdf2f2 !important; /* Very light red/indigo tint */
+            background-color: #fdf2f2 !important;
             border-left: 4px solid #dc3545 !important;
         }
 
@@ -479,6 +472,67 @@
             transform: scale(1.1);
         }
 
+        .badge-soft-primary, .badge-soft-success, .badge-soft-danger {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.68rem;
+            padding: 0.45em 0.9em;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .badge-soft-primary {
+            background-color: #f8fafc;
+            color: #475569;
+            border-color: #e2e8f0;
+        }
+
+        .badge-soft-success {
+            background-color: #f1fcf5;
+            color: #2b6e44;
+            border-color: #d3f3df;
+        }
+
+        .badge-soft-danger {
+            background-color: #fffafa;
+            color: #a33b3b;
+            border-color: #fbe2e2;
+        }
+
+        .modal-requested-header {
+            /* Transitions from ULBS Crimson to Brand Navy Blue */
+            background: linear-gradient(135deg, var(--ulbs-red) 0%, var(--brand-blue) 100%);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            display: flex;
+            flex-direction: column; /* Stack logo and badge vertically */
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 -15px 30px rgba(0,0,0,0.1); /* Subtle depth */
+        }
+
+        /* Add a floating "Action Required" badge inside the header for importance */
+        .modal-requested-header::after {
+            content: "INTERVIEW REQUEST";
+            position: absolute;
+            bottom: -12px;
+            background: #fff;
+            color: var(--ulbs-red);
+            padding: 4px 15px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+
         @keyframes pulse-red {
             0% {
                 box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
@@ -489,18 +543,6 @@
             100% {
                 box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
             }
-        }
-
-        .modal-requested-header {
-            background: linear-gradient(135deg, #dc3545 0%, #283593 100%);
-            color: white;
-            padding: 3rem 1rem; /* Increased padding for better centering */
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
 
         /* Specific styling for the company logo when it's inside the red/indigo header */
@@ -662,11 +704,11 @@
                                         <span class="info-label">CV Uploaded</span>
                                         <% if (student.hasCv()) { %>
                                         <span class="badge badge-soft-success rounded-pill">
-                                           <i class="fa-solid fa-circle-check me-1"></i>Uploaded
+                                           Uploaded
                                         </span>
                                         <% } else { %>
                                         <span class="badge badge-soft-danger rounded-pill">
-                                           <i class="fa-solid fa-circle-xmark me-1"></i>Missing
+                                           Missing
                                         </span>
                                         <% } %>
                                     </div>

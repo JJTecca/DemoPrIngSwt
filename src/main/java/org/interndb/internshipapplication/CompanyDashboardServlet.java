@@ -2,6 +2,7 @@ package org.interndb.internshipapplication;
 
 import com.internshipapp.common.*;
 import com.internshipapp.ejb.*;
+import com.internshipapp.entities.InternshipApplication;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -93,12 +94,19 @@ public class CompanyDashboardServlet extends HttpServlet {
             // You need to implement this in InternshipApplicationBean: findApplicationsByCompanyId(Long companyId)
             // This method must join Application -> Position -> Company to filter correctly
             List<InternshipApplicationDto> applications = applicationBean.findApplicationsByCompanyId(companyDto.getId());
+            Long activeChats = 0L;
+            for (InternshipApplicationDto app : applications){
+                if (app.isChatInitiated() && (app.getStatus().equals("Discussion") || app.getStatus().equals("Interview"))){
+                    activeChats++;
+                }
+            }
 
             // 4. Set Attributes for JSP
             request.setAttribute("userAccount", userDto);
             request.setAttribute("company", companyDto);
             request.setAttribute("activities", activities);
             request.setAttribute("myPositions", myPositions);
+            request.setAttribute("activeChats", activeChats);
             request.setAttribute("applications", applications);
 
             // 5. Forward to JSP
@@ -113,6 +121,35 @@ public class CompanyDashboardServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doGet(request, response);
+        HttpSession session = request.getSession(false);
+        if (checkAuth(request, response, session)) { return; }
+
+        String email = (String) session.getAttribute("userEmail");
+        String phoneNumber = request.getParameter("phoneNumber");
+
+        // 2. Logic: If a phone number was submitted via the modal
+        if (phoneNumber != null) {
+            // Strict Romanian Validation: 02, 03, or 07 followed by 8 digits
+            if (phoneNumber.matches("^(02|03|07)\\d{8}$")) {
+                CompanyInfoDto company = companyDtoInfoBean.findByUserEmail(email);
+
+                if (company != null) {
+                    // Call the monolith update method, keeping all other fields as they are
+                    companyDtoInfoBean.updateCompany(
+                            company.getId(),
+                            company.getName(),
+                            company.getShortName(),
+                            company.getWebsite(),
+                            company.getCompDescription(),
+                            company.getOpenedPositions(),
+                            company.getStudentsApplied(),
+                            company.getBiography(),
+                            company.getContactEmail(),
+                            phoneNumber // The only new value
+                    );
+                }
+            }
+        }
+        response.sendRedirect(request.getContextPath() + "/CompanyDashboard");
     }
 }

@@ -272,6 +272,12 @@
             margin-bottom: 0.5rem;
         }
 
+        .bio-content {
+            max-height: 150px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
         /* Darken slightly on hover for visual feedback */
         .editable-section:hover {
             background-color: #f1f3f5;
@@ -292,7 +298,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease-in-out;
             cursor: pointer;
             z-index: 5;
@@ -317,9 +323,23 @@
             display: inline-block;
         }
 
-        .pos-status-pending { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-        .pos-status-open { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
-        .pos-status-closed { background-color: #e2e3e5; color: #41464b; border: 1px solid #d3d3d4; }
+        .pos-status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .pos-status-open {
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border: 1px solid #badbcc;
+        }
+
+        .pos-status-closed {
+            background-color: #e2e3e5;
+            color: #41464b;
+            border: 1px solid #d3d3d4;
+        }
 
         /* Sidebar Capacity Badge - Identical to Panel logic */
         .capacity-badge-sidebar {
@@ -356,10 +376,10 @@
         }
 
         .shortname-badge {
-            background-color: #eef2ff; /* Very soft indigo */
-            color: #4338ca; /* Deep indigo text */
+            background-color: #eef2ff;
+            color: #0E2B58;
             border: 1px solid #c7d2fe;
-            border-left: 4px solid #4338ca; /* Accent bar */
+            border-left: 4px solid #0E2B58; /* Accent bar */
             padding: 0.5rem 1rem;
             font-weight: 800;
             font-size: 0.8rem;
@@ -368,12 +388,12 @@
             border-radius: 6px;
             display: inline-flex;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         }
 
         /* Matching the pen button color to the badge theme */
         .btn-edit-inline {
-            color: #4338ca;
+            color: #0E2B58;
             transition: transform 0.2s ease;
             text-decoration: none;
         }
@@ -447,7 +467,16 @@
 
                         <div class="text-start mb-4 editable-section">
                             <h6 class="text-uppercase text-muted small fw-bold mb-2">Biography</h6>
-                            <div class="text-dark small"><%= company.getBiography() != null ? company.getBiography() : "No biography provided." %></div>
+                            <div class="text-dark small bio-content">
+                                <%
+                                    String bio = company.getBiography();
+                                    if (bio == null || bio.trim().isEmpty()) {
+                                %>
+                                <span class="text-muted italic">No biography provided.</span>
+                                <% } else { %>
+                                <%= bio %>
+                                <% } %>
+                            </div>
                             <% if (isOwner) { %>
                             <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editBioModal">
                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -471,39 +500,72 @@
                         <h5 class="fw-bold mb-4 text-primary"><i
                                 class="<%= isFaculty ? "fa-solid fa-building-columns" : "fa-solid fa-globe" %> me-2"></i> <%= deptLabel %>
                             Info</h5>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="editable-section">
+                        <div class="row g-3">
+                            <% String colWidth = isFaculty ? "col-md-4" : "col-md-6"; %>
+                            <div class="<%=colWidth %>">
+                                <div class="editable-section h-100">
                                     <div class="info-label">Contact Email</div>
-                                    <div class="info-value"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "N/A" %></div>
-                                    <% if (isOwner) { %>
-                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editContactEmailModal">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <% } %>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="editable-section">
-                                    <div class="info-label">Website</div>
-                                    <div class="info-value">
-                                        <a href="<%= company.getWebsite() %>" target="_blank"><%= company.getWebsite() != null ? company.getWebsite() : "N/A" %></a>
+                                    <div class="info-value text-truncate"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "N/A" %>
                                     </div>
                                     <% if (isOwner) { %>
-                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editWebsiteModal">
+                                    <button class="btn-edit-floating" data-bs-toggle="modal"
+                                            data-bs-target="#editContactEmailModal">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <% } %>
                                 </div>
                             </div>
 
-                            <div class="col-md-12">
-                                <div class="editable-section">
-                                    <div class="info-label"><%= deptLabel %> Description</div>
-                                    <div class="info-value"><%= company.getCompDescription() != null ? company.getCompDescription() : "No description set." %></div>
+                            <% if (isFaculty) { %>
+                            <div class="col-md-4">
+                                <div class="editable-section h-100">
+                                    <div class="info-label">Phone Number</div>
+                                    <div class="info-value">
+                                        <%= (company.getPhoneNumber() != null && !company.getPhoneNumber().isEmpty()) ? company.getPhoneNumber() : "N/A" %>
+                                    </div>
                                     <% if (isOwner) { %>
-                                    <button class="btn-edit-floating" data-bs-toggle="modal" data-bs-target="#editDescModal">
+                                    <button class="btn-edit-floating" data-bs-toggle="modal"
+                                            data-bs-target="#editPhoneModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
+                                </div>
+                            </div>
+                            <% } %>
+
+                            <div class="<%=colWidth %>">
+                                <div class="editable-section h-100">
+                                    <div class="info-label">Website</div>
+                                    <div class="info-value text-truncate">
+                                        <a href="<%= company.getWebsite() %>"
+                                           target="_blank"><%= company.getWebsite() != null ? company.getWebsite() : "N/A" %>
+                                        </a>
+                                    </div>
+                                    <% if (isOwner) { %>
+                                    <button class="btn-edit-floating" data-bs-toggle="modal"
+                                            data-bs-target="#editWebsiteModal">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="editable-section">
+                                    <div class="info-label text-truncate"><%= deptLabel %> Description</div>
+                                    <div class="info-value">
+                                        <%
+                                            String desc = company.getCompDescription();
+                                            if (desc == null || desc.trim().isEmpty()) {
+                                        %>
+                                        <span class="text-muted small italic">No description set.</span>
+                                        <% } else { %>
+                                        <%= desc %>
+                                        <% } %>
+                                    </div>
+                                    <% if (isOwner) { %>
+                                    <button class="btn-edit-floating" data-bs-toggle="modal"
+                                            data-bs-target="#editDescModal">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <% } %>
@@ -524,7 +586,8 @@
                             <% } %>
                         </div>
 
-                        <div class="positions-scroll-wrapper" style="max-height: 500px; overflow-y: auto; overflow-x: hidden;">
+                        <div class="positions-scroll-wrapper"
+                             style="max-height: 500px; overflow-y: auto; overflow-x: hidden;">
                             <div class="list-group list-group-flush">
                                 <% if (myPositions != null && !myPositions.isEmpty()) { %>
                                 <% for (InternshipPositionDto pos : myPositions) {
@@ -545,7 +608,8 @@
                                 <div class="position-list-item d-flex justify-content-between align-items-center">
                                     <div>
                                         <div class="d-flex align-items-center gap-2 mb-1">
-                                            <div class="fw-bold"><%= pos.getTitle() %></div>
+                                            <div class="fw-bold"><%= pos.getTitle() %>
+                                            </div>
                                             <%-- Logic applied: Adding the badge to the list --%>
                                             <span class="pos-status-badge <%= badgeClass %>">
                                                <%= status %>
@@ -560,7 +624,8 @@
                                             <span class="capacity-badge-sidebar <%= isFull ? "capacity-full-sidebar" : "" %>">
                                                <%= pos.getAcceptedCount() %>/<%= pos.getMaxSpots() %>
                                             </span>
-                                            <button class="btn-manage-eye" data-bs-toggle="modal" data-bs-target="#applyModal<%= pos.getId() %>">
+                                            <button class="btn-manage-eye" data-bs-toggle="modal"
+                                                    data-bs-target="#applyModal<%= pos.getId() %>">
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
                                         </div>
@@ -568,30 +633,39 @@
                                 </div>
 
                                 <%-- MODAL: Updated with Status Header --%>
-                                <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
+                                <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1"
+                                     aria-hidden="true">
                                     <div class="modal-dialog modal-lg modal-dialog-scrollable">
                                         <div class="modal-content border-0 shadow-lg">
                                             <div class="modal-header border-0 pb-0">
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                <button type="button" class="btn-close"
+                                                        data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body p-5 pt-0">
                                                 <div class="text-center mb-4">
                                                     <%-- Status badge inside modal --%>
                                                     <div class="mb-2">
-                                    <span class="pos-status-badge <%= badgeClass %>" style="font-size: 0.75rem; padding: 4px 12px;">
+                                    <span class="pos-status-badge <%= badgeClass %>"
+                                          style="font-size: 0.75rem; padding: 4px 12px;">
                                         <%= status %> Status
                                     </span>
                                                     </div>
-                                                    <h3 class="fw-bold"><%= pos.getTitle() %></h3>
-                                                    <p class="text-muted"><%= company.getName() %></p>
+                                                    <h3 class="fw-bold"><%= pos.getTitle() %>
+                                                    </h3>
+                                                    <p class="text-muted"><%= company.getName() %>
+                                                    </p>
                                                 </div>
 
                                                 <div class="row">
                                                     <div class="<%= isOwner ? "col-md-7" : "col-12" %>">
-                                                        <h6 class="fw-bold text-uppercase text-muted small">Description</h6>
-                                                        <p class="small text-secondary"><%= pos.getDescription() %></p>
-                                                        <h6 class="fw-bold text-uppercase text-muted small mt-4">Requirements</h6>
-                                                        <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %></p>
+                                                        <h6 class="fw-bold text-uppercase text-muted small">
+                                                            Description</h6>
+                                                        <p class="small text-secondary"><%= pos.getDescription() %>
+                                                        </p>
+                                                        <h6 class="fw-bold text-uppercase text-muted small mt-4">
+                                                            Requirements</h6>
+                                                        <p class="small text-secondary"><%= pos.getRequirements() != null ? pos.getRequirements() : "No specific requirements." %>
+                                                        </p>
                                                     </div>
 
                                                     <% if (isOwner) { %>
@@ -611,12 +685,15 @@
                                                                        class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                                         <%= app.getStudentName() %>
                                                                     </a>
-                                                                    <span class="badge bg-light text-dark x-small" style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                    <span class="badge bg-light text-dark x-small"
+                                                                          style="font-size: 0.65rem;"><%= app.getStatus() %></span>
                                                                 </div>
                                                             </div>
                                                             <% } %>
                                                             <% } else { %>
-                                                            <div class="text-center py-4 text-muted small">No applications yet.</div>
+                                                            <div class="text-center py-4 text-muted small">No
+                                                                applications yet.
+                                                            </div>
                                                             <% } %>
                                                         </div>
                                                     </div>
@@ -644,12 +721,14 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 justify-content-center pb-4">
-                                                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-light px-4"
+                                                        data-bs-dismiss="modal">Close
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <%      } // End Visibility If
+                                <% } // End Visibility If
                                 } // End For Loop
                                 } else { %>
                                 <div class="p-4 text-center text-muted small">No positions posted yet.</div>
@@ -710,14 +789,16 @@
 <div class="modal fade" id="editBioModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Biography</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Edit Biography</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST"><input type="hidden"
-                                                                                                  name="action"
-                                                                                                  value="update_biography">
-                <div class="modal-body"><textarea name="biography" class="form-control" rows="5"
-                                                  maxlength="255"><%= company.getBiography() %></textarea></div>
+            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST">
+                <input type="hidden" name="action" value="update_biography">
+                <div class="modal-body">
+                    <textarea name="biography" class="form-control" rows="8" maxlength="2000"
+                              placeholder="Tell us about your <%= mainLabel.toLowerCase() %>..."><%= company.getBiography() != null ? company.getBiography() : "" %></textarea>
+                </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-brand">Save</button>
                 </div>
@@ -748,14 +829,17 @@
 <div class="modal fade" id="editDescModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit <%= deptLabel %> Description</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Edit <%= deptLabel %> Description</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST"><input type="hidden"
-                                                                                                  name="action"
-                                                                                                  value="update_description">
-                <div class="modal-body"><input type="text" name="compDescription" class="form-control" maxlength="100"
-                                               value="<%= company.getCompDescription() %>" required></div>
+            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST">
+                <input type="hidden" name="action" value="update_description">
+                <div class="modal-body">
+                    <input type="text" name="compDescription" class="form-control" maxlength="50"
+                           placeholder="Short tagline (max 50 chars)"
+                           value="<%= company.getCompDescription() != null ? company.getCompDescription() : "" %>">
+                </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-brand">Save</button>
                 </div>
@@ -795,6 +879,27 @@
                         required></div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-brand">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editPhoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Phone</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="${pageContext.request.contextPath}/CompanyProfile" method="POST">
+                <input type="hidden" name="action" value="update_phone">
+                <div class="modal-body">
+                    <input type="text" name="phoneNumber" class="form-control" pattern="^(02|03|07)\d{8}$"
+                           placeholder="07xxxxxxxx"
+                           value="<%= company.getPhoneNumber() != null ? company.getPhoneNumber() : "" %>" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-brand">Save</button>
                 </div>
             </form>
         </div>

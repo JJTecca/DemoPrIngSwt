@@ -39,7 +39,6 @@ public class InternshipApplicationBean {
         List<InternshipApplicationDto> dtos = new ArrayList<>();
 
         for (InternshipApplication app : applications) {
-            // Default values to avoid NullPointerExceptions
             String posTitle = "Unknown Position";
             String compName = "Unknown Company";
             Long compId = null;
@@ -47,22 +46,18 @@ public class InternshipApplicationBean {
             String requirements = "No requirements specified.";
             Date deadline = null;
 
-            // 1. Get the Position Entity
             InternshipPosition pos = app.getInternshipPosition();
 
             if (pos != null) {
-                // 2. Get Basic Details
                 if (pos.getTitle() != null) {
                     posTitle = pos.getTitle();
                 }
 
-                // 3. Get Company Name
                 if (pos.getCompany() != null && pos.getCompany().getName() != null) {
                     compId = pos.getCompany().getId();
                     compName = pos.getCompany().getName();
                 }
 
-                // 4. Get Extended Details for Popup (NEW LOGIC)
                 if (pos.getDescription() != null) {
                     description = pos.getDescription();
                 }
@@ -76,14 +71,12 @@ public class InternshipApplicationBean {
 
             String studentEmail = "N/A";
             if (app.getStudent() != null) {
-                // Use your existing helper method
                 UserAccount ua = getUserAccountByStudentId(app.getStudent().getId());
                 if (ua != null) {
                     studentEmail = ua.getEmail();
                 }
             }
 
-            // 5. Create DTO using the NEW 12-parameter constructor
             InternshipApplicationDto dto = new InternshipApplicationDto(
                     app.getId(),
                     pos != null ? pos.getId() : null,
@@ -104,7 +97,8 @@ public class InternshipApplicationBean {
                     compId,
                     description,
                     requirements,
-                    deadline
+                    deadline,
+                    app.getFeedback()
             );
             dtos.add(dto);
         }
@@ -113,7 +107,6 @@ public class InternshipApplicationBean {
 
     public List<InternshipApplicationDto> findApplicationsByCompanyId(Long companyId) {
         try {
-            // 1. Fetch the Entities with JOIN FETCH
             TypedQuery<InternshipApplication> query = entityManager.createQuery(
                     "SELECT a FROM InternshipApplication a " +
                             "JOIN FETCH a.student " +
@@ -125,8 +118,6 @@ public class InternshipApplicationBean {
             query.setParameter("companyId", companyId);
             List<InternshipApplication> entities = query.getResultList();
 
-            // 2. CRITICAL CHANGE: Use the helper method!
-            // This method contains the line: app.getStudent().getLastYearGrade()
             return copyApplicationsToDto(entities);
 
         } catch (Exception e) {
