@@ -5,6 +5,7 @@ import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.InternshipApplicationBean;
 import com.internshipapp.ejb.UserAccountBean;
+import com.internshipapp.config.ApplicationPeriodService;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,9 @@ public class ApplyForInternshipServlet extends HttpServlet {
 
     @Inject
     private AccountActivityBean activityBean;
+
+    @Inject
+    private ApplicationPeriodService applicationPeriodService;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -45,6 +49,8 @@ public class ApplyForInternshipServlet extends HttpServlet {
         }
 
         try {
+            applicationPeriodService.validateApplicationPeriod();
+
             // 2. Get Data
             String posIdStr = request.getParameter("positionId");
             if (posIdStr == null || posIdStr.isEmpty()) {
@@ -53,7 +59,6 @@ public class ApplyForInternshipServlet extends HttpServlet {
             }
             Long positionId = Long.parseLong(posIdStr);
 
-            // Get the Student ID and User Account linked to this email
             StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
             UserAccountDto user = userAccountBean.findByEmail(email);
 
@@ -75,8 +80,16 @@ public class ApplyForInternshipServlet extends HttpServlet {
             }
 
         } catch (IllegalStateException e) {
-            // Handle case where they already applied (Duplicate)
-            response.sendRedirect(request.getContextPath() + "/InternshipPositions?error=already_applied");
+            String errorMessage = e.getMessage();
+            if (errorMessage.contains("already applied")) {
+                response.sendRedirect(request.getContextPath() + "/InternshipPositions?error=already_applied");
+            } else if (errorMessage.contains("Applications") || errorMessage.contains("period")) {
+                // Period-related error
+                response.sendRedirect(request.getContextPath() + "/InternshipPositions?error=period_closed");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/InternshipPositions?error=" +
+                        java.net.URLEncoder.encode(errorMessage, "UTF-8"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Application failed.");

@@ -1,9 +1,11 @@
 package com.internshipapp.ejb;
 
 import com.internshipapp.common.InternshipApplicationDto;
+import com.internshipapp.config.ApplicationConfig;
 import com.internshipapp.entities.*;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -29,6 +31,9 @@ public class InternshipApplicationBean {
 
     @PersistenceContext
     EntityManager entityManager;
+
+    @Inject
+    private ApplicationConfig applicationConfig;
 
     /*******************************************************
      *  Implement conversion methods between entities and DTOs
@@ -170,6 +175,13 @@ public class InternshipApplicationBean {
     }
 
     public String createApplication(Long studentId, Long positionId) throws Exception {
+        if (!applicationConfig.isApplicationPeriodActive()) {
+            throw new IllegalStateException(
+                    "Applications are currently closed. " +
+                            applicationConfig.getApplicationPeriodStatus()
+            );
+        }
+
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
         InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
 

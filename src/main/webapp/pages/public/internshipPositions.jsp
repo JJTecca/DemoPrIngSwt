@@ -14,6 +14,10 @@
     Long sessionCompanyId = (Long) session.getAttribute("companyId");
 
     String globalStudentStatus = (String) session.getAttribute("studentStatus");
+    Map<String, Object> applicationPeriod = (Map<String, Object>) request.getAttribute("applicationPeriod");
+    boolean canApply = (applicationPeriod != null && (Boolean) applicationPeriod.get("canApply"));
+    String periodState = applicationPeriod != null ? (String) applicationPeriod.get("periodState") : "ACTIVE";
+    String statusMessage = applicationPeriod != null ? (String) applicationPeriod.get("statusMessage") : "";
     boolean isAvailableGlobally = !"Available".equalsIgnoreCase(globalStudentStatus);
 
     // Safety check for stats
@@ -280,6 +284,27 @@
             color: #41464b;
             border: 1px solid #d3d3d4;
         }
+
+        .period-banner {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+        }
+
+        .period-banner.period-before {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+
+        .btn-period-closed {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
     </style>
 </head>
 <body>
@@ -300,10 +325,25 @@
         <% } %>
 
         <div class="col-md-9 col-lg-10 main-content">
-            <% if (error != null || "already_applied".equals(request.getParameter("error"))) { %>
+            <% if ("Student".equals(sessionRole) && !canApply) { %>
+            <div class="period-banner period-<%= periodState.toLowerCase() %> d-flex align-items-center">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">Application Period Closed</h6>
+                    <small><%= statusMessage %></small>
+                </div>
+            </div>
+            <% } %>
+            <% if (error != null || "already_applied".equals(request.getParameter("error")) || "period_closed".equals(request.getParameter("error"))) { %>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                <%= "already_applied".equals(request.getParameter("error")) ? "You have already applied for this position." : error %>
+                <% if ("already_applied".equals(request.getParameter("error"))) { %>
+                You have already applied for this position.
+                <% } else if ("period_closed".equals(request.getParameter("error"))) { %>
+                Applications are currently closed. <%= statusMessage %>
+                <% } else { %>
+                <%= error %>
+                <% } %>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <% } %>
@@ -427,7 +467,12 @@
                                 </small>
                             </div>
                             <% if ("Student".equals(sessionRole)) { %>
-                            <% if (pos.isAlreadyApplied()) { %>
+                            <% if (!canApply) { %>
+                            <button class="btn btn-period-closed btn-sm px-4 rounded-pill" disabled
+                                    title="<%= statusMessage %>">
+                                <i class="fa-solid fa-calendar-xmark me-1"></i> Period Closed
+                            </button>
+                            <% } else if (pos.isAlreadyApplied()) { %>
                             <button class="btn btn-applied btn-sm px-4 rounded-pill" disabled>
                                 <i class="fa-solid fa-check me-1"></i> Already Applied
                             </button>
@@ -440,7 +485,7 @@
                                     data-bs-target="#applyModal<%= pos.getId() %>">Apply Now
                             </button>
                             <% } %>
-                            <% } else { %>
+                        <% } else { %>
                             <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill" data-bs-toggle="modal"
                                     data-bs-target="#applyModal<%= pos.getId() %>">View Details
                             </button>
@@ -531,25 +576,32 @@
                                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
 
                                 <% if ("Student".equals(sessionRole)) {%>
-                                <%-- 1. Master Lock (Business Rule No2): Student is already hired --%>
-                                <% if (isAvailableGlobally) { %>
+                                <%-- UPDATED: Added Period Check as FIRST Priority --%>
+                                <% if (!canApply) { %>
+                                <button class="btn btn-period-closed px-5" disabled
+                                        title="<%= statusMessage %>">
+                                    <i class="fa-solid fa-calendar-xmark me-2"></i> Applications Closed
+                                </button>
+                                
+                                <%-- 2. Master Lock: Student is already hired --%>
+                                <% } else if (isAvailableGlobally) { %>
                                 <button class="btn btn-secondary px-5 opacity-75" disabled style="cursor: not-allowed;">
                                     <i class="fa-solid fa-ban me-2"></i> Selection Locked (Hired)
                                 </button>
 
-                                <%-- 2. Position Status Check: Position is closed --%>
+                                <%-- 3. Position Status Check: Position is closed --%>
                                 <% } else if ("Closed".equalsIgnoreCase(modalStatus)) { %>
                                 <button class="btn btn-secondary px-5 opacity-50" disabled style="cursor: not-allowed;">
                                     <i class="fa-solid fa-lock me-2"></i> Position Closed
                                 </button>
 
-                                <%-- 3. Application History Check: Already applied to this specific position --%>
+                                <%-- 4. Application History Check: Already applied to this specific position --%>
                                 <% } else if (pos.isAlreadyApplied()) { %>
                                 <button class="btn btn-applied px-5" disabled>
                                     <i class="fa-solid fa-check me-2"></i> Application Sent
                                 </button>
 
-                                <%-- 4. Final Action: Position is open, Student is available, and no existing application --%>
+                                <%-- 5. Final Action: Everything is good, allow application --%>
                                 <% } else { %>
                                 <form action="ApplyForInternship" method="POST">
                                     <input type="hidden" name="positionId" value="<%= pos.getId() %>">
@@ -558,7 +610,7 @@
                                     </button>
                                 </form>
                                 <% } %>
-                                <% } %>
+                            <% } %>
                             </div>
                         </div>
                     </div>
