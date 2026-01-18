@@ -116,6 +116,13 @@ public class StudentInfoBean {
         }
     }
 
+    public StudentInfoDto findStudentByAppId(Long studentId) {
+        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+        if (student == null) return null;
+
+        return copyStudentToDto(student);
+    }
+
     public StudentInfoDto findById(Long studentId) {
         LOG.info("findById: " + studentId);
         try {

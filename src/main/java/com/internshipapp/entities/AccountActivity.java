@@ -42,7 +42,8 @@ public class AccountActivity {
         UpdateShortName,
         UpdateContactEmail,
         PostPosition,
-        UpdatePhoneNumber
+        UpdatePhoneNumber,
+        GradeInternship
     }
 
     @Enumerated(EnumType.STRING)

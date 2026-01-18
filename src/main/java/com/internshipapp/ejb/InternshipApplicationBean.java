@@ -295,7 +295,12 @@ public class InternshipApplicationBean {
                 }
             }
 
-            // 6. LOGIC: Moving to "Accepted"
+            // 6. ILLEGAL SCENARIO: Restoring from Rejected
+            if (app.getStatus() == InternshipApplication.ApplicationStatus.Rejected) {
+                throw new IllegalStateException("Cannot restore application: Student is already rejected for this position.");
+            }
+
+            // 7. LOGIC: Moving to "Accepted"
             if (targetStatus == InternshipApplication.ApplicationStatus.Accepted &&
                     app.getStatus() != InternshipApplication.ApplicationStatus.Accepted) {
 
@@ -353,18 +358,30 @@ public class InternshipApplicationBean {
                 entityManager.merge(student);
             }
 
-            // the company can use the "Initial Message" flow again to move back to Discussion.
-            if (targetStatus == InternshipApplication.ApplicationStatus.Rejected) {
-                app.setChatInitiated(false);
-                LOG.info("Chat reset for Application ID: " + appId + " due to Rejection.");
-            }
-
             app.setStatus(targetStatus);
             entityManager.merge(app);
 
         } catch (Exception e) {
             LOG.severe("Update failed: " + e.getMessage());
             throw new EJBException(e.getMessage());
+        }
+    }
+
+    public void submitFinalEvaluation(Long appId, Float grade, String feedback, Long studentId) {
+        InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
+
+        if (app != null) {
+            app.setGrade(grade);
+            app.setFeedback(feedback);
+            entityManager.merge(app);
+
+            if (studentId != null) {
+                StudentInfo student = entityManager.find(StudentInfo.class, studentId);
+                if (student != null) {
+                    student.setStatus(StudentInfo.StudentStatus.Completed);
+                    entityManager.merge(student);
+                }
+            }
         }
     }
 

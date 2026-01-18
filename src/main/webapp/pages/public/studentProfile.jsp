@@ -143,8 +143,6 @@
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
-            border-width: 1px;
-            border-style: solid;
             display: inline-flex;
             align-items: center;
         }

@@ -123,6 +123,9 @@
             else if (rawAction.contains("Update") || rawAction.contains("Edit")) {
                 iconClass = "fa-solid fa-pen-nib text-primary";
             }
+            else if (rawAction.contains("Grade")) {
+                iconClass = "fa-solid fa-graduation-cap text-success";
+            }
         %>
         <div class="activity-row">
             <div class="activity-icon-wrapper">
