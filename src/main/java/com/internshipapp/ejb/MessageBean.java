@@ -24,15 +24,18 @@ public class MessageBean {
 
         for (Message m : messages) {
             UserAccount user = m.getSender();
+            String senderFullName = "";
             Long infoId = null;
             String pfpUrl = "/ProfilePicture?id=";
 
             // Using the new Info naming convention from your UserAccount entity
             if (m.getSenderRole() == Message.SenderRole.Student && user.getStudentInfo() != null) {
                 infoId = user.getStudentInfo().getId();
+                senderFullName = user.getStudentInfo().getFullName();
                 pfpUrl += infoId + "&targetRole=Student";
             } else if (m.getSenderRole() == Message.SenderRole.Company && user.getCompanyInfo() != null) {
                 infoId = user.getCompanyInfo().getId();
+                senderFullName = user.getCompanyInfo().getName();
                 pfpUrl += infoId + "&targetRole=Company";
             }
 
@@ -42,6 +45,7 @@ public class MessageBean {
                     m.getSenderRole().name(),
                     infoId,
                     user.getUsername(),
+                    senderFullName,
                     m.getMessageText(),
                     m.getTimeSent(),
                     pfpUrl

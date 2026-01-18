@@ -228,7 +228,7 @@
 
         .flex-spacer {
             flex-grow: 1;
-            background: rgba(255,0,0,0.2);
+            background: rgba(255, 0, 0, 0.2);
         }
 
         .chat-date-separator {
@@ -852,6 +852,7 @@
                         }
 
                             boolean isSenderStudent = "Student".equals(msg.getSenderRole());
+                            // Clean currentSenderName for Avatar service
                             String imgClass = isSenderStudent ? "rounded-circle" : "rounded-3 bg-white p-1";
 
                             // FORCE ALIGNMENT based on isMe
@@ -864,6 +865,7 @@
                             <%-- LEFT SIDE (THEM): Image First --%>
                             <% if (!isMe) { %>
                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getSenderId() %>&targetRole=<%= msg.getSenderRole() %>"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= msg.getSenderFullName() %>&background=0E2B58&color=fff';"
                                  class="chat-pfp <%= imgClass %> me-2 border shadow-sm"
                                  style="width: 38px; height: 38px; object-fit: cover;">
                             <% } %>
@@ -871,12 +873,14 @@
                             <%-- MESSAGE BUBBLE --%>
                             <div class="bubble <%= isMe ? "bubble-out" : "bubble-in" %>" style="max-width: 70%;">
                                 <% if (!isMe) { %>
-                                <div class="fw-bold mb-1 text-primary" style="font-size: 0.7rem; text-transform: uppercase;">
+                                <div class="fw-bold mb-1 text-primary"
+                                     style="font-size: 0.7rem; text-transform: uppercase;">
                                     <%= msg.getSenderName() %>
                                 </div>
                                 <% } %>
 
-                                <div class="message-text"><%= msg.getMessageText() %></div>
+                                <div class="message-text"><%= msg.getMessageText() %>
+                                </div>
 
                                 <div class="d-flex justify-content-between align-items-end mt-1">
                                     <small style="font-size: 0.5rem; color: red; display: none;">
@@ -892,23 +896,34 @@
                             <%-- RIGHT SIDE (ME): Image Last --%>
                             <% if (isMe) { %>
                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getSenderId() %>&targetRole=<%= msg.getSenderRole() %>"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= msg.getSenderFullName() %>&background=0E2B58&color=fff';"
                                  class="chat-pfp <%= imgClass %> ms-2 border shadow-sm"
                                  style="width: 38px; height: 38px; object-fit: cover;">
                             <% } %>
 
                         </div>
-                        <%      }
+                        <% }
                         } else { %>
                         <div class="m-auto text-center opacity-25">
                             <i class="fa-regular fa-comments fa-4x mb-3"></i>
                             <p class="fw-bold">No messages yet.</p>
                         </div>
                         <% } %>
+
+                        <% if ("Student".equals(role) && "Request".equals(activeApp.getStatus())) { %>
+                        <div class="mx-5 mb-4 p-3 bg-primary-subtle border border-primary-subtle rounded-3 text-center shadow-sm">
+                            <i class="fa-solid fa-circle-info text-primary me-2"></i>
+                            <span class="small fw-bold text-primary-emphasis">
+                                An interview has been requested! Please go to your <strong>Applications in Dashboard</strong> to review and accept the invitation.
+                            </span>
+                        </div>
+                        <% } %>
                     </div>
 
                     <div class="chat-input-wrapper">
                         <% if (!canChat) { %>
-                        <div class="alert alert-secondary mb-0 py-2 text-center small border-0" style="background-color: #e9ecef; color: #4a4a4a; font-weight: 600;">
+                        <div class="alert alert-secondary mb-0 py-2 text-center small border-0"
+                             style="background-color: #e9ecef; color: #4a4a4a; font-weight: 600;">
                             <i class="fa-solid fa-lock me-2"></i>Closed. Messaging disabled.
                         </div>
                         <% } else { %>
@@ -1031,8 +1046,10 @@
 
                             <%-- SHARED VIEW: Rejected Status for BOTH Student and Company --%>
                             <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 12px;">
-                                <div class="grading-card-header d-flex justify-content-between align-items-center" style="background: #64748b !important;">
-                                    <h6 class="m-0"><i class="fa-solid fa-folder-closed me-2"></i>Application Closed</h6>
+                                <div class="grading-card-header d-flex justify-content-between align-items-center"
+                                     style="background: #64748b !important;">
+                                    <h6 class="m-0"><i class="fa-solid fa-folder-closed me-2"></i>Application Closed
+                                    </h6>
                                     <span class="status-badge status-rejected">Rejected</span>
                                 </div>
                                 <div class="card-body p-4 border border-top-0 highlight-box text-center"
@@ -1041,10 +1058,46 @@
                                         <i class="fa-solid fa-circle-xmark fa-3x text-danger"></i>
                                     </div>
                                     <p class="text-dark fw-bold mb-1">Process Terminated</p>
-                                    <p class="text-muted small">This application has been moved to the archives. No further actions can be taken at this time.</p>
+                                    <p class="text-muted small">This application has been moved to the archives. No
+                                        further actions can be taken at this time.</p>
                                 </div>
                             </div>
                             <% } else if ("Student".equals(role)) { %>
+                            <% if ("Request".equals(activeApp.getStatus())) { %>
+                            <%-- PERSONALIZED Request STUDENT TAB --%>
+                            <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 12px;">
+                                <div class="grading-card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="m-0"><i class="fa-solid fa-calendar-plus me-2"></i>Action Needed</h6>
+                                    <span class="status-badge status-request">Request</span>
+                                </div>
+                                <div class="card-body p-4 border border-top-0 highlight-box"
+                                     style="border-color: #eef2f5 !important; border-radius: 0 0 12px 12px;">
+                                    <div class="text-center mb-3">
+                                        <div class="bg-white p-3 d-inline-block rounded-circle shadow-sm mb-3">
+                                            <i class="fa-solid fa-bell-concierge fa-2x text-primary"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark">Invitation Received</h6>
+                                        <p class="text-muted small">
+                                            <%= partnerName %> wants to schedule an interview with you!
+                                        </p>
+                                    </div>
+
+                                    <div class="alert alert-warning border-0 small mb-0">
+                                        <i class="fa-solid fa-arrow-right-to-bracket me-2"></i>
+                                        To accept this request and start the discussion, please visit your <strong>Main
+                                        Dashboard</strong> and look for this application in My Applications
+                                        section.
+                                    </div>
+
+                                    <div class="mt-4 d-grid">
+                                        <a href="${pageContext.request.contextPath}/StudentDashboard"
+                                           class="btn btn-brand-gradient btn-sm py-2">
+                                            <i class="fa-solid fa-gauge-high me-2"></i>GO TO DASHBOARD
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } else if ("Discussion".equals(activeApp.getStatus()) || "Interview".equals(activeApp.getStatus())) { %>
                             <%-- NEW: Student View for Active Applications (Discussion/Interview) --%>
                             <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 12px;">
                                 <div class="grading-card-header d-flex justify-content-between align-items-center">
@@ -1075,11 +1128,13 @@
 
                                     <% if ("Discussion".equals(activeApp.getStatus())) { %>
                                     <div class="mt-4 p-3 bg-white rounded-3 border small text-muted italic">
-                                        <i class="fa-solid fa-circle-info me-2 text-info"></i>Once the recruiter proposes a time, it will appear here. Keep an eye on the chat!
+                                        <i class="fa-solid fa-circle-info me-2 text-info"></i>Once the recruiter
+                                        proposes a time, it will appear here. Keep an eye on the chat!
                                     </div>
                                     <% } %>
                                 </div>
                             </div>
+                            <% } %>
                             <% } else if ("Request".equals(activeApp.getStatus())) { %>
                             <div class="card shadow-sm border-0 mb-4 overflow-hidden" style="border-radius: 12px;">
                                 <div class="grading-card-header d-flex justify-content-between align-items-center">
@@ -1092,7 +1147,8 @@
                                         <i class="fa-solid fa-paper-plane fa-3x"></i>
                                     </div>
                                     <p class="text-muted small px-3">
-                                        This interview was requested by you. Management options will become available once the student accepts the discussion.
+                                        This interview was requested by you. Management options will become available
+                                        once the student accepts the discussion.
                                     </p>
                                 </div>
                             </div>

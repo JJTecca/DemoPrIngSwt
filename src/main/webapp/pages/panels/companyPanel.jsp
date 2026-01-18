@@ -153,9 +153,11 @@
 
         /* --- Lists & Tables --- */
         .applications-scroll-area {
-            max-height: 810px; /* Balanced height for the dashboard */
-            overflow: visible !important;
+            max-height: 600px;
+            overflow-y: auto !important; /* Enables vertical scrolling */
+            overflow-x: hidden;
             position: relative;
+            border-bottom: 1px solid #eee;
         }
 
         .scrollable-list {
