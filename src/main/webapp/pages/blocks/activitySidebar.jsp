@@ -88,11 +88,44 @@
 
             // Icon Mapping Logic
             String iconClass = "fa-solid fa-circle-dot"; // Default
-            if (rawAction.contains("Upload")) iconClass = "fa-solid fa-cloud-arrow-up text-success";
-            else if (rawAction.contains("Change") || rawAction.contains("Update")) iconClass = "fa-solid fa-pen-to-square text-primary";
-            else if (rawAction.contains("Delete") || rawAction.contains("Remove")) iconClass = "fa-solid fa-trash-can text-danger";
-            else if (rawAction.contains("Login")) iconClass = "fa-solid fa-right-to-bracket text-info";
-            else if (rawAction.contains("Apply")) iconClass = "fa-solid fa-paper-plane text-warning";
+
+            // 1. Phone specific icon
+            if (rawAction.contains("Phone")) {
+                iconClass = "fa-solid fa-phone text-success";
+            }
+            // 2. Profile & Bio changes
+            else if (rawAction.contains("Biography") || rawAction.contains("Description")) {
+                iconClass = "fa-solid fa-address-card text-primary";
+            }
+            // 3. Link & URL changes
+            else if (rawAction.contains("Website") || rawAction.contains("URL")) {
+                iconClass = "fa-solid fa-globe text-info";
+            }
+            // 4. Security & Account
+            else if (rawAction.contains("Password")) {
+                iconClass = "fa-solid fa-shield-halved text-danger";
+            }
+            else if (rawAction.contains("Login")) {
+                iconClass = "fa-solid fa-right-to-bracket text-info";
+            }
+            // 5. File & Upload Actions
+            else if (rawAction.contains("Upload") || rawAction.contains("Picture")) {
+                iconClass = "fa-solid fa-camera-rotate text-success";
+            }
+            // 6. Recruitment Actions
+            else if (rawAction.contains("Apply") || rawAction.contains("Position")) {
+                iconClass = "fa-solid fa-briefcase text-warning";
+            }
+            // 7. Generic Fallbacks for keywords
+            else if (rawAction.contains("Delete") || rawAction.contains("Remove")) {
+                iconClass = "fa-solid fa-trash-can text-danger";
+            }
+            else if (rawAction.contains("Update") || rawAction.contains("Edit")) {
+                iconClass = "fa-solid fa-pen-nib text-primary";
+            }
+            else if (rawAction.contains("Grade")) {
+                iconClass = "fa-solid fa-graduation-cap text-success";
+            }
         %>
         <div class="activity-row">
             <div class="activity-icon-wrapper">

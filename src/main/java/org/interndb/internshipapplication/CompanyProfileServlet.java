@@ -126,6 +126,7 @@ public class CompanyProfileServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(false);
         if (checkAuth(request, response, session)) { return; }
@@ -162,6 +163,7 @@ public class CompanyProfileServlet extends HttpServlet {
             String finalStudentsApplied = companyDto.getStudentsApplied();
             String finalBiography = companyDto.getBiography();
             String finalContactEmail = companyDto.getContactEmail();
+            String finalPhoneNumber = companyDto.getPhoneNumber();
 
             // FIX: Use String keys instead of Entity Enums
             String logActionKey = null;
@@ -171,8 +173,8 @@ public class CompanyProfileServlet extends HttpServlet {
                 String newBiography = request.getParameter("biography");
                 if (newBiography != null) {
                     newBiography = newBiography.trim();
-                    if (newBiography.length() > 255) {
-                        newBiography = newBiography.substring(0, 255);
+                    if (newBiography.length() > 1000) {
+                        newBiography = newBiography.substring(0, 1000);
                     }
                 } else {
                     newBiography = "";
@@ -185,8 +187,8 @@ public class CompanyProfileServlet extends HttpServlet {
                 String newCompDescription = request.getParameter("compDescription");
                 if (newCompDescription != null) {
                     newCompDescription = newCompDescription.trim();
-                    if (newCompDescription.length() > 50) {
-                        newCompDescription = newCompDescription.substring(0, 50);
+                    if (newCompDescription.length() > 1000) {
+                        newCompDescription = newCompDescription.substring(0, 1000);
                     }
                 } else {
                     newCompDescription = "";
@@ -237,6 +239,13 @@ public class CompanyProfileServlet extends HttpServlet {
                 logActionKey = "UpdateContactEmail";
                 logDetails = "Updated contact email.";
 
+            } else if ("update_phone".equals(action)) {
+            String newPhone = request.getParameter("phoneNumber");
+            if (newPhone != null && newPhone.matches("^(02|03|07)\\d{8}$")) {
+                finalPhoneNumber = newPhone;
+                logActionKey = "UpdatePhoneNumber";
+                logDetails = "Updated contact phone number.";
+            }
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unrecognized action: " + action);
                 return;
@@ -251,7 +260,8 @@ public class CompanyProfileServlet extends HttpServlet {
                     finalOpenedPositions,
                     finalStudentsApplied,
                     finalBiography,
-                    finalContactEmail
+                    finalContactEmail,
+                    finalPhoneNumber
             );
 
             // 4. LOG ACTIVITY (Layer-Safe Call using the new String overload)

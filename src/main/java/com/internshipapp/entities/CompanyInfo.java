@@ -16,7 +16,6 @@ import jakarta.persistence.*;
 /************************
  *      Notes:
  *      1. Long or Integer for Ids
- *      2. Length on varchar is def 255
  *************************/
 public class CompanyInfo {
     @Id
@@ -41,11 +40,11 @@ public class CompanyInfo {
     private String openedPositions;
     @Column(name = "students_applied")
     private String studentsApplied;
-    @Column(name = "biography", length = 255)
+    @Column(name = "biography", length = 1000)
     private String biography;
     @Column(name = "contact_email", length = 255)
     private String contactEmail;
-    @Column(name = "phone_number", length = 20)
+    @Column(name = "phone_number", length = 20, unique = true, nullable = false)
     private String phoneNumber;
 
     public CompanyInfo() {

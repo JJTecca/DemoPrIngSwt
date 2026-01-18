@@ -50,7 +50,7 @@
         width: auto;
     }
 
-    .platform-title {
+    .platform-subtitle {
         color: white;
         font-family: 'Segoe UI', Roboto, sans-serif;
         font-weight: 700;
@@ -79,6 +79,24 @@
         justify-content: center;
         color: white;
     }
+
+    .platform-title-area {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        padding-left: 1.5rem;
+    }
+
+    .header-csee-logo {
+        height: 45px;
+        width: auto;
+        /* Remove the blend mode that was darkening the colors */
+        mix-blend-mode: normal;
+        filter: drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.9)) contrast(100%) brightness(100%);
+        /* If your logo has a very clean white background, this is the safest way: */
+        mask-image: linear-gradient(#000, #000);
+    }
 </style>
 
 <header class="container-fluid p-0 sticky-header">
@@ -86,7 +104,10 @@
         <div class="header-content">
             <div class="brand-area">
                 <img src="images/logo_horiz.png" alt="ULBS Logo" class="header-logo">
-                <h1 class="platform-title">CSEE Internship Platform</h1>
+                <div class="platform-title-area">
+                    <img src="images/cseelogo.png" alt="CSEE Logo" class="header-csee-logo">
+                    <span class="platform-subtitle">Internship Platform</span>
+                </div>
             </div>
 
             <div class="user-profile-header">

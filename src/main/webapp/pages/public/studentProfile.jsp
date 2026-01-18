@@ -120,15 +120,6 @@
             text-transform: uppercase;
         }
 
-        /* --- Synced Status Badge Styles --- */
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.3em 0.7em;
-            border-radius: 50px;
-            font-weight: 600;
-            display: inline-block;
-        }
-
         .status-accepted {
             background-color: #d1e7dd;
             color: #0f5132;
@@ -144,15 +135,28 @@
             color: #055160;
         }
 
-        /* Enrolled vs Not Enrolled Logic sync */
-        .badge-enrolled {
-            background-color: #d1e7dd;
-            color: #0f5132;
+        .badge-enrolled, .badge-not-enrolled, .status-badge {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.68rem;
+            padding: 0.45em 0.9em;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
         }
 
+        .badge-enrolled {
+            background-color: #f0f1fa; /* Very subtle indigo tint */
+            color: #4338ca;            /* Deep indigo */
+        }
+
+        /* Matching Muted Rose for Not Enrolled */
         .badge-not-enrolled {
-            background-color: #fdf2f2;
-            color: #9b1c1c;
+            background-color: #fff1f2;
+            color: #9f1239;
+            border-color: #fecdd3;
         }
 
         .info-value {
@@ -424,7 +428,6 @@
                             </span>
 
                             <span class="status-badge <%= student.getEnrolled() ? "badge-enrolled" : "badge-not-enrolled" %>">
-                                <i class="fa-solid <%= student.getEnrolled() ? "fa-circle-check" : "fa-circle-xmark" %> me-1"></i>
                                 <%= student.getEnrolled() ? "Enrolled" : "Not Enrolled" %>
                             </span>
                         </div>
@@ -560,16 +563,18 @@
 <div class="modal fade" id="editBioModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-bold">Edit Biography</h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold">Edit Biography</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="${pageContext.request.contextPath}/StudentProfile" method="POST">
                 <input type="hidden" name="action" value="update_bio">
-                <div class="modal-body"><textarea name="biography" class="form-control" rows="5"
-                                                  maxlength="255"><%= student.getBiography() != null ? student.getBiography() : "" %></textarea>
+                <div class="modal-body">
+                    <textarea name="biography" class="form-control" rows="8" maxlength="2000"
+                              placeholder="Tell us about yourself..."><%= student.getBiography() != null ? student.getBiography() : "" %></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-brand">Save Changes</button>
+                    <button type="submit" class="btn btn-brand">Save</button>
                 </div>
             </form>
         </div>

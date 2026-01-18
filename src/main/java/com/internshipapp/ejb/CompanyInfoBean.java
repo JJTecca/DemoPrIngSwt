@@ -102,7 +102,7 @@ public class CompanyInfoBean {
 
     public void updateCompany(Long companyId, String name, String shortName, String website,
                               String compDescription, String openedPositions, String studentsApplied,
-                              String biography, String contactEmail) {
+                              String biography, String contactEmail, String phoneNumber) {
         try {
             CompanyInfo company = entityManager.find(CompanyInfo.class, companyId);
             if (company != null) {
@@ -117,6 +117,7 @@ public class CompanyInfoBean {
                 company.setStudentsApplied(studentsApplied);
                 company.setBiography(biography);
                 company.setContactEmail(contactEmail);
+                company.setPhoneNumber(phoneNumber);
 
                 entityManager.merge(company);
             }

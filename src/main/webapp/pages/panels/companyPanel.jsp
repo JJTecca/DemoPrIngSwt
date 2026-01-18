@@ -583,8 +583,9 @@
                             class="fa-solid fa-file-contract stat-icon"></i></div>
                 </div>
                 <div class="col-md-4">
-                    <div class="stat-card card-red"><h2 class="stat-value">0</h2><span
-                            class="stat-label">New Messages</span><i class="fa-regular fa-comment-dots stat-icon"></i>
+                    <% String activeChats = request.getAttribute("activeChats").toString();%>
+                    <div class="stat-card card-red"><h2 class="stat-value"><%= activeChats %></h2><span
+                            class="stat-label">Active Chats</span><i class="fa-regular fa-comment-dots stat-icon"></i>
                     </div>
                 </div>
             </div>
@@ -594,33 +595,71 @@
                     <div class="card custom-card mb-4 border-0 shadow-sm overflow-hidden">
                         <div class="row g-0">
                             <div class="col-md-9 p-4">
-                                <h5 class="fw-bold mb-3">Company Profile Overview</h5>
-                                <p class="text-muted small mb-4"><%= company.getCompDescription() != null ? company.getCompDescription() : "Complete your profile to attract more candidates." %>
-                                </p>
-                                <div class="row g-3">
-                                    <div class="col-sm-4"><span class="info-label">Account</span><span
-                                            class="info-value text-truncate d-block"><%= userAccount.getEmail() %></span>
-                                        <span class="badge bg-light text-muted border ms-1"
-                                              style="font-size: 0.65rem; vertical-align: middle;">
-                                              <i class="fa-solid fa-lock me-1"></i>Private
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div style="flex: 1;">
+                                        <h5 class="fw-bold mb-1">Company Profile Overview</h5>
+                                        <p class="text-muted small mb-0">
+                                            <%= company.getCompDescription() != null ? company.getCompDescription() : "Complete your profile to attract more candidates." %>
+                                        </p>
+                                    </div>
+
+                                    <div class="text-end ms-3">
+                                        <div class="mb-1">
+                                            <i class="fa-solid fa-circle-question text-muted small me-1"
+                                               data-bs-toggle="tooltip"
+                                               data-bs-placement="left"
+                                               title="This number will be visible to accepted students in the chat header."></i>
+                                            <span class="info-label d-inline">Phone Number</span>
+                                        </div>
+
+                                        <div class="d-flex align-items-center justify-content-end mb-1">
+                                            <span class="info-value me-2">
+                                                <%= (company.getPhoneNumber() != null && !company.getPhoneNumber().isEmpty()) ? company.getPhoneNumber() : "Not Set" %>
+                                            </span>
+                                            <a href="#" class="text-primary small text-decoration-none"
+                                               data-bs-toggle="modal" data-bs-target="#editPhoneModal" title="Edit Phone">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                        </div>
+
+                                        <div>
+                                            <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">
+                                                <i class="fa-solid fa-lock me-1"></i>PRIVATE
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-4">
+                                    <div class="col-sm-4">
+                                        <span class="info-label">Account</span>
+                                        <span class="info-value text-truncate d-block"><%= userAccount.getEmail() %></span>
+                                        <span class="badge bg-light text-muted border ms-1" style="font-size: 0.65rem; vertical-align: middle;">
+                                            <i class="fa-solid fa-lock me-1"></i>Private
                                         </span>
                                     </div>
-                                    <div class="col-sm-4"><span class="info-label">Contact</span><span
-                                            class="info-value text-truncate d-block"><%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "Not Set" %></span>
+                                    <div class="col-sm-4">
+                                        <span class="info-label">Contact</span>
+                                        <span class="info-value text-truncate d-block">
+                                            <%= (company.getContactEmail() != null && !company.getContactEmail().isEmpty()) ? company.getContactEmail() : "Not Set" %>
+                                        </span>
                                     </div>
-                                    <div class="col-sm-4"><span class="info-label">Website</span><a
-                                            href="<%= company.getWebsite() %>" target="_blank"
-                                            class="info-value text-decoration-none text-primary d-block text-truncate"><%= company.getWebsite() != null ? company.getWebsite() : "Not Set" %>
-                                    </a></div>
+                                    <div class="col-sm-4">
+                                        <span class="info-label">Website</span>
+                                        <a href="<%= company.getWebsite() %>" target="_blank"
+                                           class="info-value text-decoration-none text-primary d-block text-truncate">
+                                            <%= company.getWebsite() != null ? company.getWebsite() : "Not Set" %>
+                                        </a>
+                                    </div>
                                 </div>
+
                                 <div class="mt-4">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <span class="small fw-bold text-muted">Profile Progress</span>
                                         <span class="small fw-bold <%= completionTextColor %>"><%= completionText %> (<%= completionScore %>%)</span>
                                     </div>
                                     <div class="progress" style="height: 8px; border-radius: 10px;">
-                                        <div class="progress-bar <%= completionBarClass %>"
-                                             style="width: <%= completionScore %>%"></div>
+                                        <div class="progress-bar <%= completionBarClass %>" style="width: <%= completionScore %>%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1080,10 +1119,60 @@
     </div>
 </div>
 
+<div class="modal fade" id="editPhoneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold text-muted text-uppercase small">Update Phone Number</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="${pageContext.request.contextPath}/CompanyDashboard" method="POST" id="phoneForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Romanian Number (e.g. 0722...)</label>
+                        <input type="text" name="phoneNumber" id="phoneInput"
+                               class="form-control bg-light border-0"
+                               placeholder="07XXXXXXXX"
+                               value="<%= (company.getPhoneNumber() != null) ? company.getPhoneNumber() : "" %>"
+                               required
+                               pattern="^(02|03|07)\d{8}$"
+                               title="Please enter a valid 10-digit Romanian phone number starting with 02, 03, or 07.">
+                        <div class="invalid-feedback x-small">Invalid RO number format.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light btn-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <jsp:include page="../blocks/footer.jsp"/>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        const phoneInput = document.getElementById('phoneInput');
+        const phoneForm = document.getElementById('phoneForm');
+
+        phoneInput.addEventListener('input', function () {
+            // Force numbers only
+            this.value = this.value.replace(/[^0-9]/g, '');
+
+            // Visual feedback
+            const isValid = /^(02|03|07)\d{8}$/.test(this.value);
+            if (this.value.length > 0) {
+                this.classList.toggle('is-invalid', !isValid);
+                this.classList.toggle('is-valid', isValid);
+            }
+        });
+
         // --- 1. Application Filtering Logic ---
         const filterOptions = document.querySelectorAll('.filter-opt');
         const appRows = document.querySelectorAll('.app-row');

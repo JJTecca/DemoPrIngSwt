@@ -41,7 +41,9 @@ public class AccountActivity {
         HideStudyGrade,
         UpdateShortName,
         UpdateContactEmail,
-        PostPosition
+        PostPosition,
+        UpdatePhoneNumber,
+        GradeInternship
     }
 
     @Enumerated(EnumType.STRING)

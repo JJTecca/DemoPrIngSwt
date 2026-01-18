@@ -215,7 +215,7 @@ public class UserAccountBean {
         }
     }
 
-    public boolean createCompanyUserFromRequest(String companyName, String companyEmail, String password) {
+    public boolean createCompanyUserFromRequest(String companyName, String companyEmail, String password, String phoneNumber) {
         LOG.info("Creating company user account for: " + companyEmail);
 
         try {
@@ -229,6 +229,7 @@ public class UserAccountBean {
             // Create CompanyInfo
             CompanyInfo companyInfo = new CompanyInfo();
             companyInfo.setName(companyName);
+            companyInfo.setPhoneNumber(phoneNumber);
             entityManager.persist(companyInfo);
 
             // Create UserAccount
@@ -294,7 +295,8 @@ public class UserAccountBean {
             boolean accountCreated = createCompanyUserFromRequest(
                     request.getCompanyName(),
                     request.getCompanyEmail(),
-                    request.getPassword()
+                    request.getPassword(),
+                    request.getPhoneNumber()
             );
 
             if (accountCreated) {
