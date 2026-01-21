@@ -43,7 +43,7 @@ public class ProfilePictureServlet extends HttpServlet {
             if ("Student".equalsIgnoreCase(targetRoleParam)) {
                 // Guaranteed to look only in Student-related tables
                 file = attachmentBean.getPfpForStudent(profileId);
-            } else if ("Company".equalsIgnoreCase(targetRoleParam)) {
+            } else if ("Company".equalsIgnoreCase(targetRoleParam) || "Faculty".equalsIgnoreCase(targetRoleParam)) {
                 // Guaranteed to look only in Company-related tables
                 file = attachmentBean.getPfpForCompany(profileId);
             } else {

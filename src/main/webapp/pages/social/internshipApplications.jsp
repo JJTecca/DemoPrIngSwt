@@ -839,7 +839,7 @@
                             if (chatHistory != null && !chatHistory.isEmpty()) {
                                 for (MessageDto msg : chatHistory) {
                                     // LOGIC CHECK: We compare objects using equals()
-                                    boolean isMe = role.equalsIgnoreCase(msg.getSenderRole().toString());
+                                    boolean isMe = msg.getSenderId().equals(userId);
 
                                     java.time.LocalDate msgDate = msg.getTimeSent().toLocalDate();
 
@@ -855,6 +855,11 @@
                             // Clean currentSenderName for Avatar service
                             String imgClass = isSenderStudent ? "rounded-circle" : "rounded-3 bg-white p-1";
 
+                            String studentFallback = "https://ui-avatars.com/api/?name=" + msg.getSenderFullName().replace(" ", "+") + "&background=0E2B58&color=fff";
+                            String companyFallback = "https://ui-avatars.com/api/?name=" + msg.getSenderFullName().replace(" ", "+") + "&background=F8F9FA&color=0E2B58";
+
+                            String activeFallback = isSenderStudent ? studentFallback : companyFallback;
+
                             // FORCE ALIGNMENT based on isMe
                             String justifyStyle = isMe ? "justify-content: flex-end;" : "justify-content: flex-start;";
                         %>
@@ -864,8 +869,8 @@
 
                             <%-- LEFT SIDE (THEM): Image First --%>
                             <% if (!isMe) { %>
-                            <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getSenderId() %>&targetRole=<%= msg.getSenderRole() %>"
-                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= msg.getSenderFullName() %>&background=0E2B58&color=fff';"
+                            <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getInfoId() %>&targetRole=<%= msg.getSenderRole() %>"
+                                 onerror="this.src='<%= activeFallback %>';"
                                  class="chat-pfp <%= imgClass %> me-2 border shadow-sm"
                                  style="width: 38px; height: 38px; object-fit: cover;">
                             <% } %>
@@ -884,7 +889,7 @@
 
                                 <div class="d-flex justify-content-between align-items-end mt-1">
                                     <small style="font-size: 0.5rem; color: red; display: none;">
-                                        Me:<%= userId %> vs Sender:<%= msg.getSenderId() %>
+                                        Me:<%= userId %> vs Sender:<%= msg.getInfoId() %>
                                     </small>
 
                                     <div class="opacity-50 ms-auto" style="font-size: 0.65rem; font-weight: 700;">
@@ -895,8 +900,8 @@
 
                             <%-- RIGHT SIDE (ME): Image Last --%>
                             <% if (isMe) { %>
-                            <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getSenderId() %>&targetRole=<%= msg.getSenderRole() %>"
-                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= msg.getSenderFullName() %>&background=0E2B58&color=fff';"
+                            <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= msg.getInfoId() %>&targetRole=<%= msg.getSenderRole() %>"
+                                 onerror="this.src='<%= activeFallback %>';"
                                  class="chat-pfp <%= imgClass %> ms-2 border shadow-sm"
                                  style="width: 38px; height: 38px; object-fit: cover;">
                             <% } %>
@@ -927,8 +932,7 @@
                             <i class="fa-solid fa-lock me-2"></i>Closed. Messaging disabled.
                         </div>
                         <% } else { %>
-                        <form action="SendMessage" method="POST" class="d-flex gap-3 align-items-center"
-                              onsubmit="return handleMessageCooldown(this)">
+                        <form action="SendMessage" method="POST" class="d-flex gap-3 align-items-center">
                             <input type="hidden" name="appId" value="<%= activeApp.getId() %>">
                             <div class="flex-grow-1 position-relative">
                                 <input type="text" name="message"
@@ -1169,7 +1173,7 @@
                                         <i class="fa-solid fa-circle-exclamation me-2"></i> <span>Please fill all required fields.</span>
                                     </div>
 
-                                    <form action="InternshipApplications" method="GET"
+                                    <form id="managementForm" action="InternshipApplications" method="POST"
                                           onsubmit="return validateManagementForm(this)">
                                         <input type="hidden" name="action" value="updateStatus">
                                         <input type="hidden" name="id" value="<%= activeApp.getId() %>">
@@ -1218,10 +1222,47 @@
                                             </select>
                                         </div>
 
-                                        <button type="submit" class="btn btn-update-status w-100 shadow-sm">
+                                        <button type="button" onclick="handleManagementUpdate()"
+                                                class="btn btn-update-status w-100 shadow-sm">
                                             <i class="fa-solid fa-rotate me-2"></i> Update Application
                                         </button>
                                     </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" id="decisionModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-header border-0 pb-0 justify-content-center pt-4">
+                                            <div class="position-relative">
+                                                <img id="modalStudentImg" src=""
+                                                     class="rounded-circle border shadow-sm"
+                                                     style="width: 80px; height: 80px; object-fit: cover;">
+                                                <div id="modalIconBadge"
+                                                     class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                                     style="width: 30px; height: 30px; border: 2px solid white;">
+                                                    <i id="modalIcon" class="fa-solid fa-sm text-white"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body text-center p-4">
+                                            <h5 id="modalTitle" class="fw-bold mb-2">Title</h5>
+                                            <div class="modal-body text-center p-4">
+                                                <p class="text-muted small mb-0">
+                                                    Are you sure you want to <span id="modalActionText">action</span>
+                                                    <strong id="modalStudentName"></strong>
+                                                    for the <strong id="modalPositionTitle" class="text-dark"></strong>
+                                                    position?
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 p-3 pt-0">
+                                            <button type="button" class="btn btn-light btn-sm flex-fill fw-bold"
+                                                    data-bs-dismiss="modal">Cancel
+                                            </button>
+                                            <a href="#" id="modalConfirmBtn" class="btn btn-sm flex-fill fw-bold">Confirm</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <% } %>
@@ -1328,8 +1369,15 @@
                             String imgFit = isUserStudent ? "contain" : "cover";
                         %>
                         <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 shadow-sm border-start border-primary border-4 h-100">
+                            <%
+                                // Logic to determine fallback colors based on the targetRole defined earlier in this block
+                                String fbColors = "Student".equals(targetRole)
+                                        ? "&background=0E2B58&color=fff"
+                                        : "&background=F8F9FA&color=0E2B58";
+                                String finalFallback = "https://ui-avatars.com/api/?name=" + targetName.replace(" ", "+") + fbColors;
+                            %>
                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= targetId %>&targetRole=<%= targetRole %>"
-                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= targetName %>&background=0E2B58&color=fff';"
+                                 onerror="this.src='<%= finalFallback %>';"
                                  class="<%= imgClass %> border shadow-sm"
                                  style="width: 65px; height: 65px; object-fit: <%= imgFit %>; padding: 5px;">
                             <div>
@@ -1574,6 +1622,96 @@
         if (chatContainer) {
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+    }
+
+    function handleManagementUpdate() {
+        const statusSelect = document.getElementById('statusSelect');
+        const selectedStatus = statusSelect.value;
+        const form = document.getElementById('managementForm');
+
+        if (!form) {
+            console.error("Management form not found!");
+            return;
+        }
+
+        // 1. For Discussion or Interview: Submit standard POST
+        if (selectedStatus === 'Discussion' || selectedStatus === 'Interview') {
+            if (validateManagementForm(form)) {
+                form.submit();
+            }
+            return;
+        }
+
+        // 2. For Accepted or Rejected: Trigger the modal
+        if (selectedStatus === 'Accepted' || selectedStatus === 'Rejected') {
+            const appId = "<%= activeApp != null ? activeApp.getId() : "" %>";
+            const studentId = "<%= activeApp != null ? activeApp.getStudentId() : "" %>";
+            const studentName = "<%= activeApp != null ? activeApp.getStudentName().replace("'", "\\'") : "" %>";
+            const positionTitle = "<%= activeApp != null ? activeApp.getPositionTitle().replace("'", "\\'") : "" %>";
+
+            if (!appId) {
+                alert("Application data missing. Please refresh the page.");
+                return;
+            }
+
+            confirmAction(appId, studentId, studentName, positionTitle, selectedStatus);
+        }
+    }
+
+    function confirmAction(appId, studentId, studentName, positionTitle, status) {
+        const isAccept = status === 'Accepted';
+        const modalElement = document.getElementById('decisionModal');
+
+        // UI Updates
+        document.getElementById('modalStudentName').innerText = studentName;
+        document.getElementById('modalPositionTitle').innerText = positionTitle;
+
+        const actionText = document.getElementById('modalActionText');
+        if (isAccept) {
+            actionText.innerText = "accept";
+            actionText.className = "fw-bold text-success";
+        } else {
+            actionText.innerText = "reject";
+            actionText.className = "fw-bold text-danger";
+        }
+
+        const contextPath = '<%= request.getContextPath() %>';
+        const pfpUrl = contextPath + "/ProfilePicture?id=" + studentId + "&targetRole=Student";
+        const imgEl = document.getElementById('modalStudentImg');
+        imgEl.src = pfpUrl;
+        imgEl.onerror = function () {
+            this.src = "https://ui-avatars.com/api/?name=" + studentName.replace(/ /g, '+') + "&background=0E2B58&color=fff";
+        };
+
+        const btn = document.getElementById('modalConfirmBtn');
+        const badge = document.getElementById('modalIconBadge');
+        const icon = document.getElementById('modalIcon');
+
+        if (isAccept) {
+            document.getElementById('modalTitle').innerText = "Accept Student?";
+            btn.className = "btn btn-success btn-sm flex-fill fw-bold";
+            btn.innerText = "Accept & Hire";
+            badge.style.backgroundColor = "#198754";
+            icon.className = "fa-solid fa-check text-white";
+        } else {
+            document.getElementById('modalTitle').innerText = "Reject Candidate?";
+            btn.className = "btn btn-danger btn-sm flex-fill fw-bold";
+            btn.innerText = "Confirm Rejection";
+            badge.style.backgroundColor = "#dc3545";
+            icon.className = "fa-solid fa-xmark text-white";
+        }
+
+        btn.removeAttribute('href'); // Force it not to act as a link
+        btn.onclick = function (e) {
+            e.preventDefault();
+            const form = document.getElementById('managementForm');
+            // Manually set the status in the main form before submitting
+            document.getElementById('statusSelect').value = status;
+            form.submit();
+        };
+
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
     }
 </script>
 </body>

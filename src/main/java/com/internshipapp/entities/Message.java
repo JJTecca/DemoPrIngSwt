@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @Table(name = "Message")
 public class Message {
 
-    public enum SenderRole { Company, Student }
+    public enum SenderRole { Company, Student, Faculty }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,6 +1,9 @@
 package com.internshipapp.ejb;
 
+import com.internshipapp.commands.InterviewRequestCommand;
+import com.internshipapp.commands.UpdateApplicationCommand;
 import com.internshipapp.common.InternshipApplicationDto;
+import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.config.ApplicationConfig;
 import com.internshipapp.entities.*;
 import jakarta.ejb.EJBException;
@@ -16,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
+
+import static org.eclipse.tags.shaded.org.apache.xalan.lib.ExsltDatetime.date;
 
 /*******************************************************************
  *      Format of the Bean
@@ -175,7 +180,7 @@ public class InternshipApplicationBean {
                 .getResultList();
     }
 
-    public String createApplication(Long studentId, Long positionId) throws Exception {
+    public Long createApplication(Long studentId, Long positionId) throws Exception {
         if (!applicationConfig.isApplicationPeriodActive()) {
             throw new IllegalStateException(
                     "Applications are currently closed. " +
@@ -200,7 +205,7 @@ public class InternshipApplicationBean {
             throw new IllegalStateException("The application deadline has passed.");
         }
 
-        // NEW HARDLOCK: Check if position is full
+        // Check if position is full
         int max = (position.getMaxSpots() != null) ? position.getMaxSpots() : 0;
         int accepted = (position.getAcceptedCount() != null) ? position.getAcceptedCount() : 0;
 
@@ -233,31 +238,50 @@ public class InternshipApplicationBean {
 
         entityManager.persist(app);
         entityManager.merge(position);
+        entityManager.flush();
 
-        return position.getTitle();
+        return app.getId();
     }
 
-    public void updateApplicationStatus(Long appId, String statusName) {
-        // Simply delegate to the new detailed method with nulls
-        this.updateApplicationStatus(appId, statusName, null, null);
-    }
-
-    public void updateApplicationStatus(Long appId, String statusName, LocalDateTime interviewDate, String location) {
+    public List<InternshipApplicationDto> getApplicantsForPosition(Long positionId) {
         try {
-            InternshipApplication app = entityManager.find(InternshipApplication.class, appId);
+            // Fetch applications with joined entities to prevent LazyInitializationException in the copier
+            TypedQuery<InternshipApplication> query = entityManager.createQuery(
+                    "SELECT a FROM InternshipApplication a " +
+                            "JOIN FETCH a.student " +
+                            "LEFT JOIN FETCH a.internshipPosition p " +
+                            "LEFT JOIN FETCH p.company " +
+                            "WHERE a.internshipPosition.id = :pid",
+                    InternshipApplication.class
+            );
+            query.setParameter("pid", positionId);
+            List<InternshipApplication> results = query.getResultList();
+
+            // Use the centralized conversion method
+            return copyApplicationsToDto(results);
+
+        } catch (Exception e) {
+            LOG.severe("Error fetching applicants for position " + positionId + ": " + e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public void updateApplicationStatus(UpdateApplicationCommand cmd) {
+        try {
+            InternshipApplication app = entityManager.find(InternshipApplication.class, cmd.appId);
             InternshipPosition pos = app.getInternshipPosition();
             StudentInfo student = app.getStudent();
 
             InternshipApplication.ApplicationStatus targetStatus =
-                    InternshipApplication.ApplicationStatus.valueOf(statusName);
+                    InternshipApplication.ApplicationStatus.valueOf(cmd.statusName);
 
             // 1. RULE: Switching TO Interview requires Date and Location
             if (targetStatus == InternshipApplication.ApplicationStatus.Interview) {
-                if (interviewDate == null || location == null || location.isEmpty()) {
+                if (cmd.interviewDate == null || cmd.location == null || cmd.location.isEmpty()) {
                     throw new IllegalStateException("Interview Date and Location are required to schedule an interview.");
                 }
-                app.setInterview(interviewDate);
-                app.setInterviewLocation(location);
+                app.setInterview(cmd.interviewDate);
+                app.setInterviewLocation(cmd.location);
             }
 
             // 2. RULE: Switching BACK to Discussion clears Date and Location
@@ -265,34 +289,18 @@ public class InternshipApplicationBean {
                     app.getStatus() == InternshipApplication.ApplicationStatus.Interview) {
                 app.setInterview(null);
                 app.setInterviewLocation(null);
-                LOG.info("Application " + appId + " moved back to Discussion. Interview data cleared.");
-            }
-
-            // 3. ILLEGAL SCENARIO: If the application is currently a 'Request'
-            if (app.getStatus() == InternshipApplication.ApplicationStatus.Request) {
-
-                // Block Company from moving it back to Pending or straight to Interview
-                if (targetStatus == InternshipApplication.ApplicationStatus.Pending ||
-                        targetStatus == InternshipApplication.ApplicationStatus.Interview) {
-
-                    LOG.warning("SECURITY ALERT: Attempt to bypass workflow. Cannot move 'Request' to '" + statusName + "'");
-                    throw new IllegalStateException("This application is waiting for a student response. You cannot change the state manually.");
-                }
+                LOG.info("Application " + cmd.appId + " moved back to Discussion. Interview data cleared.");
             }
 
             // 4. ILLEGAL SCENARIO: Status Regression
-            if (app.getStatus() == InternshipApplication.ApplicationStatus.Accepted ||
-                    student.getStatus() == StudentInfo.StudentStatus.Completed) {
+            if (app.getStatus() == InternshipApplication.ApplicationStatus.Accepted) {
                 throw new IllegalStateException("Finalized applications cannot be modified.");
             }
 
             // 5. ILLEGAL SCENARIO: Prevent restoring a rejected app if the student is globally Accepted
-            if (app.getStatus() == InternshipApplication.ApplicationStatus.Rejected &&
-                    targetStatus == InternshipApplication.ApplicationStatus.Pending) {
-
-                if (student.getStatus() == StudentInfo.StudentStatus.Accepted) {
-                    throw new IllegalStateException("Cannot restore application: Student is already accepted for another position.");
-                }
+            if (student.getStatus() == StudentInfo.StudentStatus.Accepted ||
+                    student.getStatus() == StudentInfo.StudentStatus.Completed) {
+                throw new IllegalStateException("Cannot restore application: Student is already accepted for another position.");
             }
 
             // 6. ILLEGAL SCENARIO: Restoring from Rejected
@@ -300,9 +308,15 @@ public class InternshipApplicationBean {
                 throw new IllegalStateException("Cannot restore application: Student is already rejected for this position.");
             }
 
-            // 7. LOGIC: Moving to "Accepted"
+            // 7. ILLEGAL SCENARIO: Update to Pending
+            if (targetStatus == InternshipApplication.ApplicationStatus.Pending) {
+                throw new IllegalStateException("Cannot regress to Pending.");
+            }
+
+            // 8. LOGIC: Moving to "Accepted" (Faculty can accept from any status)
             if (targetStatus == InternshipApplication.ApplicationStatus.Accepted &&
-                    app.getStatus() != InternshipApplication.ApplicationStatus.Accepted) {
+                    (app.getStatus() == InternshipApplication.ApplicationStatus.Interview ||
+                            "Faculty".equals(cmd.role))) {
 
                 // Availability Check
                 if (student.getStatus() != StudentInfo.StudentStatus.Available) {
@@ -398,7 +412,23 @@ public class InternshipApplicationBean {
         }
     }
 
-    public void assignStudentAndCleanUp(Long studentId, Long positionId) throws Exception {
+    public InternshipApplicationDto findApplicationDto(Long studentId, Long positionId) {
+        try {
+            InternshipApplication result =  entityManager.createQuery(
+                            "SELECT a FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid",
+                            InternshipApplication.class)
+                    .setParameter("sid", studentId)
+                    .setParameter("pid", positionId)
+                    .getSingleResult();
+            List<InternshipApplication> applications = new ArrayList<>();
+            applications.add(result);
+            return copyApplicationsToDto(applications).getFirst();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public void assignStudentAndCleanUp(Long studentId, Long positionId, String role) throws Exception {
         StudentInfo student = entityManager.find(StudentInfo.class, studentId);
         InternshipPosition pos = entityManager.find(InternshipPosition.class, positionId);
 
@@ -421,9 +451,10 @@ public class InternshipApplicationBean {
             createApplication(studentId, positionId);
             targetApp = findApplication(studentId, positionId);
         }
-
-        // DELEGATE: Use the centralized logic to handle rejections, counts, and status sync
-        updateApplicationStatus(targetApp.getId(), "Accepted");
+        targetApp.setChatInitiated(true);
+        UpdateApplicationCommand cmd = new UpdateApplicationCommand(targetApp.getId(), "Accepted",
+                null, null, role);
+        updateApplicationStatus(cmd);
     }
 
     public List<InternshipApplicationDto> getApplicationsForUser(Long userId, String role) {
@@ -473,91 +504,60 @@ public class InternshipApplicationBean {
         }
     }
 
-    public void initiateInterviewRequest(Long studentId, Long positionId, String initialMessage, Long senderUserId) throws Exception {
-        StudentInfo student = entityManager.find(StudentInfo.class, studentId);
-        InternshipPosition position = entityManager.find(InternshipPosition.class, positionId);
-        UserAccount sender = entityManager.find(UserAccount.class, senderUserId);
-
-        // 1. Fetch current application if it exists
-        TypedQuery<InternshipApplication> query = entityManager.createQuery(
-                "SELECT a FROM InternshipApplication a WHERE a.student.id = :sid AND a.internshipPosition.id = :pid",
-                InternshipApplication.class);
-        query.setParameter("sid", studentId).setParameter("pid", positionId);
-
-        List<InternshipApplication> results = query.getResultList();
-
-        if (!results.isEmpty()) {
-            InternshipApplication existing = results.get(0);
-            // HARDLOCK: If it's already Pending, do NOT allow moving to Request
-            if (existing.getStatus() == InternshipApplication.ApplicationStatus.Pending) {
-                throw new IllegalStateException("Student already applied. Please use the Chat function.");
-            }
-        }
+    public void initiateInterviewRequest(InterviewRequestCommand cmd) throws Exception {
+        StudentInfo student = entityManager.find(StudentInfo.class, cmd.studentId);
+        InternshipPosition position = entityManager.find(InternshipPosition.class, cmd.positionId);
+        UserAccount sender = entityManager.find(UserAccount.class, cmd.senderUserId);
 
         if (student == null || position == null || sender == null) {
             throw new IllegalArgumentException("Invalid data provided for request.");
         }
 
         // Check if student is already hired elsewhere
-        if (student.getStatus() == StudentInfo.StudentStatus.Accepted) {
+        if (student.getStatus() != StudentInfo.StudentStatus.Available) {
             throw new IllegalStateException("Student is already accepted for another internship.");
         }
 
-        // Check if an application already exists
-        InternshipApplication app = findApplication(studentId, positionId);
-
-        if (app == null) {
-            // Create NEW application with 'Request' status
-            app = new InternshipApplication();
-            app.setStudent(student);
-            app.setInternshipPosition(position);
-            app.setStatus(InternshipApplication.ApplicationStatus.Request); // Critical Change
-            app.setAppliedAt(LocalDateTime.now());
-            app.setChatInitiated(true); // Since company is messaging first
-
-            // Update position application count
-            position.setApplicationsCount((position.getApplicationsCount() != null ? position.getApplicationsCount() : 0) + 1);
-
-            entityManager.persist(app);
-            entityManager.merge(position);
-        } else {
-            // If it exists (e.g. Student applied earlier), we move it to Discussion/Interview
-            // depending on your preference. For now, let's just update the existing one to Request
-            app.setStatus(InternshipApplication.ApplicationStatus.Request);
-            entityManager.merge(app);
+        int max = (position.getMaxSpots() != null) ? position.getMaxSpots() : 0;
+        int current = (position.getAcceptedCount() != null) ? position.getAcceptedCount() : 0;
+        if (current >= max && max > 0) {
+            throw new IllegalStateException("Cannot initiate request: Position capacity reached.");
         }
 
-        // Persist the initial message in the Chat system
+        if (position.getStatus() == InternshipPosition.PositionStatus.Closed){
+            throw new IllegalStateException("Cannot initiate request: Position closed.");
+        }
+
+        if (position.getDeadline() != null && position.getDeadline().before(new Date())) {
+            throw new IllegalStateException("Cannot initiate request: The deadline for this position has passed.");
+        }
+
+        // Strict Duplicate Check
+        if (findApplication(cmd.studentId, cmd.positionId) != null) {
+            throw new IllegalStateException("An application record already exists for this student.");
+        }
+
+        InternshipApplication app = new InternshipApplication();
+        app.setStudent(student);
+        app.setInternshipPosition(position);
+        app.setAppliedAt(LocalDateTime.now());
+        app.setChatInitiated(true);
+        app.setStatus(InternshipApplication.ApplicationStatus.Request);
+
+        entityManager.persist(app);
+        entityManager.flush(); // Necessary so the update method can find it in the DB
+
+        // 4. If update succeeded, proceed with side effects
+        position.setApplicationsCount((position.getApplicationsCount() != null ? position.getApplicationsCount() : 0) + 1);
+
         Message msg = new Message();
         msg.setApplication(app);
         msg.setSender(sender);
-        msg.setMessageText(initialMessage);
-        msg.setSenderRole(Message.SenderRole.Company); // Assuming sender is company/faculty
+        msg.setMessageText(cmd.initialMessage);
+        msg.setSenderRole(Message.SenderRole.Company);
         msg.setTimeSent(LocalDateTime.now());
 
         entityManager.persist(msg);
-    }
-
-    public UserAccount getUserAccountById(Long userId) {
-        try {
-            // We use LEFT JOIN FETCH because a user will have either studentInfo or companyInfo, but not both.
-            // This ensures the associated objects are loaded in a single database hit.
-            TypedQuery<UserAccount> query = entityManager.createQuery(
-                    "SELECT u FROM UserAccount u " +
-                            "LEFT JOIN FETCH u.studentInfo " +
-                            "LEFT JOIN FETCH u.companyInfo " +
-                            "WHERE u.id = :userId", UserAccount.class);
-
-            query.setParameter("userId", userId);
-            return query.getSingleResult();
-
-        } catch (NoResultException e) {
-            LOG.warning("UserAccount not found for ID: " + userId);
-            return null;
-        } catch (Exception e) {
-            LOG.severe("Error retrieving UserAccount: " + e.getMessage());
-            return null;
-        }
     }
 
     private UserAccount getUserAccountByStudentId(Long studentId) {

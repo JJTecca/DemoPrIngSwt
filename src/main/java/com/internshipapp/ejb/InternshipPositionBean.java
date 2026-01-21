@@ -158,42 +158,6 @@ public class InternshipPositionBean {
         }
     }
 
-    public List<InternshipApplicationDto> getApplicantsForPosition(Long positionId) {
-        try {
-            // Use JOIN FETCH to get the StudentInfo entity immediately with the Application
-            TypedQuery<InternshipApplication> query = entityManager.createQuery(
-                    "SELECT a FROM InternshipApplication a " +
-                            "JOIN FETCH a.student " +
-                            "WHERE a.internshipPosition.id = :pid",
-                    InternshipApplication.class
-            );
-            query.setParameter("pid", positionId);
-            List<InternshipApplication> results = query.getResultList();
-
-            List<InternshipApplicationDto> dtos = new ArrayList<>();
-            for (InternshipApplication app : results) {
-                // Check for null student just in case of DB integrity issues
-                String fullName = "Unknown Student";
-                if (app.getStudent() != null) {
-                    fullName = app.getStudent().getFirstName() + " " + app.getStudent().getLastName();
-                }
-
-                dtos.add(new InternshipApplicationDto(
-                        app.getId(),
-                        app.getStudent() != null ? app.getStudent().getId() : null,
-                        fullName,
-                        app.getStatus() != null ? app.getStatus().name() : "Pending",
-                        app.getAppliedAt()
-                ));
-            }
-            return dtos;
-        } catch (Exception e) {
-            System.err.println("Error fetching applicants: " + e.getMessage());
-            e.printStackTrace();
-            return new ArrayList<>();
-        }
-    }
-
     // Get positions by company
     public List<InternshipPositionDto> findByCompany(Long companyId) {
         LOG.info("findByCompany: " + companyId);

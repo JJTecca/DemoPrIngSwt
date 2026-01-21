@@ -35,6 +35,9 @@ public class InternshipPositionServlet extends HttpServlet {
     @Inject
     ApplicationPeriodService applicationPeriodService;
 
+    @Inject
+    InternshipApplicationBean applicationBean;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -97,7 +100,7 @@ public class InternshipPositionServlet extends HttpServlet {
                     boolean isOwningCompany = "Company".equals(role) && pos.getCompanyId().equals(sessionCompanyId);
 
                     if (isAdminOrFaculty || isOwningCompany) {
-                        List<InternshipApplicationDto> applicants = internshipPositionBean.getApplicantsForPosition(pos.getId());
+                        List<InternshipApplicationDto> applicants = applicationBean.getApplicantsForPosition(pos.getId());
                         pos.setApplicants(applicants);
                     }
                 }

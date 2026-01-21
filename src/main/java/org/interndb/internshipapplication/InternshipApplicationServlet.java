@@ -1,11 +1,8 @@
 package org.interndb.internshipapplication;
 
-import com.internshipapp.common.CompanyInfoDto;
-import com.internshipapp.common.InternshipApplicationDto;
-import com.internshipapp.common.MessageDto;
-import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.commands.UpdateApplicationCommand;
+import com.internshipapp.common.*;
 import com.internshipapp.ejb.*;
-import com.internshipapp.entities.UserAccount;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -31,6 +28,9 @@ public class InternshipApplicationServlet extends HttpServlet {
 
     @Inject
     private StudentInfoBean studentInfoBean;
+
+    @Inject
+    private UserAccountBean userAccountBean;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -94,6 +94,7 @@ public class InternshipApplicationServlet extends HttpServlet {
             if ("Company".equals(role)) redirect = "CompanyDashboard";
             if ("Faculty".equals(role)) redirect = "FacultyDashboard";
 
+            e.printStackTrace();
             response.sendRedirect(redirect + "?error=load_failed");
         }
     }
@@ -109,6 +110,12 @@ public class InternshipApplicationServlet extends HttpServlet {
         }
 
         String action = request.getParameter("action");
+
+        // 1. Handle Status Updates (The Management Form)
+        if ("updateStatus".equals(action)) {
+            handleStatusUpdate(request, response);
+            return;
+        }
 
         if ("gradeInternship".equals(action)) {
             try {
@@ -146,15 +153,17 @@ public class InternshipApplicationServlet extends HttpServlet {
         if (app == null) return false;
         if ("Admin".equals(role)) return true;
 
-        // We must find the UserAccount to see which Student/Company info it owns
-        UserAccount user = applicationBean.getUserAccountById(sessionUserId);
+        UserAccountDto user = userAccountBean.getUserById(sessionUserId);
         if (user == null) return false;
 
         if ("Student".equals(role)) {
-            return user.getStudentInfo() != null && user.getStudentInfo().getId().equals(app.getStudentId());
+            return user.getStudentId() != null && user.getStudentId().equals(app.getStudentId());
         } else {
-            // Faculty and Company both check against the CompanyInfo ID
-            return user.getCompanyInfo() != null && user.getCompanyInfo().getId().equals(app.getCompanyId());
+            // Log these values to your GlassFish console to see the discrepancy
+            System.out.println("DEBUG Auth - User Dept ID: " + user.getCompanyId());
+            System.out.println("DEBUG Auth - App Dept ID: " + app.getCompanyId());
+
+            return user.getCompanyId() != null && user.getCompanyId().equals(app.getCompanyId());
         }
     }
 
@@ -174,7 +183,7 @@ public class InternshipApplicationServlet extends HttpServlet {
             Long positionId = Long.parseLong(request.getParameter("positionId"));
 
             // Call the new transactional method in the Bean
-            applicationBean.assignStudentAndCleanUp(studentId, positionId);
+            applicationBean.assignStudentAndCleanUp(studentId, positionId, role);
 
             response.sendRedirect("FacultyDashboard?update=assigned");
         } catch (Exception e) {
@@ -202,16 +211,35 @@ public class InternshipApplicationServlet extends HttpServlet {
             LocalDateTime interviewDateTime = (dateStr != null && !dateStr.isEmpty())
                     ? LocalDateTime.parse(dateStr) : null;
 
-            if ("Interview".equals(newStatus)){
-                applicationBean.updateApplicationStatus(appId, newStatus, interviewDateTime, loc);
-            } else {
-                // Perform the update
-                applicationBean.updateApplicationStatus(appId, newStatus);
+            InternshipApplicationDto app = applicationBean.getApplicationDtoById(appId);
+            if ("Request".equals(app.getStatus())) {
+                // Block Companies
+                throw new IllegalStateException("This application is waiting for a student response. You cannot change the state manually.");
             }
 
-            response.sendRedirect("CompanyDashboard?update=success");
+            UpdateApplicationCommand cmd = new UpdateApplicationCommand(appId, newStatus,
+                    null, null, role);
+            if ("Interview".equals(newStatus)){
+                cmd.setInterviewDate(interviewDateTime);
+                cmd.setLocation(loc);
+                applicationBean.updateApplicationStatus(cmd);
+            } else {
+                // Perform the update
+                applicationBean.updateApplicationStatus(cmd);
+            }
+
+            String redirectUrl = "CompanyDashboard";
+            if ("Faculty".equals(role)) {
+                redirectUrl = "FacultyDashboard";
+            }
+
+            response.sendRedirect(redirectUrl + "?update=success");
         } catch (Exception e) {
-            response.sendRedirect("CompanyDashboard?update=error");
+            String redirectUrl = "CompanyDashboard";
+            if ("Faculty".equals(role)) {
+                redirectUrl = "FacultyDashboard";
+            }
+            response.sendRedirect(redirectUrl + "?update=error");
         }
     }
 }

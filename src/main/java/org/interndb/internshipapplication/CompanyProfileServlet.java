@@ -3,10 +3,7 @@ package org.interndb.internshipapplication;
 import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.InternshipPositionDto;
 import com.internshipapp.common.UserAccountDto;
-import com.internshipapp.ejb.AccountActivityBean;
-import com.internshipapp.ejb.CompanyInfoBean;
-import com.internshipapp.ejb.InternshipPositionBean;
-import com.internshipapp.ejb.UserAccountBean;
+import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -32,6 +29,9 @@ public class CompanyProfileServlet extends HttpServlet {
 
     @Inject
     AccountActivityBean activityBean;
+
+    @Inject
+    InternshipApplicationBean applicationBean;
 
     public boolean checkAuth(HttpServletRequest req, HttpServletResponse resp, HttpSession sess) throws ServletException, IOException {
         if (sess == null || sess.getAttribute("userEmail") == null) {
@@ -105,7 +105,7 @@ public class CompanyProfileServlet extends HttpServlet {
 
             if (positions != null) {
                 for (InternshipPositionDto pos : positions) {
-                    pos.setApplicants(positionBean.getApplicantsForPosition(pos.getId()));
+                    pos.setApplicants(applicationBean.getApplicantsForPosition(pos.getId()));
                 }
             }
 

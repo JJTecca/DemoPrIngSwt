@@ -28,6 +28,9 @@ public class FacultyDashboardServlet extends HttpServlet {
     @Inject
     InternshipPositionBean positionBean;
 
+    @Inject
+    InternshipApplicationBean applicationBean;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -72,7 +75,7 @@ public class FacultyDashboardServlet extends HttpServlet {
                 // NEW: Hydrate each position with its candidates list
                 if (tutoringPositions != null) {
                     for (InternshipPositionDto pos : tutoringPositions) {
-                        pos.setApplicants(positionBean.getApplicantsForPosition(pos.getId()));
+                        pos.setApplicants(applicationBean.getApplicantsForPosition(pos.getId()));
                     }
                 }
             }

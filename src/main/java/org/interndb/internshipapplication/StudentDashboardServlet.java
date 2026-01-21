@@ -1,5 +1,6 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.commands.UpdateApplicationCommand;
 import com.internshipapp.common.*;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
@@ -225,7 +226,8 @@ public class StudentDashboardServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(false);
-        if (session == null || !"Student".equals(session.getAttribute("userRole"))) {
+        String role = (String) session.getAttribute("userRole");
+        if (session == null || !"Student".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
@@ -241,21 +243,18 @@ public class StudentDashboardServlet extends HttpServlet {
 
                 InternshipApplicationDto app = internshipAppBean.getApplicationDtoById(appId);
 
-                // STUDENT-SPECIFIC WORKFLOW LOCKS
-                if ("Discussion".equals(newStatus)) {
-                    if (!"Request".equals(app.getStatus())) {
-                        throw new IllegalStateException("You can only accept an interview if it was requested.");
-                    }
+                if (!"Discussion".equals(newStatus) && !"Rejected".equals(newStatus)) {
+                    throw new IllegalStateException("You can only accept to Discussion or Reject.");
                 }
 
-                if ("Rejected".equals(newStatus)) {
-                    if (!"Request".equals(app.getStatus())) {
-                        throw new IllegalStateException("This application is already in progress and cannot be declined by you.");
-                    }
+                if (!"Request".equals(app.getStatus())) {
+                    throw new IllegalStateException("You can only change from Request.");
                 }
 
                 // Perform update via Bean
-                internshipAppBean.updateApplicationStatus(appId, newStatus);
+                UpdateApplicationCommand cmd = new UpdateApplicationCommand(appId, newStatus,
+                        null, null, role);
+                internshipAppBean.updateApplicationStatus(cmd);
 
                 // Log the acceptance/rejection
                 System.out.println("DEBUG: Student " + session.getAttribute("userEmail") +
