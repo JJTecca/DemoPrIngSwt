@@ -37,18 +37,23 @@ public class MessageBean {
                 infoId = user.getCompanyInfo().getId();
                 senderFullName = user.getCompanyInfo().getName();
                 pfpUrl += infoId + "&targetRole=Company";
+            } else if (m.getSenderRole() == Message.SenderRole.Faculty && user.getCompanyInfo() != null) {
+                infoId = user.getCompanyInfo().getId();
+                senderFullName = user.getCompanyInfo().getName();
+                pfpUrl += infoId + "&targetRole=Company";
             }
 
             dtos.add(new MessageDto(
                     m.getId(),
                     m.getApplication().getId(),
                     m.getSenderRole().name(),
-                    infoId,
+                    m.getSender().getUserId(),
                     user.getUsername(),
                     senderFullName,
                     m.getMessageText(),
                     m.getTimeSent(),
-                    pfpUrl
+                    pfpUrl,
+                    infoId
             ));
         }
         return dtos;

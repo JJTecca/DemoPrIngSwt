@@ -22,8 +22,7 @@
         response.sendRedirect(request.getContextPath() + "/index.jsp");
         return;
     }
-
-    String avatarUrl = "https://ui-avatars.com/api/?name=" + company.getName() + "&background=0E2B58&color=fff&size=200";
+    String avatarUrl = "https://ui-avatars.com/api/?name=" + company.getName() + "&background=F8F9FA&color=0E2B58&size=200";
     if (myPositions == null) myPositions = Collections.emptyList();
 %>
 
@@ -339,6 +338,61 @@
             background-color: #e2e3e5;
             color: #41464b;
             border: 1px solid #d3d3d4;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.3em 0.7em;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .status-accepted {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .status-available {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border-color: #f5c2c7 !important;
+        }
+
+        .status-discussion {
+            background-color: #f3e5f5 !important;
+            color: #6a1b9a !important;
+            border-color: #e1bee7 !important;
+        }
+
+        /* Request: Royal Indigo (Company Led) */
+        .status-request {
+            background-color: #e8eaf6 !important;
+            color: #283593 !important;
+            border-color: #c5cae9 !important;
+        }
+
+        /* Pending: Warning Yellow */
+        .status-pending {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border-color: #ffeeba !important;
+        }
+
+        /* Interview: Info Blue (Cyan) */
+        .status-interview {
+            background-color: #e0f7fa !important;
+            color: #006064 !important;
+            border-color: #b2ebf2 !important;
         }
 
         /* Sidebar Capacity Badge - Identical to Panel logic */
@@ -670,13 +724,24 @@
 
                                                     <% if (isOwner) { %>
                                                     <div class="col-md-5 border-start">
-                                                        <h6 class="fw-bold text-uppercase text-muted small mb-3">
-                                                            <i class="fa-solid fa-user-graduate me-2"></i>Candidates
-                                                        </h6>
-                                                        <div class="applicant-scroll">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <h6 class="fw-bold text-uppercase text-muted small mb-0">
+                                                                <i class="fa-solid fa-user-graduate me-2"></i>Candidates
+                                                            </h6>
+                                                            <%-- The Toggle Switch --%>
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       id="toggleAccepted<%= pos.getId() %>"
+                                                                       onchange="filterAcceptedOnly('<%= pos.getId() %>')">
+                                                                <label class="form-check-label x-small fw-bold text-muted" style="font-size: 0.6rem;"
+                                                                       for="toggleAccepted<%= pos.getId() %>">ACCEPTED ONLY</label>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="applicant-scroll" id="applicantScroll<%= pos.getId() %>">
                                                             <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
                                                             <% for (com.internshipapp.common.InternshipApplicationDto app : pos.getApplicants()) { %>
-                                                            <div class="applicant-item">
+                                                            <div class="applicant-item applicant-entry" data-accepted="<%= "Accepted".equalsIgnoreCase(app.getStatus()) %>">
                                                                 <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
                                                                      onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff';"
                                                                      class="applicant-pfp">
@@ -685,15 +750,15 @@
                                                                        class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                                         <%= app.getStudentName() %>
                                                                     </a>
-                                                                    <span class="badge bg-light text-dark x-small"
-                                                                          style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                    <span class="status-badge status-<%= app.getStatus().toLowerCase() %>"
+                                                                          style="transform: scale(0.8); transform-origin: left; margin-top: -5px;">
+                                                                        <%= app.getStatus() %>
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                             <% } %>
                                                             <% } else { %>
-                                                            <div class="text-center py-4 text-muted small">No
-                                                                applications yet.
-                                                            </div>
+                                                            <div class="text-center py-4 text-muted small">No applications yet.</div>
                                                             <% } %>
                                                         </div>
                                                     </div>
@@ -908,5 +973,22 @@
 <% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function filterAcceptedOnly(posId) {
+        const scrollArea = document.getElementById('applicantScroll' + posId);
+        const isChecked = document.getElementById('toggleAccepted' + posId).checked;
+        const entries = scrollArea.querySelectorAll('.applicant-entry');
+
+        entries.forEach(entry => {
+            if (isChecked) {
+                // Show only if data-accepted is "true"
+                entry.style.display = (entry.getAttribute('data-accepted') === 'true') ? 'flex' : 'none';
+            } else {
+                // Show all
+                entry.style.display = 'flex';
+            }
+        });
+    }
+</script>
 </body>
 </html>

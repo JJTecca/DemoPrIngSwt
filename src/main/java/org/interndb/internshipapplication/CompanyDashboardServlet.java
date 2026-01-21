@@ -85,7 +85,7 @@ public class CompanyDashboardServlet extends HttpServlet {
 
             if (myPositions != null) {
                 for (InternshipPositionDto pos : myPositions) {
-                    List<InternshipApplicationDto> applicants = positionBean.getApplicantsForPosition(pos.getId());
+                    List<InternshipApplicationDto> applicants = applicationBean.getApplicantsForPosition(pos.getId());
                     pos.setApplicants(applicants);
                 }
             }

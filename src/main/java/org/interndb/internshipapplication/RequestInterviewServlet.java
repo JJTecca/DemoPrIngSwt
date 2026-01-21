@@ -1,9 +1,9 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.commands.InterviewRequestCommand;
 import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.StudentInfoDto;
-import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -113,6 +113,9 @@ public class RequestInterviewServlet extends HttpServlet {
         HttpSession session = request.getSession();
         Long senderUserId = (Long) session.getAttribute("userId");
         String role = (String) session.getAttribute("userRole");
+        if ("Student".equals(role)) {
+            throw new IllegalStateException("Unauthorized: Students cannot initiate interview requests.");
+        }
 
         try {
             Long studentUserId = Long.parseLong(studentUserIdStr);
@@ -126,7 +129,9 @@ public class RequestInterviewServlet extends HttpServlet {
 
             if (existingApp == null) {
                 // SCENARIO 1: Brand New Interaction -> Formal Request
-                internshipApplicationBean.initiateInterviewRequest(studentUser.getStudentId(), positionId, message, senderUserId);
+                InterviewRequestCommand cmd = new InterviewRequestCommand(studentUser.getStudentId(),
+                        positionId, message, senderUserId);
+                internshipApplicationBean.initiateInterviewRequest(cmd);
                 request.setAttribute("successMessage", "Interview request sent successfully.");
             }
             else if ("Pending".equals(existingApp.getStatus().toString())) {

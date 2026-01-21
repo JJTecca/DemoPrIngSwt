@@ -305,6 +305,69 @@
             cursor: not-allowed;
             opacity: 0.65;
         }
+
+        .status-badge {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 0.68rem;
+            padding: 0.45em 1em;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            border-width: 1.5px;
+        }
+
+        .status-pending {
+            background-color: #fefaf2;
+            color: #966e1e;
+            border-color: #f9ebcd;
+        }
+
+        .status-accepted {
+            background-color: #e3f7ea;
+            color: #2b6e44;
+            border-color: #c6e6d1;
+        }
+
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #a33b3b;
+            border-color: #fecaca;
+        }
+
+        .status-interview {
+            background-color: #e0f2fe;
+            color: #2c5282;
+            border-color: #bae6fd;
+        }
+
+        .status-discussion {
+            background-color: #f3e8ff;
+            color: #553c9a;
+            border-color: #e9d5ff;
+        }
+
+        .status-request {
+            background-color: #f1f5f9;
+            color: #4a5568;
+            border-color: #cbd5e1;
+        }
+
+        .modal-info-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .modal-info-item {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -405,7 +468,7 @@
                 <% if (positions != null && !positions.isEmpty()) { %>
                 <% for (InternshipPositionDto pos : positions) {
                     String companyPfp = request.getContextPath() + "/ProfilePicture?id=" + pos.getCompanyId() + "&targetRole=Company";
-                    String fallbackAvatar = "https://ui-avatars.com/api/?name=" + pos.getCompanyName() + "&background=0E2B58&color=fff&size=100";
+                    String fallbackAvatar = "https://ui-avatars.com/api/?name=" + pos.getCompanyName() + "&background=F8F9FA&color=0E2B58&size=100";
                     boolean isTutoring = pos.getCompanyName().toLowerCase().contains("faculty") || pos.getCompanyName().toLowerCase().contains("csee");
 
                     // ACCESS CONTROL LOGIC
@@ -537,22 +600,37 @@
 
                                     <% if (canSeeApplicants) { %>
                                     <div class="col-md-5 border-start">
-                                        <h6 class="fw-bold text-uppercase text-muted small mb-3"><i
-                                                class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
-                                        <div class="applicant-scroll">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="fw-bold text-uppercase text-muted small mb-0">
+                                                <i class="fa-solid fa-user-graduate me-2"></i>Candidates
+                                            </h6>
+                                            <%-- The Toggle Switch --%>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                       id="toggleAccepted<%= pos.getId() %>"
+                                                       onchange="filterAcceptedOnly('<%= pos.getId() %>')">
+                                                <label class="form-check-label x-small fw-bold text-muted" style="font-size: 0.6rem;"
+                                                       for="toggleAccepted<%= pos.getId() %>">ACCEPTED ONLY</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="applicant-scroll" id="applicantScroll<%= pos.getId() %>">
                                             <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
                                             <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
-                                            <div class="applicant-item">
+                                            <div class="applicant-item applicant-entry" data-accepted="<%= "Accepted".equalsIgnoreCase(app.getStatus()) %>">
                                                 <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff&size=100';"
+                                                     onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName().replace(" ", "+") %>&background=0E2B58&color=fff&size=100';"
                                                      class="applicant-pfp">
                                                 <div class="overflow-hidden">
                                                     <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
                                                        class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                         <%= app.getStudentName() %>
                                                     </a>
-                                                    <span class="badge bg-light text-dark x-small"
-                                                          style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                    <%-- High Contrast Status Badge --%>
+                                                    <span class="status-badge status-<%= app.getStatus().toLowerCase() %>"
+                                                          style="transform: scale(0.8); transform-origin: left; margin-top: -5px;">
+                                                        <%= app.getStatus() %>
+                                                    </span>
                                                 </div>
                                             </div>
                                             <% } %>
@@ -564,11 +642,25 @@
                                     <% } %>
                                 </div>
 
-                                <div class="alert alert-light border mt-4 m-0">
-                                    <div class="d-flex justify-content-between small">
-                                        <span><i class="fa-solid fa-circle-info me-2 text-primary"></i> <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %></span>
-                                        <span><i
-                                                class="fa-solid fa-users me-2 text-primary"></i> <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %></span>
+                                <div class="alert alert-light border mt-4 m-0 p-2">
+                                    <div class="modal-info-bar">
+                                        <div class="modal-info-item small">
+                                            <i class="fa-solid fa-calendar-day me-1 text-primary"></i>
+                                            <strong>Deadline:</strong> <%= pos.getDeadline() != null ? pos.getDeadline().toString().substring(0, 10) : "Open" %>
+                                        </div>
+
+                                        <div class="modal-info-item small border-start border-end">
+                                            <i class="fa-solid fa-users me-1 text-primary"></i>
+                                            <strong>Applications:</strong> <%= (pos.getApplicationsCount() != null ? pos.getApplicationsCount() : 0) %>
+                                        </div>
+
+                                        <div class="modal-info-item small">
+                                            <i class="fa-solid fa-user-check me-1 text-success"></i>
+                                            <strong>Capacity:</strong>
+                                            <span class="<%= (pos.getAcceptedCount() >= pos.getMaxSpots()) ? "text-danger fw-bold" : "" %>">
+                                                <%= pos.getAcceptedCount() %> / <%= pos.getMaxSpots() %>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -756,6 +848,22 @@
         // Initial Run on Page Load
         applyAllFilters();
     });
+
+    function filterAcceptedOnly(posId) {
+        const scrollArea = document.getElementById('applicantScroll' + posId);
+        const isChecked = document.getElementById('toggleAccepted' + posId).checked;
+        const entries = scrollArea.querySelectorAll('.applicant-entry');
+
+        entries.forEach(entry => {
+            if (isChecked) {
+                // Show only if data-accepted is "true"
+                entry.style.display = (entry.getAttribute('data-accepted') === 'true') ? 'flex' : 'none';
+            } else {
+                // Show all
+                entry.style.display = 'flex';
+            }
+        });
+    }
 </script>
 </body>
 </html>

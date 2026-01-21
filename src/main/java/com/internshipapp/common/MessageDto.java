@@ -13,9 +13,11 @@ public class MessageDto implements Serializable {
     private String messageText;
     private LocalDateTime timeSent;
     private String senderPfpUrl;
+    private Long infoId;
 
     public MessageDto(Long id, Long applicationId, String senderRole, Long senderId,
-                      String senderName, String senderFullName, String messageText, LocalDateTime timeSent, String senderPfpUrl) {
+                      String senderName, String senderFullName, String messageText,
+                      LocalDateTime timeSent, String senderPfpUrl, Long infoId) {
         this.id = id;
         this.applicationId = applicationId;
         this.senderRole = senderRole;
@@ -25,6 +27,7 @@ public class MessageDto implements Serializable {
         this.messageText = messageText;
         this.timeSent = timeSent;
         this.senderPfpUrl = senderPfpUrl;
+        this.infoId = infoId;
     }
 
     // Getters
@@ -37,4 +40,5 @@ public class MessageDto implements Serializable {
     public LocalDateTime getTimeSent() { return timeSent; }
     public String getSenderPfpUrl() { return senderPfpUrl; }
     public String getSenderFullName() { return senderFullName; }
+    public Long getInfoId() { return infoId; }
 }

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.*" %>
 <%@ page import="com.internshipapp.common.*" %>
+<%@ page import="java.time.LocalDateTime" %>
 <%
     // 1. Retrieve Data
     CompanyInfoDto company = (CompanyInfoDto) request.getAttribute("company");
@@ -586,7 +587,8 @@
                 </div>
                 <div class="col-md-4">
                     <% String activeChats = request.getAttribute("activeChats").toString();%>
-                    <div class="stat-card card-red"><h2 class="stat-value"><%= activeChats %></h2><span
+                    <div class="stat-card card-red"><h2 class="stat-value"><%= activeChats %>
+                    </h2><span
                             class="stat-label">Active Chats</span><i class="fa-regular fa-comment-dots stat-icon"></i>
                     </div>
                 </div>
@@ -619,7 +621,8 @@
                                                 <%= (company.getPhoneNumber() != null && !company.getPhoneNumber().isEmpty()) ? company.getPhoneNumber() : "Not Set" %>
                                             </span>
                                             <a href="#" class="text-primary small text-decoration-none"
-                                               data-bs-toggle="modal" data-bs-target="#editPhoneModal" title="Edit Phone">
+                                               data-bs-toggle="modal" data-bs-target="#editPhoneModal"
+                                               title="Edit Phone">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
                                         </div>
@@ -636,7 +639,8 @@
                                     <div class="col-sm-4">
                                         <span class="info-label">Account</span>
                                         <span class="info-value text-truncate d-block"><%= userAccount.getEmail() %></span>
-                                        <span class="badge bg-light text-muted border ms-1" style="font-size: 0.65rem; vertical-align: middle;">
+                                        <span class="badge bg-light text-muted border ms-1"
+                                              style="font-size: 0.65rem; vertical-align: middle;">
                                             <i class="fa-solid fa-lock me-1"></i>Private
                                         </span>
                                     </div>
@@ -661,7 +665,8 @@
                                         <span class="small fw-bold <%= completionTextColor %>"><%= completionText %> (<%= completionScore %>%)</span>
                                     </div>
                                     <div class="progress" style="height: 8px; border-radius: 10px;">
-                                        <div class="progress-bar <%= completionBarClass %>" style="width: <%= completionScore %>%"></div>
+                                        <div class="progress-bar <%= completionBarClass %>"
+                                             style="width: <%= completionScore %>%"></div>
                                     </div>
                                 </div>
                             </div>
@@ -802,6 +807,11 @@
                                                      style="cursor: default; opacity: 0.9; width: fit-content;">
                                                     <i class="fa-solid fa-check-double me-1"></i> Accepted
                                                 </div>
+                                                <% } else if (isRejected) { %>
+                                                <div class="status-badge status-dropdown-btn status-rejected text-center"
+                                                     style="cursor: default; opacity: 0.9; width: fit-content;">
+                                                    <i class="fa-solid fa-circle-xmark me-2"></i> Rejected
+                                                </div>
                                                 <% } else { %>
                                                 <%-- Dropdown for all other statuses --%>
                                                 <div class="dropdown">
@@ -814,26 +824,29 @@
                                                         <li><h6 class="dropdown-header small">Move to State</h6></li>
 
                                                         <% if ("Pending".equals(currentStatus) || "Discussion".equals(currentStatus)) { %>
-                                                        <li><a class="dropdown-item small"
-                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
+                                                        <li><a class="dropdown-item small" href="javascript:void(0);"
+                                                               onclick="confirmAction('<%= app.getId() %>', '<%= app.getStudentId() %>', '<%= app.getStudentName().replace("'", "\\'") %>',
+                                                                       '<%= app.getPositionTitle().replace("'", "\\'") %>', 'Rejected')">Reject</a>
                                                         </li>
                                                         <% } else if ("Interview".equals(currentStatus)) { %>
+                                                        <% if (app.getInterview().isBefore(LocalDateTime.now())) { %>
                                                         <li><a class="dropdown-item small text-success fw-bold"
-                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Accepted">Accept
+                                                               href="javascript:void(0);"
+                                                               onclick="confirmAction('<%= app.getId() %>', '<%= app.getStudentId() %>', '<%= app.getStudentName().replace("'", "\\'") %>',
+                                                                       '<%= app.getPositionTitle().replace("'", "\\'") %>','Accepted')">Accept
                                                             Student</a></li>
-                                                        <li><a class="dropdown-item small"
-                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Rejected">Reject</a>
-                                                        </li>
-                                                        <% } else if ("Rejected".equals(currentStatus)) { %>
-                                                        <%-- NEW: Check if the student is already accepted globally before allowing restore --%>
-                                                        <% if (!"Accepted".equalsIgnoreCase(app.getStudentStatus())) { %>
-                                                        <li><a class="dropdown-item small"
-                                                               href="InternshipApplications?id=<%= app.getId() %>&action=updateStatus&status=Pending">Restore
-                                                            to Pending</a></li>
                                                         <% } else { %>
-                                                        <li><h6 class="dropdown-header x-small text-danger">Cannot
-                                                            Restore: Student Hired Elsewhere</h6></li>
+                                                        <li><a class="dropdown-item small disabled text-muted"
+                                                               style="pointer-events: none; opacity: 0.6;"
+                                                               title="Interview must pass before accepting">
+                                                            <i class="fa-solid fa-lock me-2"></i>Accept (Locked)
+                                                        </a>
+                                                        </li>
                                                         <% } %>
+                                                        <li><a class="dropdown-item small" href="javascript:void(0);"
+                                                               onclick="confirmAction('<%= app.getId() %>', '<%= app.getStudentId() %>', '<%= app.getStudentName().replace("'", "\\'") %>',
+                                                                       '<%= app.getPositionTitle().replace("'", "\\'") %>', 'Rejected')">Reject</a>
+                                                        </li>
                                                         <% } %>
                                                     </ul>
                                                 </div>
@@ -1052,22 +1065,40 @@
                                                 </div>
 
                                                 <div class="col-md-5 border-start">
-                                                    <h6 class="fw-bold text-uppercase text-muted small mb-3"><i
-                                                            class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
-                                                    <div class="applicant-scroll">
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <h6 class="fw-bold text-uppercase text-muted small mb-0"><i
+                                                                class="fa-solid fa-user-graduate me-2"></i>Candidates
+                                                        </h6>
+                                                        <%-- NEW: Toggle Switch --%>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox"
+                                                                   role="switch" id="toggleAccepted<%= pos.getId() %>"
+                                                                   onchange="filterAcceptedOnly('<%= pos.getId() %>')">
+                                                            <label class="form-check-label x-small fw-bold text-muted"
+                                                                   style="font-size: 0.6rem;"
+                                                                   for="toggleAccepted<%= pos.getId() %>">ACCEPTED
+                                                                ONLY</label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="applicant-scroll"
+                                                         id="applicantScroll<%= pos.getId() %>">
                                                         <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
                                                         <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
-                                                        <div class="applicant-item">
+                                                        <div class="applicant-item applicant-entry"
+                                                             data-accepted="<%= "Accepted".equals(app.getStatus()) %>">
                                                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff';"
+                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName().replace(" ", "+") %>&background=0E2B58&color=fff';"
                                                                  class="applicant-pfp">
                                                             <div class="overflow-hidden">
                                                                 <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
                                                                    class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                                     <%= app.getStudentName() %>
                                                                 </a>
-                                                                <span class="badge bg-light text-dark x-small"
-                                                                      style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                <span class="status-badge status-<%= app.getStatus().toLowerCase() %>"
+                                                                      style="transform: scale(0.8); transform-origin: left; margin-top: -5px;">
+                                                                    <%= app.getStatus() %>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                         <% } %>
@@ -1147,6 +1178,40 @@
                     <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">Save Changes</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="decisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 justify-content-center pt-4">
+                <div class="position-relative">
+                    <img id="modalStudentImg" src=""
+                         class="rounded-circle border shadow-sm"
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                    <div id="modalIconBadge"
+                         class="position-absolute bottom-0 end-0 rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                         style="width: 30px; height: 30px; border: 2px solid white;">
+                        <i id="modalIcon" class="fa-solid fa-sm text-white"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body text-center p-4">
+                <h5 id="modalTitle" class="fw-bold mb-2">Title</h5>
+                <div class="modal-body text-center p-4">
+                    <p class="text-muted small mb-0">
+                        Are you sure you want to <span id="modalActionText">action</span>
+                        <strong id="modalStudentName"></strong>
+                        for the <strong id="modalPositionTitle" class="text-dark"></strong> position?
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 pt-0">
+                <button type="button" class="btn btn-light btn-sm flex-fill fw-bold" data-bs-dismiss="modal">Cancel
+                </button>
+                <a href="#" id="modalConfirmBtn" class="btn btn-sm flex-fill fw-bold">Confirm</a>
+            </div>
         </div>
     </div>
 </div>
@@ -1287,6 +1352,71 @@
         // --- 3. Initial Run ---
         applyFilter('HideRejected');
     });
+
+    function confirmAction(appId, studentId, studentName, positionTitle, status) {
+        const isAccept = status === 'Accepted';
+        const modalElement = document.getElementById('decisionModal');
+
+        // 1. Set Student and Position Identity
+        document.getElementById('modalStudentName').innerText = studentName;
+        document.getElementById('modalPositionTitle').innerText = positionTitle;
+
+        const contextPath = '<%= request.getContextPath() %>';
+        const pfpUrl = contextPath + "/ProfilePicture?id=" + studentId + "&targetRole=Student";
+        const fallback = "https://ui-avatars.com/api/?name=" + studentName.replace(/ /g, '+') + "&background=0E2B58&color=fff";
+
+        const imgEl = document.getElementById('modalStudentImg');
+        imgEl.src = pfpUrl;
+        imgEl.onerror = function () {
+            this.src = fallback;
+            this.onerror = null;
+        };
+
+        // 2. Configure Theme (Existing logic)
+        const btn = document.getElementById('modalConfirmBtn');
+        const badge = document.getElementById('modalIconBadge');
+        const icon = document.getElementById('modalIcon');
+
+        if (isAccept) {
+            document.getElementById('modalTitle').innerText = "Accept Student?";
+            document.getElementById('modalActionText').innerText = "officially hire";
+            btn.className = "btn btn-success btn-sm flex-fill fw-bold";
+            btn.innerText = "Accept & Hire";
+            badge.style.backgroundColor = "#198754";
+            icon.className = "fa-solid fa-check text-white";
+        } else {
+            document.getElementById('modalTitle').innerText = "Reject Candidate?";
+            document.getElementById('modalActionText').innerText = "reject";
+            btn.className = "btn btn-danger btn-sm flex-fill fw-bold";
+            btn.innerText = "Confirm Rejection";
+            badge.style.backgroundColor = "#dc3545";
+            icon.className = "fa-solid fa-xmark text-white";
+        }
+
+        // 3. Set Action URL
+        const actionUrl = "InternshipApplications?id=" + appId + "&action=updateStatus&status=" + status;
+        btn.setAttribute('href', actionUrl);
+
+        // 4. Show Modal
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    }
+
+    function filterAcceptedOnly(posId) {
+        const scrollArea = document.getElementById('applicantScroll' + posId);
+        const isChecked = document.getElementById('toggleAccepted' + posId).checked;
+        const entries = scrollArea.querySelectorAll('.applicant-entry');
+
+        entries.forEach(entry => {
+            if (isChecked) {
+                // Show only if data-accepted is "true"
+                entry.style.display = (entry.getAttribute('data-accepted') === 'true') ? 'flex' : 'none';
+            } else {
+                // Show all
+                entry.style.display = 'flex';
+            }
+        });
+    }
 </script>
 </body>
 </html>

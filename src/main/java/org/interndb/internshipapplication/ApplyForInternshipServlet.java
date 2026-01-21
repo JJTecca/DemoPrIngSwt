@@ -4,6 +4,7 @@ import com.internshipapp.common.StudentInfoDto;
 import com.internshipapp.common.UserAccountDto;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.InternshipApplicationBean;
+import com.internshipapp.ejb.InternshipPositionBean;
 import com.internshipapp.ejb.UserAccountBean;
 import com.internshipapp.config.ApplicationPeriodService;
 
@@ -28,6 +29,9 @@ public class ApplyForInternshipServlet extends HttpServlet {
 
     @Inject
     private ApplicationPeriodService applicationPeriodService;
+
+    @Inject
+    private InternshipPositionBean positionBean;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -63,7 +67,8 @@ public class ApplyForInternshipServlet extends HttpServlet {
             UserAccountDto user = userAccountBean.findByEmail(email);
 
             if (student != null) {
-                String positionTitle = applicationBean.createApplication(student.getId(), positionId);
+                applicationBean.createApplication(student.getId(), positionId);
+                String positionTitle = positionBean.findById(positionId).getTitle();
 
                 if (user != null && positionTitle != null) {
                     activityBean.logActivity(

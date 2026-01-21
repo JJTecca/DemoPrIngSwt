@@ -13,15 +13,31 @@
     // Calculate counts for the header
     long requestedCount = 0;
     long browseableCount = 0;
+    long allRejectedCount = 0;
+
+
+    int totalPositionsCount = (positions != null) ? positions.size() : 0;
 
     if (students != null) {
         for (StudentInfoDto s : students) {
             List<InternshipApplicationDto> apps = (appsMap != null) ? appsMap.get(s.getUserId()) : null;
+
             boolean isRequested = apps != null && apps.stream().anyMatch(a -> "Request".equalsIgnoreCase(a.getStatus()));
 
-            if (isRequested) {
+            // 2. Logic Update:
+            // - Must have applications
+            // - Number of apps must match total positions (meaning they tried everything)
+            // - All statuses must be Rejected
+            boolean hasAppliedToAll = (apps != null && apps.size() == totalPositionsCount);
+            boolean allAppsAreRejected = apps != null && !apps.isEmpty() &&
+                    apps.stream().allMatch(a -> "Rejected".equalsIgnoreCase(a.getStatus()));
+
+            boolean allRejected = hasAppliedToAll && allAppsAreRejected;
+
+            if (allRejected) {
+                allRejectedCount++;
+            } else if (isRequested) {
                 requestedCount++;
-                browseableCount++;
             } else {
                 // Check other exclusion rules (Hired/Accepted) to match your grid logic
                 String status = s.getStatus() != null ? s.getStatus() : "Available";
@@ -321,7 +337,7 @@
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         /* Selection Box (Dashboard Style) */
@@ -506,26 +522,72 @@
                         <h2 class="fw-bold mb-1">
                             <i class="fa-solid fa-magnifying-glass me-2"></i>Search Potential Interns
                         </h2>
-                        <%if (requestedCount == 0) { %>
+                        <%if (requestedCount == 0 && allRejectedCount == 0) { %>
                         <p class="mb-0 opacity-75">
-                            Browse <strong><%= browseableCount %></strong> available students.
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students.
+                        </p>
+                        <% } else if (requestedCount == 1 && allRejectedCount == 1) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong> <%= requestedCount %></strong> is requested and
+                                <strong> <%= allRejectedCount %></strong> is rejected too all of your positions.</span>
+                        </p>
+                        <% } else if (requestedCount >= 2 && allRejectedCount == 1) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong> <%= requestedCount %></strong> are requested and
+                                <strong> <%= allRejectedCount %></strong> is rejected too all of your positions.</span>
+                        </p>
+                        <% } else if (requestedCount == 1 && allRejectedCount >= 2) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong> <%= requestedCount %></strong> is requested and
+                                <strong> <%= allRejectedCount %></strong> are rejected too all of your positions.</span>
+                        </p>
+                        <% } else if (requestedCount >= 2 && allRejectedCount >= 2) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong> <%= requestedCount %></strong> are requested and
+                                <strong> <%= allRejectedCount %></strong> are rejected too all of your positions.</span>
                         </p>
                         <% } else if (requestedCount == 1) { %>
                         <p class="mb-0 opacity-75">
-                            Browse <strong><%= browseableCount %></strong> available students,
-                            <span class="text-white-50">of which <strong><%= requestedCount %></strong> is requested.</span>
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong><%= requestedCount %></strong> is requested.</span>
                         </p>
                         <% } else if (requestedCount >= 2) { %>
                         <p class="mb-0 opacity-75">
-                            Browse <strong><%= browseableCount %></strong> available students,
-                            <span class="text-white-50">of which <strong><%= requestedCount %></strong> are requested.</span>
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong><%= requestedCount %></strong> are requested.</span>
+                        </p>
+                        <% } else if (allRejectedCount == 1) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong><%= allRejectedCount %></strong>
+                                is rejected to all of your positions.</span>
+                        </p>
+                        <% } else if (allRejectedCount >= 2) { %>
+                        <p class="mb-0 opacity-75">
+                            Browse <strong><%= browseableCount %>
+                        </strong> available students,
+                            <span class="text-white-50"><strong><%= allRejectedCount %></strong>
+                                are rejected to all of your positions.</span>
                         </p>
                         <% } %>
                     </div>
 
                     <div class="col-md-7">
                         <div class="d-flex gap-2 justify-content-end align-items-center">
-                            <div class="bg-white rounded p-1 shadow-sm flex-grow-1" style="max-width: 400px; max-height:55px;">
+                            <div class="bg-white rounded p-1 shadow-sm flex-grow-1"
+                                 style="max-width: 400px; max-height:55px;">
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent border-0"><i
                                             class="fa-solid fa-magnifying-glass text-muted"></i></span>
@@ -582,6 +644,15 @@
                             boolean hideGrade = !studentRow.getGradeVisibility();
 
                             List<InternshipApplicationDto> studentApps = (appsMap != null) ? appsMap.get(studentRow.getUserId()) : null;
+                            boolean hasAppliedToAll = (studentApps != null && studentApps.size() == totalPositionsCount);
+
+                            // 2. Check if everything they applied to is rejected
+                            boolean allAppsAreRejected = studentApps != null && !studentApps.isEmpty() &&
+                                    studentApps.stream().allMatch(a -> "Rejected".equalsIgnoreCase(a.getStatus()));
+
+                            // 3. ONLY hide them if they applied to ALL positions AND were rejected from ALL
+                            if (hasAppliedToAll && allAppsAreRejected) continue;
+
                             boolean hasActiveRequest = false;
                             if (studentApps != null) {
                                 hasActiveRequest = studentApps.stream()
@@ -676,9 +747,21 @@
         </div>
 
         <ul class="nav nav-tabs nav-tabs-custom" id="interviewTabs" role="tablist">
-            <li class="nav-item"><button class="nav-link" id="request-tab" data-bs-toggle="tab" data-bs-target="#requestPane" type="button">Request</button></li>
-            <li class="nav-item"><button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pendingPane" type="button">Pending</button></li>
-            <li class="nav-item"><button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button">Chat Hub</button></li>
+            <li class="nav-item">
+                <button class="nav-link" id="request-tab" data-bs-toggle="tab" data-bs-target="#requestPane"
+                        type="button">Request
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pendingPane"
+                        type="button">Pending
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chatPane" type="button">
+                    Chat Hub
+                </button>
+            </li>
         </ul>
 
         <div class="modal-content-wrapper p-4">
@@ -687,21 +770,30 @@
                 <div class="tab-pane fade" id="requestPane" role="tabpanel">
                     <form action="RequestInterview" method="post">
                         <input type="hidden" id="selectedStudentUserId" name="studentUserId">
-                        <div id="requestBlockedMessage" class="alert alert-warning d-none small py-2">This student has already applied to all your positions.</div>
+                        <div id="requestBlockedMessage" class="alert alert-warning d-none small py-2">This student has
+                            already applied to all your positions.
+                        </div>
 
                         <div id="requestFormFields">
                             <span class="form-label-dashboard">Choose Target Position</span>
-                            <select id="positionId" name="positionId" class="form-select border-0 bg-light p-3 mb-3" style="border-radius: 12px;" required>
+                            <select id="positionId" name="positionId" class="form-select border-0 bg-light p-3 mb-3"
+                                    style="border-radius: 12px;" required>
                                 <option value="">-- Select --</option>
-                                <% if (positions != null) { for (InternshipPositionDto pos : positions) { %>
-                                <option value="<%= pos.getId() %>"><%= pos.getTitle() %></option>
-                                <% } } %>
+                                <% if (positions != null) {
+                                    for (InternshipPositionDto pos : positions) { %>
+                                <option value="<%= pos.getId() %>"><%= pos.getTitle() %>
+                                </option>
+                                <% }
+                                } %>
                             </select>
 
                             <span class="form-label-dashboard">Your Invitation Message</span>
-                            <textarea name="message" class="form-control border-0 bg-light p-3 mb-3" rows="3" style="border-radius: 12px;" placeholder="Message to student..." required></textarea>
+                            <textarea name="message" class="form-control border-0 bg-light p-3 mb-3" rows="3"
+                                      style="border-radius: 12px;" placeholder="Message to student..."
+                                      required></textarea>
 
-                            <button type="submit" class="btn btn-primary w-100 fw-bold p-3 border-0 shadow-sm" style="background: var(--brand-blue); border-radius: 12px;">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold p-3 border-0 shadow-sm"
+                                    style="background: var(--brand-blue); border-radius: 12px;">
                                 Send Interview Request
                             </button>
                         </div>
@@ -711,7 +803,8 @@
                 <div class="tab-pane fade" id="pendingPane" role="tabpanel">
                     <div class="action-card-simple">
                         <span class="form-label-dashboard">Unprocessed Applications</span>
-                        <select id="pendingAppSelector" class="form-select border-0 bg-white p-3 mb-3 shadow-sm" style="border-radius: 10px;" onchange="togglePendingAction(this.value)">
+                        <select id="pendingAppSelector" class="form-select border-0 bg-white p-3 mb-3 shadow-sm"
+                                style="border-radius: 10px;" onchange="togglePendingAction(this.value)">
                             <option value="">-- Choose application to answer --</option>
                         </select>
 
@@ -720,8 +813,11 @@
                                 <input type="hidden" name="appId" id="pendingAppIdInput">
                                 <input type="hidden" name="isInitial" value="true">
                                 <span class="form-label-dashboard text-primary">Write Initial Message</span>
-                                <textarea name="message" class="form-control border-0 bg-white p-3 mb-3 shadow-sm" rows="3" style="border-radius: 10px;" placeholder="Say hello and start the discussion..." required></textarea>
-                                <button type="submit" class="btn btn-primary w-100 fw-bold p-2" style="border-radius: 8px;">
+                                <textarea name="message" class="form-control border-0 bg-white p-3 mb-3 shadow-sm"
+                                          rows="3" style="border-radius: 10px;"
+                                          placeholder="Say hello and start the discussion..." required></textarea>
+                                <button type="submit" class="btn btn-primary w-100 fw-bold p-2"
+                                        style="border-radius: 8px;">
                                     <i class="fa-regular fa-comments me-2"></i>Start Discussion
                                 </button>
                             </form>
@@ -732,13 +828,17 @@
                 <div class="tab-pane fade" id="chatPane" role="tabpanel">
                     <div class="action-card-simple">
                         <span class="form-label-dashboard">Ongoing Conversations</span>
-                        <select id="chatAppSelector" class="form-select border-0 bg-white p-3 mb-3 shadow-sm" style="border-radius: 10px;" onchange="toggleChatAction(this.value)">
+                        <select id="chatAppSelector" class="form-select border-0 bg-white p-3 mb-3 shadow-sm"
+                                style="border-radius: 10px;" onchange="toggleChatAction(this.value)">
                             <option value="">-- Select active chat --</option>
                         </select>
 
                         <div id="chatActionArea" class="d-none text-center animate__animated animate__fadeIn">
-                            <div class="alert alert-info border-0 py-2 small mb-3">You already have an active chat for this role.</div>
-                            <a href="" id="chatAppGoBtn" class="btn btn-primary w-100 fw-bold p-2" style="border-radius: 8px;">
+                            <div class="alert alert-info border-0 py-2 small mb-3">You already have an active chat for
+                                this role.
+                            </div>
+                            <a href="" id="chatAppGoBtn" class="btn btn-primary w-100 fw-bold p-2"
+                               style="border-radius: 8px;">
                                 <i class="fa-solid fa-up-right-from-square me-2"></i>Go to Conversation
                             </a>
                         </div>
@@ -754,8 +854,10 @@
             <div class="modal-body text-center p-5">
                 <div class="mb-4 text-success"><i class="fa-solid fa-circle-check fa-4x"></i></div>
                 <h4 class="fw-bold">Request Sent!</h4>
-                <p class="text-muted">Your formal interview invitation has been sent to <strong id="successStudentName"></strong>.</p>
-                <button type="button" class="btn btn-primary rounded-pill px-5" data-bs-dismiss="modal">Excellent</button>
+                <p class="text-muted">Your formal interview invitation has been sent to <strong
+                        id="successStudentName"></strong>.</p>
+                <button type="button" class="btn btn-primary rounded-pill px-5" data-bs-dismiss="modal">Excellent
+                </button>
             </div>
         </div>
     </div>
@@ -809,7 +911,7 @@
         const avatarImg = document.getElementById('modalStudentAvatar');
         avatarImg.onerror = null;
 
-        avatarImg.onerror = function() {
+        avatarImg.onerror = function () {
             this.onerror = null; // Safety break
             // Trim and encode name to ensure initials are generated
             const cleanName = name.trim().replace(/\s+/g, "+");
@@ -896,14 +998,17 @@
     // Toggle Action Areas based on dropdown selection
     function togglePendingAction(appId) {
         const area = document.getElementById('pendingActionArea');
-        if(!appId) { area.classList.add('d-none'); return; }
+        if (!appId) {
+            area.classList.add('d-none');
+            return;
+        }
         document.getElementById('pendingAppIdInput').value = appId;
         area.classList.remove('d-none');
     }
 
     function toggleChatAction(appId) {
         const area = document.getElementById('chatActionArea');
-        if(!appId) {
+        if (!appId) {
             area.classList.add('d-none');
             return;
         }
@@ -937,8 +1042,8 @@
             const val = searchInput.value.toLowerCase();
             let items = Array.from(document.querySelectorAll('.student-item'));
 
-            if (currentFilter === 'grade') items.sort((a,b) => b.dataset.grade - a.dataset.grade);
-            if (currentFilter === 'year') items.sort((a,b) => b.dataset.year - a.dataset.year);
+            if (currentFilter === 'grade') items.sort((a, b) => b.dataset.grade - a.dataset.grade);
+            if (currentFilter === 'year') items.sort((a, b) => b.dataset.year - a.dataset.year);
 
             items.forEach(it => {
                 grid.appendChild(it);

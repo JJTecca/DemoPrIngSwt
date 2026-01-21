@@ -59,7 +59,14 @@
                     <img src="ProfilePicture?id=<%= pfpId %>&targetRole=<%= pfpRole %>"
                          class="<%= pfpShape %> border shadow-sm"
                          style="width: 52px; height: 52px; object-fit: cover;"
-                         onerror="this.src='https://ui-avatars.com/api/?name=<%= displayName.replace(" ", "+") %>&background=0E2B58&color=fff';">
+                        <%
+                        // Logic: If target is Student, use Blue. If target is Company/Faculty, use Silver.
+                        String fbColors = "Student".equalsIgnoreCase(pfpRole)
+                          ? "&background=0E2B58&color=fff"
+                          : "&background=F8F9FA&color=0E2B58";
+                        String finalFallback = "https://ui-avatars.com/api/?name=" + displayName.replace(" ", "+") + fbColors;
+                        %>
+                         onerror="this.src='<%= finalFallback %>';">
                     <% if ("Discussion".equals(app.getStatus())) { %>
                     <span class="position-absolute bottom-0 end-0 p-1 bg-primary border border-light rounded-circle"></span>
                     <% } %>
@@ -103,7 +110,14 @@
                     <img src="ProfilePicture?id=<%= pfpId %>&targetRole=<%= pfpRole %>"
                          class="<%= pfpShape %> border shadow-sm"
                          style="width: 52px; height: 52px; object-fit: cover;"
-                         onerror="this.src='https://ui-avatars.com/api/?name=<%= displayName.replace(" ", "+") %>&background=0E2B58&color=fff';">
+                        <%
+                        // Logic: If target is Student, use Blue. If target is Company/Faculty, use Silver.
+                        String fbColors = "Student".equalsIgnoreCase(pfpRole)
+                          ? "&background=0E2B58&color=fff"
+                          : "&background=F8F9FA&color=0E2B58";
+                        String finalFallback = "https://ui-avatars.com/api/?name=" + displayName.replace(" ", "+") + fbColors;
+                        %>
+                         onerror="this.src='<%= finalFallback %>';">
                     <% if ("Discussion".equals(app.getStatus())) { %>
                     <span class="position-absolute bottom-0 end-0 p-1 bg-primary border border-light rounded-circle"></span>
                     <% } %>

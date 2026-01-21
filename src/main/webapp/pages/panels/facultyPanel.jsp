@@ -221,6 +221,39 @@
             color: #055160;
         }
 
+        .status-rejected {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border-color: #f5c2c7 !important;
+        }
+
+        .status-discussion {
+            background-color: #f3e5f5 !important;
+            color: #6a1b9a !important;
+            border-color: #e1bee7 !important;
+        }
+
+        /* Request: Royal Indigo (Company Led) */
+        .status-request {
+            background-color: #e8eaf6 !important;
+            color: #283593 !important;
+            border-color: #c5cae9 !important;
+        }
+
+        /* Pending: Warning Yellow */
+        .status-pending {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border-color: #ffeeba !important;
+        }
+
+        /* Interview: Info Blue (Cyan) */
+        .status-interview {
+            background-color: #e0f7fa !important;
+            color: #006064 !important;
+            border-color: #b2ebf2 !important;
+        }
+
         .btn-plus-transition {
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             border: none;
@@ -290,6 +323,15 @@
             font-weight: 600;
             color: var(--brand-blue-dark);
             margin-bottom: 0.5rem;
+        }
+
+        .btn-chat.disabled {
+            background-color: #f8f9fa !important;
+            color: #adb5bd !important;
+            border-color: #e9ecef !important;
+            cursor: not-allowed !important;
+            pointer-events: none;
+            opacity: 0.7;
         }
 
         .position-item {
@@ -543,10 +585,12 @@
                                         Only</a></li>
                                 </ul>
                             </div>
-                            <a href="${pageContext.request.contextPath}/ImportStudents" class="btn-import-and-export-standout">
+                            <a href="${pageContext.request.contextPath}/ImportStudents"
+                               class="btn-import-and-export-standout">
                                 <i class="fa-solid fa-file-import me-2"></i> Import Students
                             </a>
-                            <a href="${pageContext.request.contextPath}/ExportStudents" class="btn-import-and-export-standout">
+                            <a href="${pageContext.request.contextPath}/ExportStudents"
+                               class="btn-import-and-export-standout">
                                 <i class="fa-solid fa-file-export me-2"></i> Export Grades
                             </a>
                         </div>
@@ -583,15 +627,47 @@
                                                 String pfp = request.getContextPath() + "/ProfilePicture?id=" + student.getId() + "&targetRole=Student";
                                                 String fb = "https://ui-avatars.com/api/?name=" + student.getFullName() + "&background=0E2B58&color=fff";
 
-                                                // --- MOVE STATUS LOGIC HERE ---
                                                 String statusValue = (student.getStatus() != null) ? student.getStatus() : "Available";
                                                 String statusClass = "";
+
+                                                // --- FIX: Define variables here so they are in scope for the buttons ---
+                                                boolean isAccepted = false;
+                                                String acceptedPositionTitle = "Hired";
+
                                                 if ("Accepted".equalsIgnoreCase(statusValue) || "Enrolled".equalsIgnoreCase(statusValue))
                                                     statusClass = "status-accepted";
                                                 else if ("Completed".equalsIgnoreCase(statusValue))
                                                     statusClass = "status-completed";
                                                 else if ("Available".equalsIgnoreCase(statusValue))
                                                     statusClass = "status-available";
+
+                                                List<InternshipApplicationDto> chatReadyApps = new ArrayList<>();
+
+                                                if (tutoringPositions != null) {
+                                                    for (InternshipPositionDto tutoringPos : tutoringPositions) {
+                                                        if (tutoringPos.getApplicants() != null) {
+                                                            for (InternshipApplicationDto app : tutoringPos.getApplicants()) {
+                                                                if (app.getStudentId().equals(student.getId())) {
+
+                                                                    // 1. Check for global "Accepted" status in your positions
+                                                                    if ("Accepted".equalsIgnoreCase(app.getStatus())) {
+                                                                        isAccepted = true;
+                                                                        acceptedPositionTitle = tutoringPos.getTitle();
+                                                                    }
+
+                                                                    // 2. CHAT PICKER LOGIC: Must be initiated AND NOT Rejected
+                                                                    // This prevents linking to archived/rejected threads
+                                                                    if (app.isChatInitiated() && !"Rejected".equalsIgnoreCase(app.getStatus())) {
+                                                                        chatReadyApps.add(app);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // Maintain your existing activeChatApp variable for backward compatibility if needed
+                                                InternshipApplicationDto activeChatApp = chatReadyApps.isEmpty() ? null : chatReadyApps.get(0);
                                         %>
                                         <tr class="student-row" data-student-status="<%= statusValue %>">
                                             <td class="ps-4">
@@ -621,29 +697,11 @@
                                                         data-bs-target="#assignModal<%= student.getId() %>">
                                                     <i class="fa-solid fa-user-plus me-1"></i> Assign
                                                 </button>
-                                                <% } else if ("Accepted".equalsIgnoreCase(statusValue) || "Completed".equalsIgnoreCase(statusValue)) {
-                                                    // Logic to determine if it's Tutoring or Company
-                                                    boolean isAccepted = false;
-                                                    String acceptedPositionTitle = "Hired";
-
-                                                    for (InternshipPositionDto tutoringPos : tutoringPositions) {
-                                                        if (tutoringPos.getApplicants() != null) {
-                                                            for (InternshipApplicationDto app : tutoringPos.getApplicants()) {
-                                                                if (app.getStudentId().equals(student.getId()) && "Accepted".equalsIgnoreCase(app.getStatus())) {
-                                                                    isAccepted = true;
-                                                                    acceptedPositionTitle = tutoringPos.getTitle();
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                        if (isAccepted) break;
-                                                    }
-
-                                                    if (isAccepted) { %>
+                                                <% } else if (isAccepted) { %>
                                                 <span class="badge rounded-pill px-3 py-2"
                                                       style="background-color: #e8f0fe; color: #1967d2; border: 1px solid #c2d7fa;"
                                                       title="<%= acceptedPositionTitle %>">
-                                                      <i class="fa-solid fa-graduation-cap me-1"></i> Tutoring
+                                                    <i class="fa-solid fa-graduation-cap me-1"></i> Tutoring
                                                 </span>
                                                 <% } else { %>
                                                 <button class="badge rounded-pill px-3 py-2 border-0"
@@ -652,16 +710,68 @@
                                                         data-bs-target="#externalModal<%= student.getId() %>">
                                                     <i class="fa-solid fa-building me-1"></i> External
                                                 </button>
-                                                <% }
-                                                } // Closes the 'Accepted/Completed' else-if block %>
+                                                <% } %>
                                             </td>
                                             <td class="text-end pe-4">
+                                                <%
+                                                    boolean isExternallyHired = ("Accepted".equalsIgnoreCase(statusValue) || "Completed".equalsIgnoreCase(statusValue)) && !isAccepted;
+                                                %>
+
+                                                <% if (!chatReadyApps.isEmpty()) { %>
+                                                <% if (chatReadyApps.size() == 1) { %>
+                                                <%-- Simple Link if only one active chat exists --%>
+                                                <a href="InternshipApplications?id=<%= chatReadyApps.get(0).getId() %>"
+                                                   class="btn btn-sm btn-chat rounded-pill px-3">
+                                                    <i class="fa-regular fa-comments me-1"></i> Chat
+                                                </a>
+                                                <% } else { %>
+                                                <%-- Trigger Picker Modal if multiple active chats exist --%>
                                                 <button class="btn btn-sm btn-chat rounded-pill px-3"
-                                                        onclick="alert('Chat with <%= student.getFullName() %>')">
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#chatPickerModal<%= student.getId() %>">
+                                                    <i class="fa-solid fa-layer-group me-1"></i> Chats (<%= chatReadyApps.size() %>)
+                                                </button>
+                                                <% } %>
+                                                <% } else { %>
+                                                <%-- Initiate new discussion if none exist --%>
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isExternallyHired ? "disabled" : "" %>"
+                                                        <%= isExternallyHired ? "disabled title='Student already placed externally'" : "" %>
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#initiateDiscussionModal<%= student.getId() %>">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
                                                 </button>
+                                                <% } %>
                                             </td>
                                         </tr>
+
+                                        <% if (chatReadyApps.size() > 1) { %>
+                                        <div class="modal fade" id="chatPickerModal<%= student.getId() %>" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                <div class="modal-content border-0 shadow-lg">
+                                                    <div class="modal-header border-0 pb-0">
+                                                        <h6 class="fw-bold m-0 text-muted small text-uppercase">Select Active Discussion</h6>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body p-3">
+                                                        <div class="list-group list-group-flush border rounded-3">
+                                                            <% for (InternshipApplicationDto chatApp : chatReadyApps) { %>
+                                                            <a href="InternshipApplications?id=<%= chatApp.getId() %>"
+                                                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+                                                                <div>
+                                                                    <div class="fw-bold small text-dark"><%= chatApp.getPositionTitle() %></div>
+                                                                    <span class="badge bg-primary-subtle text-primary x-small" style="font-size: 0.6rem;">
+                                                                        <%= chatApp.getStatus() %>
+                                                                    </span>
+                                                                </div>
+                                                                <i class="fa-solid fa-chevron-right text-muted opacity-50"></i>
+                                                            </a>
+                                                            <% } %>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <% } %>
                                         <%-- MODAL LOGIC FOR EACH STUDENT --%>
                                         <%
                                             List<InternshipPositionDto> appliedPositions = new ArrayList<>();
@@ -711,35 +821,62 @@
                                                                     --
                                                                 </option>
                                                                 <% if (hasApplied) { %>
-                                                                <optgroup label="Applications to Accept">
-                                                                    <% for (InternshipPositionDto aPos : appliedPositions) { %>
-                                                                    <%if (!(aPos.getAcceptedCount() >= aPos.getMaxSpots())) { %>
-                                                                    <option value="<%= aPos.getId() %>"
-                                                                            data-type="accept">
-                                                                        [Accept] <%= aPos.getTitle() %>
-                                                                        (<%= aPos.getAcceptedCount() %>
-                                                                        / <%= aPos.getMaxSpots() %>)
+                                                                <optgroup label="Pending Applications to Accept">
+                                                                    <% for (InternshipPositionDto aPos : appliedPositions) {
+                                                                        // 1. Basic Position Filters: Must be Open and have space
+                                                                        boolean isOpen = "Open".equalsIgnoreCase(aPos.getStatus());
+                                                                        int max = (aPos.getMaxSpots() != null) ? aPos.getMaxSpots() : 0;
+                                                                        int current = (aPos.getAcceptedCount() != null) ? aPos.getAcceptedCount() : 0;
+                                                                        boolean isFull = (max > 0 && current >= max);
+
+                                                                        // 2. SPECIFIC CHECK: The student's application for THIS position must be PENDING
+                                                                        boolean isPendingForThis = false;
+                                                                        if (aPos.getApplicants() != null) {
+                                                                            isPendingForThis = aPos.getApplicants().stream()
+                                                                                    .anyMatch(a -> a.getStudentId().equals(student.getId()) && "Pending".equalsIgnoreCase(a.getStatus()));
+                                                                        }
+
+                                                                        // 3. Final Guard: Render only if all conditions match
+                                                                        if (isOpen && !isFull && isPendingForThis) { %>
+                                                                    <option value="<%= aPos.getId() %>" data-type="accept">
+                                                                        [Accept] <%= aPos.getTitle() %> (<%= current %> / <%= max %>)
                                                                     </option>
-                                                                    <% } %>
-                                                                    <% } %>
+                                                                    <%  }
+                                                                    } %>
                                                                 </optgroup>
                                                                 <% } %>
                                                                 <optgroup label="Direct Faculty Assignment">
                                                                     <% for (InternshipPositionDto pos : tutoringPositions) {
-                                                                        if (appliedPositions.stream().noneMatch(p -> p.getId().equals(pos.getId())) && !(pos.getAcceptedCount() >= pos.getMaxSpots())) { %>
-                                                                    <option value="<%= pos.getId() %>"
-                                                                            data-type="assign">
-                                                                        [Assign] <%= pos.getTitle() %>
-                                                                        (<%= pos.getAcceptedCount() %>
-                                                                        / <%= pos.getMaxSpots() %>)
+                                                                        // 1. Basic Filters: Position must be Open and not Full
+                                                                        boolean isOpen = "Open".equalsIgnoreCase(pos.getStatus());
+                                                                        int max = (pos.getMaxSpots() != null) ? pos.getMaxSpots() : 0;
+                                                                        int current = (pos.getAcceptedCount() != null) ? pos.getAcceptedCount() : 0;
+                                                                        boolean isFull = (max > 0 && current >= max);
+
+                                                                        // 2. Student specific: Student must not have an existing application for this role
+                                                                        // (Existing applications go in the "Applications to Accept" group above)
+                                                                        boolean alreadyApplied = appliedPositions.stream().anyMatch(p -> p.getId().equals(pos.getId()));
+
+                                                                        // 3. Rejection Check: Ensure they weren't rejected for this specific role
+                                                                        boolean isRejectedForThis = false;
+                                                                        if (pos.getApplicants() != null) {
+                                                                            isRejectedForThis = pos.getApplicants().stream()
+                                                                                    .anyMatch(a -> a.getStudentId().equals(student.getId()) && "Rejected".equalsIgnoreCase(a.getStatus()));
+                                                                        }
+
+                                                                        // 4. Final Guard
+                                                                        if (isOpen && !isFull && !alreadyApplied && !isRejectedForThis) { %>
+                                                                    <option value="<%= pos.getId() %>" data-type="assign">
+                                                                        [Assign] <%= pos.getTitle() %> (<%= current %> / <%= max %>)
                                                                     </option>
-                                                                    <% }
+                                                                    <%  }
                                                                     } %>
                                                                 </optgroup>
                                                             </select>
                                                             <div class="alert alert-warning border-0 small mt-3 mb-0">
                                                                 <strong>Notice:</strong> Acceptance will automatically
-                                                                Reject all other in-progress applications for this student.
+                                                                Reject all other in-progress applications for this
+                                                                student.
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer border-0">
@@ -755,7 +892,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <%-- 2. NEW EXTERNAL POPUP (Place it right here) --%>
                                         <%
                                             // We find the 'Accepted' application to show the Company details
                                             InternshipApplicationDto extApp = null;
@@ -801,6 +937,90 @@
                                             </div>
                                         </div>
                                         <% } %>
+                                        <div class="modal fade" id="initiateDiscussionModal<%= student.getId() %>"
+                                             tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content border-0 shadow-lg">
+                                                    <div class="modal-header bg-light border-0">
+                                                        <h5 class="modal-title fw-bold">Initiate Discussion</h5>
+                                                        <button type="button" class="btn-close"
+                                                                data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <form action="SendMessage" method="POST">
+                                                        <input type="hidden" name="studentId"
+                                                               value="<%= student.getId() %>">
+                                                        <input type="hidden" name="isInitial" value="true">
+
+                                                        <div class="modal-body p-4">
+                                                            <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+                                                                <img src="<%= pfp %>" onerror="this.src='<%= fb %>';"
+                                                                     class="rounded-circle me-3 shadow-sm"
+                                                                     style="width: 55px; height: 55px; object-fit: cover; border: 2px solid #fff;">
+                                                                <div>
+                                                                    <h6 class="fw-bold mb-0"><%= student.getFullName() %>
+                                                                    </h6>
+                                                                    <span class="text-muted small">Faculty Tutoring Program</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <span class="form-label-dashboard">Select Tutoring Position</span>
+                                                                <select name="positionId"
+                                                                        class="form-select border-0 bg-light p-3"
+                                                                        style="border-radius: 12px;" required>
+                                                                    <option value="" disabled selected>-- Choose Role
+                                                                        --
+                                                                    </option>
+                                                                    <% for (InternshipPositionDto pos : tutoringPositions) {
+                                                                        // Only show positions where current accepted count is less than max spots
+                                                                        int max = (pos.getMaxSpots() != null) ? pos.getMaxSpots() : 0;
+                                                                        int current = (pos.getAcceptedCount() != null) ? pos.getAcceptedCount() : 0;
+                                                                        boolean isFull = (max > 0 && current >= max);
+                                                                        boolean isRejectedForThis = false;
+                                                                        if (pos.getApplicants() != null) {
+                                                                            isRejectedForThis = pos.getApplicants().stream()
+                                                                                    .anyMatch(a -> a.getStudentId().equals(student.getId()) && "Rejected".equalsIgnoreCase(a.getStatus()));
+                                                                        }
+
+                                                                        boolean isOpen = "Open".equalsIgnoreCase(pos.getStatus());
+
+                                                                        if (!isFull && !isRejectedForThis && isOpen) { %>
+                                                                    <option value="<%= pos.getId() %>"><%= pos.getTitle() %>
+                                                                        (<%= current %>/<%= max %>)
+                                                                    </option>
+                                                                    <% }
+                                                                    } %>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="mb-3">
+                                                                <span class="form-label-dashboard">Initial Message</span>
+                                                                <textarea name="message"
+                                                                          class="form-control border-0 bg-light p-3"
+                                                                          rows="4"
+                                                                          placeholder="Say hello and invite the student to discuss this position..."
+                                                                          required></textarea>
+                                                            </div>
+
+                                                            <div class="alert alert-info border-0 py-2 small mb-0">
+                                                                <i class="fa-solid fa-circle-info me-2"></i> Sending
+                                                                this message will officially create a
+                                                                <strong>Discussion</strong> for this tutoring role.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-0 pt-0">
+                                                            <button type="button" class="btn btn-light btn-sm px-3"
+                                                                    data-bs-dismiss="modal">Cancel
+                                                            </button>
+                                                            <button type="submit"
+                                                                    class="btn btn-primary btn-sm px-4 fw-bold">Start
+                                                                Discussion
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <% }
                                         } else { %>
                                         <tr>
@@ -893,29 +1113,42 @@
                                                 </div>
 
                                                 <div class="col-md-5 border-start">
-                                                    <h6 class="fw-bold text-uppercase text-muted small mb-3"><i
-                                                            class="fa-solid fa-user-graduate me-2"></i>Candidates</h6>
-                                                    <div class="applicant-scroll">
+                                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                                        <h6 class="fw-bold text-uppercase text-muted small mb-0">
+                                                            <i class="fa-solid fa-user-graduate me-2"></i>Candidates
+                                                        </h6>
+                                                        <%-- High-Contrast Switch --%>
+                                                        <div class="form-check form-switch">
+                                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                                   id="toggleAccepted<%= pos.getId() %>"
+                                                                   onchange="filterAcceptedOnly('<%= pos.getId() %>')">
+                                                            <label class="form-check-label x-small fw-bold text-muted" style="font-size: 0.6rem;"
+                                                                   for="toggleAccepted<%= pos.getId() %>">ACCEPTED ONLY</label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="applicant-scroll" id="applicantScroll<%= pos.getId() %>">
                                                         <% if (pos.getApplicants() != null && !pos.getApplicants().isEmpty()) { %>
                                                         <% for (InternshipApplicationDto app : pos.getApplicants()) { %>
-                                                        <div class="applicant-item">
+                                                        <div class="applicant-item applicant-entry" data-accepted="<%= "Accepted".equalsIgnoreCase(app.getStatus()) %>">
                                                             <img src="${pageContext.request.contextPath}/ProfilePicture?id=<%= app.getStudentId() %>&targetRole=Student"
-                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName() %>&background=0E2B58&color=fff';"
+                                                                 onerror="this.src='https://ui-avatars.com/api/?name=<%= app.getStudentName().replace(" ", "+") %>&background=0E2B58&color=fff';"
                                                                  class="applicant-pfp">
                                                             <div class="overflow-hidden">
                                                                 <a href="${pageContext.request.contextPath}/StudentProfile?id=<%= app.getStudentId() %>"
                                                                    class="text-decoration-none text-dark fw-bold small d-block text-truncate">
                                                                     <%= app.getStudentName() %>
                                                                 </a>
-                                                                <span class="badge bg-light text-dark x-small"
-                                                                      style="font-size: 0.65rem;"><%= app.getStatus() %></span>
+                                                                <%-- High Contrast Status Badge --%>
+                                                                <span class="status-badge status-<%= app.getStatus().toLowerCase() %>"
+                                                                      style="transform: scale(0.8); transform-origin: left; margin-top: -5px;">
+                                                                    <%= app.getStatus() %>
+                                                                </span>
                                                             </div>
                                                         </div>
                                                         <% } %>
                                                         <% } else { %>
-                                                        <div class="text-center py-4 text-muted small">No applications
-                                                            yet.
-                                                        </div>
+                                                        <div class="text-center py-4 text-muted small">No applications yet.</div>
                                                         <% } %>
                                                     </div>
                                                 </div>
@@ -1005,6 +1238,23 @@
             });
         });
     });
+
+    function filterAcceptedOnly(posId) {
+        const scrollArea = document.getElementById('applicantScroll' + posId);
+        const isChecked = document.getElementById('toggleAccepted' + posId).checked;
+        const entries = scrollArea.querySelectorAll('.applicant-entry');
+
+        entries.forEach(entry => {
+            if (isChecked) {
+                // Show only if data-accepted is "true"
+                const isAccepted = entry.getAttribute('data-accepted') === 'true';
+                entry.style.display = isAccepted ? 'flex' : 'none';
+            } else {
+                // Show all (default)
+                entry.style.display = 'flex';
+            }
+        });
+    }
 </script>
 </body>
 </html>
