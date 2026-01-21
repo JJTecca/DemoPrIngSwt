@@ -451,6 +451,7 @@ public class InternshipApplicationBean {
             createApplication(studentId, positionId);
             targetApp = findApplication(studentId, positionId);
         }
+        targetApp.setChatInitiated(true);
         UpdateApplicationCommand cmd = new UpdateApplicationCommand(targetApp.getId(), "Accepted",
                 null, null, role);
         updateApplicationStatus(cmd);
