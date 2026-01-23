@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Map;
+
 /**********************************************************
  *              GENERAL SERVLET STRUCTURE :
  *   1. @WebServlet with it's value set to redirect webpage
@@ -125,9 +127,11 @@ public class CompanyDashboardServlet extends HttpServlet {
             boolean isPostingAllowed = periodService.isPostingAllowed();
 
             String postingDeadline = periodService.getFormattedCutoffDate();
-
+            Map<String, Object> periodStatus = periodService.getApplicationPeriodStatus();
+            request.setAttribute("canApply", periodStatus.get("canApply"));
             request.setAttribute("isPostingAllowed", isPostingAllowed);
             request.setAttribute("postingDeadline", postingDeadline);
+            request.setAttribute("applicationPeriod", periodStatus);
 
             // Check for error flag
             String errorParam = request.getParameter("error");

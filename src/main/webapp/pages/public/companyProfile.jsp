@@ -674,7 +674,7 @@
                             %>
 
                             <% if (isOwner || "Faculty".equals(sessionRole)) { %>
-                            <% if (isProfilePostingAllowed) { %>
+                            <% if (isFaculty || isProfilePostingAllowed) { %>
                             <a href="${pageContext.request.contextPath}/PostPosition" class="btn btn-sm btn-brand shadow-sm">
                                 <i class="fa-solid fa-plus me-1"></i> <%= postBtnLabel %>
                             </a>

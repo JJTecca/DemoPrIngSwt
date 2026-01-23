@@ -10,6 +10,7 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**********************************************************
  *              GENERAL SERVLET STRUCTURE :
@@ -99,15 +100,9 @@ public class FacultyDashboardServlet extends HttpServlet {
                     }
                 }
             }
-            boolean isPostingAllowed = periodService.isPostingAllowed();
-            String postingDeadline = periodService.getFormattedCutoffDate();
 
-            String errorParam = request.getParameter("error");
-            boolean showPostingError = "posting_closed".equals(errorParam);
-
-            request.setAttribute("isPostingAllowed", isPostingAllowed);
-            request.setAttribute("postingDeadline", postingDeadline);
-            request.setAttribute("showPostingError", showPostingError);
+            Map<String, Object> periodStatus = periodService.getApplicationPeriodStatus();
+            request.setAttribute("applicationPeriod", periodStatus);
 
             // Set Attributes for JSP
             request.setAttribute("userAccount", userDto);

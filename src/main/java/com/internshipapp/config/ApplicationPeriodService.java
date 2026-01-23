@@ -46,6 +46,7 @@ public class ApplicationPeriodService {
         DateTimeFormatter displayFormatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
         status.put("startDateFormatted", startDate.format(displayFormatter));
         status.put("endDateFormatted", endDate.format(displayFormatter));
+        status.put("interviewCutoffDate", getInterviewCutoffDate());
 
         return status;
     }
@@ -84,5 +85,21 @@ public class ApplicationPeriodService {
 
     public String getFormattedCutoffDate() {
         return getPostingCutoffDate().format(DateTimeFormatter.ofPattern("MMMM dd"));
+    }
+
+    public LocalDate getInterviewCutoffDate() {
+        LocalDate endDate = applicationConfig.getApplicationEndDate();
+        LocalDate current = endDate;
+        int workingDaysFound = 0;
+
+        // We want the 2nd working day BEFORE the end date
+        while (workingDaysFound < 1) {
+            current = current.minusDays(1);
+            java.time.DayOfWeek dw = current.getDayOfWeek();
+            if (dw != java.time.DayOfWeek.SATURDAY && dw != java.time.DayOfWeek.SUNDAY) {
+                workingDaysFound++;
+            }
+        }
+        return current;
     }
 }

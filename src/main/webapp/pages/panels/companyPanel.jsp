@@ -595,16 +595,29 @@
                     <p class="text-muted mb-0"><i class="fa-solid fa-industry me-1"></i> Company Dashboard</p>
                 </div>
                 <div class="d-flex align-items-center gap-2 d-none d-md-flex">
-                    <span class="badge bg-light text-dark border shadow-sm py-2 px-3">
-                        <i class="fa-regular fa-clock me-2 text-muted"></i>
-                        <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
-                    </span>
-
                     <%
                         Boolean allowed = (Boolean) request.getAttribute("isPostingAllowed");
+                        Boolean canApply = (Boolean) request.getAttribute("canApply");
                         String deadline = (String) request.getAttribute("postingDeadline");
-                        if (allowed == null) allowed = true;
+
+                        // Retrieve the actual application end date from the period status map
+                        Map<String, Object> periodStatus = (Map<String, Object>) request.getAttribute("applicationPeriod");
+                        String appEndDate = (periodStatus != null) ? (String) periodStatus.get("endDateFormatted") : "TBA";
+
+                        if (allowed == null) allowed = false;
+                        if (canApply == null) canApply = false;
                     %>
+
+                    <% if (canApply) { %>
+                    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle py-2 px-3"
+                          style="cursor: help;"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="bottom"
+                          title="Important: Please finalize student selections and fill all positions before this date.">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        Hiring Ends: <strong><%= appEndDate %></strong>
+                    </span>
+                    <% } %>
 
                     <% if (allowed && deadline != null) { %>
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-2 px-3"
@@ -617,6 +630,11 @@
                         <i class="fa-solid fa-lock me-2"></i> Posting Closed
                     </span>
                     <% } %>
+
+                    <span class="badge bg-light text-dark border shadow-sm py-2 px-3">
+                        <i class="fa-regular fa-clock me-2 text-muted"></i>
+                        <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
+                    </span>
                 </div>
             </div>
 
@@ -901,10 +919,12 @@
                                             <td class="text-end pe-4">
                                                 <%
                                                     boolean isRequestedState = "Request".equals(currentStatus);
+                                                    boolean chatActionBlocked = !canApply || isRejected;
                                                     if (!app.isChatInitiated() && !isRejected && !isRequestedState) {
                                                 %>
                                                 <%-- TRIGGER MODAL FOR INITIAL CHAT (Standard flow) --%>
-                                                <button class="btn btn-sm btn-chat rounded-pill px-3"
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= !canApply ? "disabled" : "" %>"
+                                                        <%= !canApply ? "disabled title='Recruitment period has ended'" : "" %>
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#initiateChatModal<%= app.getId() %>">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
@@ -918,8 +938,9 @@
                                                 </button>
                                                 <% } else { %>
                                                 <%-- DIRECT LINK FOR EXISTING CHAT --%>
-                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isRejected ? "disabled" : "" %>"
-                                                        <%= isRejected ? "disabled" : "" %>
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= chatActionBlocked ? "disabled" : "" %>"
+                                                        <%= chatActionBlocked ? "disabled style='opacity: 0.6; cursor: not-allowed;'" : "" %>
+                                                        <%= !canApply ? "title='Messaging is disabled after the period ends'" : "" %>
                                                         onclick="window.location.href='InternshipApplications?id=<%= app.getId() %>'">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
                                                 </button>
@@ -1019,7 +1040,8 @@
                             <div class="d-grid gap-0">
                                 <%
                                     Boolean postingAllowed = (Boolean) request.getAttribute("isPostingAllowed");
-                                    if (postingAllowed == null) postingAllowed = true; // Safety default
+                                    if (postingAllowed == null) postingAllowed = false; // Safety default
+
                                 %>
                                 <% if (postingAllowed) { %>
                                 <a href="${pageContext.request.contextPath}/PostPosition"
@@ -1037,10 +1059,19 @@
                                     </div>
                                 <% } %>
                                 <!-- Request Interview Button -->
+                                <% if (canApply) { %>
                                 <a href="${pageContext.request.contextPath}/RequestInterview"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-solid fa-calendar-check me-2"></i> Request Interview
                                 </a>
+                                <% } else { %>
+                                <div class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0 d-flex justify-content-between align-items-center"
+                                     style="background: #f8f9fa; cursor: not-allowed; opacity: 0.8; color: #6c757d !important;"
+                                     title="Interviews can only be requested during the active application period.">
+                                    <div><i class="fa-solid fa-lock me-2"></i> Request Interview</div>
+                                    <span class="badge bg-secondary border border-secondary text-white" style="font-size: 0.6rem;">CLOSED</span>
+                                </div>
+                                <% } %>
                                 <a href="${pageContext.request.contextPath}/CompanyProfile?id=<%= request.getAttribute("facultyId") %>"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-regular fa-envelope me-2"></i> Contact Faculty

@@ -4,6 +4,7 @@ import com.internshipapp.commands.InterviewRequestCommand;
 import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.InternshipApplicationDto;
 import com.internshipapp.common.StudentInfoDto;
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -36,6 +37,9 @@ public class RequestInterviewServlet extends HttpServlet {
     @Inject
     private MessageBean messageBean;
 
+    @Inject
+    private ApplicationPeriodService periodService;
+
     private boolean checkAuth(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("userId") == null) {
@@ -50,11 +54,21 @@ public class RequestInterviewServlet extends HttpServlet {
         return true;
     }
 
+    private boolean checkPeriod(HttpServletResponse response) throws IOException {
+        if (!periodService.canApply()) {
+            // Must use the parameter 'response' here
+            response.sendRedirect("CompanyDashboard?error=period_ended");
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         if (!checkAuth(request, response)) return;
+        if (!checkPeriod(response)) return;
 
         try {
             HttpSession session = request.getSession();

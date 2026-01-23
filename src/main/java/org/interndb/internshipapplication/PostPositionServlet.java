@@ -55,9 +55,9 @@ public class PostPositionServlet extends HttpServlet {
 
         String role = (String) session.getAttribute("userRole");
 
-        if (!periodService.isPostingAllowed()) {
+        if (!periodService.isPostingAllowed() && "Company".equals(role)) {
             // Redirect to appropriate dashboard
-            String redirect = "Faculty".equals(role) ? "FacultyDashboard" : "CompanyDashboard";
+            String redirect = "CompanyDashboard";
             response.sendRedirect(redirect + "?error=posting_closed");
             return;
         }
