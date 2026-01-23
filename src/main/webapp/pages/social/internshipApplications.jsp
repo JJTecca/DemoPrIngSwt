@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.internshipapp.common.*" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <%
     // 1. Authentication and Data Retrieval
     List<InternshipApplicationDto> sidebarApps = (List<InternshipApplicationDto>) request.getAttribute("applications");
@@ -82,6 +83,10 @@
     boolean canChat = activeApp != null &&
             ("Discussion".equals(activeApp.getStatus()) ||
                     "Interview".equals(activeApp.getStatus()));
+
+    Map<String, Object> pStatus = (Map<String, Object>) request.getAttribute("applicationPeriod");
+    // Ensure this is ISO format for the JS Date constructor
+    String interviewMaxDate = (pStatus != null) ? pStatus.get("interviewCutoffDate").toString() : "";
 %>
 
 <!DOCTYPE html>
@@ -1180,12 +1185,18 @@
 
                                         <div class="mb-3">
                                             <label class="form-label-custom">Interview Date</label>
-                                            <input type="datetime-local" name="interviewDate" id="dateInput"
+                                            <input type="datetime-local"
+                                                   name="interviewDate"
+                                                   id="dateInput"
                                                    class="form-control"
                                                    style="background-color: white;"
+                                                   min="<%= java.time.LocalDate.now().plusDays(1).toString() %>T00:00"
+                                                   max="<%= interviewMaxDate %>T23:59"
+                                                   data-interview-max="<%= interviewMaxDate %>"
                                                    value="<%= (activeApp.getInterview() != null) ? activeApp.getInterview().toString() : "" %>">
-                                            <div class="invalid-feedback-custom" id="dateFeedback">A date is required
-                                                for interviews.
+
+                                            <div class="invalid-feedback-custom" id="dateFeedback">
+                                                Interviews must be scheduled for tomorrow or later, up until the period cutoff.
                                             </div>
                                         </div>
 
@@ -1464,6 +1475,28 @@
 
         const newStatus = statusSelect.value;
         const currentStatus = "<%= (activeApp != null) ? activeApp.getStatus() : "" %>";
+
+        if (newStatus === 'Interview') {
+            const selectedDate = new Date(dateInput.value);
+            const minDate = new Date(dateInput.getAttribute('min'));
+            const maxDate = new Date(dateInput.getAttribute('max'));
+
+            if (selectedDate < minDate) {
+                dateInput.classList.add('is-invalid');
+                const dFeed = document.getElementById('dateFeedback');
+                dFeed.innerText = "Interviews must be scheduled at least 1 day in advance.";
+                dFeed.style.display = 'block';
+                return false;
+            }
+
+            if (dateInput.getAttribute('max') && selectedDate > maxDate) {
+                dateInput.classList.add('is-invalid');
+                const dFeed = document.getElementById('dateFeedback');
+                dFeed.innerText = "This date is too close to the end of the application period.";
+                dFeed.style.display = 'block';
+                return false;
+            }
+        }
 
         // 2. Reset states
         dateInput.classList.remove('is-invalid');

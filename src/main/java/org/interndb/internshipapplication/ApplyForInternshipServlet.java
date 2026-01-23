@@ -15,6 +15,12 @@ import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
+/**********************************************************
+ *              GENERAL SERVLET STRUCTURE :
+ *   1. @WebServlet with it's value set to redirect webpage
+ *   2. @Inject the bean Class
+ *   3. /doGet function at first with debugging context (optional)
+ **********************************************************/
 @WebServlet(name = "ApplyForInternshipServlet", value = "/ApplyForInternship")
 public class ApplyForInternshipServlet extends HttpServlet {
 

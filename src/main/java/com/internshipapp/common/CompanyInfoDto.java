@@ -17,16 +17,16 @@ public class CompanyInfoDto {
     private String compDescription;
     private String openedPositions;
     private String studentsApplied;
-    private String biography; // ADDED
+    private String biography;
     private String contactEmail;
     private String phoneNumber;
 
-    private String userEmail; // ADDED for session data retrieval
-    private String username;  // ADDED for display
-    private Long userId;      // ADDED for linking
+    private String userEmail;
+    private String username;
+    private Long userId;
 
     // Primary source of attachment data
-    private AttachmentDto attachment; // ADDED
+    private AttachmentDto attachment;
 
     /************************************************
      * Constructors
@@ -38,8 +38,7 @@ public class CompanyInfoDto {
      * - Lazy relationships should not be initialized in constructors
      * - Consider using factory methods for complex object creation
      **************************************************************/
-    public CompanyInfoDto() {
-    }
+    public CompanyInfoDto() {}
 
     // FULL CONSTRUCTOR (Used by CompanyInfoBean)
     public CompanyInfoDto(Long id, String name, String shortName, String website,

@@ -17,7 +17,10 @@
     String positionLabel = isFaculty ? "Tutoring Positions" : "Internship Positions";
     String postBtnLabel = isFaculty ? "New Tutoring Post" : "Post Internship";
 
-    boolean isOwner = (sessionEmail != null && company != null && sessionEmail.equals(company.getUserEmail())) || "Admin".equals(sessionRole);
+    Long sessionCompanyId = (Long) session.getAttribute("companyId");
+
+    boolean isOwner = (sessionCompanyId != null && company != null && sessionCompanyId.equals(company.getId()))
+            || "Admin".equals(sessionRole);
     if (company == null) {
         response.sendRedirect(request.getContextPath() + "/index.jsp");
         return;
@@ -142,6 +145,33 @@
 
         .positions-scroll-wrapper::-webkit-scrollbar-thumb:hover {
             background: var(--brand-blue);
+        }
+
+        .btn-gray-outline {
+            background-color: #f1f5f9;
+            border: 1px solid #94a3b8;
+            color: #475569;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+
+            transition: all 0.2s ease-in-out;
+
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .btn-gray-outline:hover {
+            background-color: #cbd5e1;
+            border-color: #64748b;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-gray-outline:active {
+            background-color: #94a3b8;
+            transform: translateY(0);
+            box-shadow: none;
+            transition: 0.1s;
         }
 
         .info-label {
@@ -456,6 +486,11 @@
             color: var(--brand-blue-dark);
             transform: scale(1.2);
         }
+
+        .modal-header-spacer {
+            height: 30px; /* Deep slate to match your new text color */
+            border-radius: 12px 12px 0 0;
+        }
     </style>
 </head>
 <body>
@@ -633,10 +668,23 @@
                             <h5 class="fw-bold m-0 text-primary">
                                 <i class="<%= isFaculty ? "fa-solid fa-chalkboard-user" : "fa-solid fa-briefcase" %> me-2"></i> <%= positionLabel %>
                             </h5>
+                            <%
+                                Boolean isProfilePostingAllowed = (Boolean) request.getAttribute("isPostingAllowed");
+                                if (isProfilePostingAllowed == null) isProfilePostingAllowed = true;
+                            %>
+
                             <% if (isOwner || "Faculty".equals(sessionRole)) { %>
-                            <a href="${pageContext.request.contextPath}/PostPosition" class="btn btn-sm btn-brand">
+                            <% if (isFaculty || isProfilePostingAllowed) { %>
+                            <a href="${pageContext.request.contextPath}/PostPosition" class="btn btn-sm btn-brand shadow-sm">
                                 <i class="fa-solid fa-plus me-1"></i> <%= postBtnLabel %>
                             </a>
+                            <% } else { %>
+                            <button class="btn btn-sm btn-light border text-muted shadow-none"
+                                    style="cursor: not-allowed; font-weight: 600;" disabled
+                                    title="Application deadline is imminent">
+                                <i class="fa-solid fa-lock me-1"></i> <%= postBtnLabel %> (Closed)
+                            </button>
+                            <% } %>
                             <% } %>
                         </div>
 
@@ -691,18 +739,14 @@
                                      aria-hidden="true">
                                     <div class="modal-dialog modal-lg modal-dialog-scrollable">
                                         <div class="modal-content border-0 shadow-lg">
-                                            <div class="modal-header border-0 pb-0">
-                                                <button type="button" class="btn-close"
-                                                        data-bs-dismiss="modal"></button>
-                                            </div>
+                                            <div class="modal-header-spacer"></div>
                                             <div class="modal-body p-5 pt-0">
                                                 <div class="text-center mb-4">
-                                                    <%-- Status badge inside modal --%>
                                                     <div class="mb-2">
-                                    <span class="pos-status-badge <%= badgeClass %>"
-                                          style="font-size: 0.75rem; padding: 4px 12px;">
-                                        <%= status %> Status
-                                    </span>
+                                                        <span class="pos-status-badge <%= badgeClass %>"
+                                                              style="font-size: 0.75rem; padding: 4px 12px;">
+                                                            <%= status %> Status
+                                                        </span>
                                                     </div>
                                                     <h3 class="fw-bold"><%= pos.getTitle() %>
                                                     </h3>
@@ -786,9 +830,7 @@
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 justify-content-center pb-4">
-                                                <button type="button" class="btn btn-light px-4"
-                                                        data-bs-dismiss="modal">Close
-                                                </button>
+                                                <button type="button" class="btn btn-gray-outline px-5 rounded-pill" data-bs-dismiss="modal">Close</button>
                                             </div>
                                         </div>
                                     </div>

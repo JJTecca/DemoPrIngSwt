@@ -109,6 +109,30 @@
             background-color: var(--ulbs-red);
         }
 
+        .bg-info-subtle {
+            background-color: #e0f2fe !important; /* Soft light blue */
+            color: #0369a1 !important;           /* Deep professional blue */
+            border: 1px solid #bae6fd !important;
+        }
+
+        /* Tooltip Styling Override (Optional, for darker look) */
+        .tooltip-inner {
+            background-color: #0f172a !important; /* Slate 900 */
+            color: #f8fafc !important;
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        .bg-info-subtle i {
+            animation: pulse-notice 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-notice {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         .stat-value {
             font-size: 1.8rem;
             font-weight: 800;
@@ -275,6 +299,33 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
+        .btn-gray-outline {
+            background-color: #f1f5f9;
+            border: 1px solid #94a3b8;
+            color: #475569;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+
+            transition: all 0.2s ease-in-out;
+
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .btn-gray-outline:hover {
+            background-color: #cbd5e1;
+            border-color: #64748b;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-gray-outline:active {
+            background-color: #94a3b8;
+            transform: translateY(0);
+            box-shadow: none;
+            transition: 0.1s;
+        }
+
         .btn-chat:hover {
             background-color: #0d47a1;
             color: white;
@@ -332,6 +383,37 @@
             cursor: not-allowed !important;
             pointer-events: none;
             opacity: 0.7;
+        }
+
+        .btn-assign-faculty {
+            background-color: #ffffff;
+            /* Deepened from #e2e8f0 to #94a3b8 (Slate 400) */
+            border: 1px solid #94a3b8;
+            /* Deepened from #64748b to #334155 (Slate 700) */
+            color: #334155;
+            font-weight: 600; /* Increased for better legibility */
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 6px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-assign-faculty:hover:not(:disabled) {
+            background-color: #f1f5f9;
+            border-color: #475569;
+            color: #0f172a;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled State: Clean and Borderless-feel */
+        .btn-assign-faculty:disabled,
+        .btn-assign-faculty.disabled {
+            background-color: #f1f5f9 !important;
+            border-color: transparent !important; /* Removes the "dark border" look */
+            color: #94a3b8 !important;
+            opacity: 0.7;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         .position-item {
@@ -459,14 +541,32 @@
                     <h1 class="h2 page-title">Welcome, <%= userAccount.getUsername() %>!</h1>
                     <p class="text-muted mb-0"><i class="fa-solid fa-building-columns me-1"></i> Faculty Panel</p>
                 </div>
-                <div class="d-none d-md-block text-end">
-                    <span class="badge bg-light text-dark border">
-                        <i class="fa-regular fa-clock me-1"></i> <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
+                <div class="d-none d-md-flex align-items-center gap-2 text-end">
+                    <%-- Standard Date Badge --%>
+                        <%
+                            Map<String, Object> pStatus = (Map<String, Object>) request.getAttribute("applicationPeriod");
+                            String appEndDate = (pStatus != null) ? (String) pStatus.get("endDateFormatted") : "TBA";
+                            Boolean canApply = (pStatus != null) ? (Boolean) pStatus.get("canApply") : false;
+                        %>
+
+                        <% if (canApply) { %>
+                        <span class="badge bg-info-subtle text-info-emphasis py-2 px-3 shadow-sm"
+                              style="cursor: help; font-size: 0.85rem;"
+                              data-bs-toggle="tooltip"
+                              data-bs-placement="bottom"
+                              title="Notice: Recruitment is ongoing. Faculty manual assignments and discussions will unlock after the period concludes on <%= appEndDate %>">
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                            Active Period: <strong><%= appEndDate %></strong>
+                        </span>
+                        <% } %>
+                    <span class="badge bg-light text-dark border shadow-sm py-2 px-3">
+                        <i class="fa-regular fa-clock me-2 text-muted"></i>
+                        <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
                     </span>
                 </div>
             </div>
 
-            <%-- Stats Row --%>
+                <%-- Stats Row --%>
             <div class="row mb-4 g-3">
                 <div class="col-md-4">
                     <div class="stat-card card-blue">
@@ -585,10 +685,23 @@
                                         Only</a></li>
                                 </ul>
                             </div>
+                            <%
+                                Boolean importAllowed = (Boolean) request.getAttribute("isImportAllowed");
+                                if (importAllowed == null) importAllowed = false; // Default safe
+                            %>
+
+                            <% if (importAllowed) { %>
                             <a href="${pageContext.request.contextPath}/ImportStudents"
                                class="btn-import-and-export-standout">
                                 <i class="fa-solid fa-file-import me-2"></i> Import Students
                             </a>
+                            <% } else { %>
+                            <span class="btn-import-and-export-standout"
+                                  style="opacity: 0.6; cursor: not-allowed; background: #6c757d; border-color: #6c757d;"
+                                  title="Import is disabled while applications are open to prevent data conflicts.">
+                                <i class="fa-solid fa-lock me-2"></i> Import Students
+                            </span>
+                            <% } %>
                             <a href="${pageContext.request.contextPath}/ExportStudents"
                                class="btn-import-and-export-standout">
                                 <i class="fa-solid fa-file-export me-2"></i> Export Grades
@@ -692,7 +805,8 @@
                                             </td>
                                             <td class="text-center">
                                                 <% if ("Available".equalsIgnoreCase(statusValue)) { %>
-                                                <button class="btn btn-sm btn-zinc-utility rounded-pill px-3"
+                                                <button class="btn btn-sm btn-assign-faculty rounded-pill <%= canApply ? "disabled" : "" %>"
+                                                        <%= canApply ? "disabled title='Assigning unlocks after " + appEndDate + "'" : "" %>
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#assignModal<%= student.getId() %>">
                                                     <i class="fa-solid fa-user-plus me-1"></i> Assign
@@ -715,13 +829,18 @@
                                             <td class="text-end pe-4">
                                                 <%
                                                     boolean isExternallyHired = ("Accepted".equalsIgnoreCase(statusValue) || "Completed".equalsIgnoreCase(statusValue)) && !isAccepted;
+                                                    boolean chatDisabled = canApply || isExternallyHired;
+                                                    String chatTitle = canApply ? "Discussion unlocks after recruitment period concludes" :
+                                                            (isExternallyHired ? "Student already placed externally" : "");
                                                 %>
 
                                                 <% if (!chatReadyApps.isEmpty()) { %>
                                                 <% if (chatReadyApps.size() == 1) { %>
                                                 <%-- Simple Link if only one active chat exists --%>
                                                 <a href="InternshipApplications?id=<%= chatReadyApps.get(0).getId() %>"
-                                                   class="btn btn-sm btn-chat rounded-pill px-3">
+                                                   class="btn btn-sm btn-chat rounded-pill px-3 <%= chatDisabled ? "disabled" : "" %>"
+                                                        <%= chatDisabled ? "style='pointer-events: none; opacity: 0.7;'" : "" %>
+                                                   title="<%= chatTitle %>">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
                                                 </a>
                                                 <% } else { %>
@@ -734,8 +853,8 @@
                                                 <% } %>
                                                 <% } else { %>
                                                 <%-- Initiate new discussion if none exist --%>
-                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= isExternallyHired ? "disabled" : "" %>"
-                                                        <%= isExternallyHired ? "disabled title='Student already placed externally'" : "" %>
+                                                <button class="btn btn-sm btn-chat rounded-pill px-3 <%= chatDisabled ? "disabled" : "" %>"
+                                                        <%= chatDisabled ? "disabled title='" + chatTitle + "'" : "" %>
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#initiateDiscussionModal<%= student.getId() %>">
                                                     <i class="fa-regular fa-comments me-1"></i> Chat
@@ -1175,9 +1294,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer border-0 justify-content-center pb-4">
-                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                                                Close
-                                            </button>
+                                            <button type="button" class="btn btn-gray-outline px-5 rounded-pill" data-bs-dismiss="modal">Close</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1255,6 +1372,11 @@
             }
         });
     }
+
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 </script>
 </body>
 </html>

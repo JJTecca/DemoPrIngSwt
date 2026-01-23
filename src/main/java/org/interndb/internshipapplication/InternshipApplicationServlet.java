@@ -2,6 +2,7 @@ package org.interndb.internshipapplication;
 
 import com.internshipapp.commands.UpdateApplicationCommand;
 import com.internshipapp.common.*;
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "InternshipApplicationServlet", value = "/InternshipApplications")
 public class InternshipApplicationServlet extends HttpServlet {
@@ -31,6 +33,9 @@ public class InternshipApplicationServlet extends HttpServlet {
 
     @Inject
     private UserAccountBean userAccountBean;
+
+    @Inject
+    private ApplicationPeriodService periodService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -72,6 +77,9 @@ public class InternshipApplicationServlet extends HttpServlet {
 
                 // Security: Ensure the user belongs to this application
                 if (isAuthorized(activeApp, userId, role)) {
+                    Map<String, Object> periodStatus = periodService.getApplicationPeriodStatus();
+                    request.setAttribute("applicationPeriod", periodStatus);
+
                     request.setAttribute("activeApplication", activeApp);
                     request.setAttribute("selectedAppId", appId);
 
@@ -178,6 +186,12 @@ public class InternshipApplicationServlet extends HttpServlet {
             return;
         }
 
+        // SECURITY: Faculty can only assign AFTER period ends
+        if (periodService.canApply()) {
+            response.sendRedirect("FacultyDashboard?error=period_active");
+            return;
+        }
+
         try {
             Long studentId = Long.parseLong(request.getParameter("studentId"));
             Long positionId = Long.parseLong(request.getParameter("positionId"));
@@ -200,6 +214,21 @@ public class InternshipApplicationServlet extends HttpServlet {
         // Authorization check: Only Companies or Faculty can change statuses
         if (!"Company".equals(role) && !"Faculty".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        boolean periodActive = periodService.canApply();
+
+        // SECURITY LOGIC:
+        // Companies can ONLY update while period is ACTIVE
+        if ("Company".equals(role) && !periodActive) {
+            response.sendRedirect("CompanyDashboard?error=period_ended");
+            return;
+        }
+
+        // Faculty can ONLY update after period is ENDED
+        if ("Faculty".equals(role) && periodActive) {
+            response.sendRedirect("FacultyDashboard?error=period_active");
             return;
         }
 

@@ -25,19 +25,24 @@ public class StudentProfileServlet extends HttpServlet {
     @Inject
     AccountActivityBean activityBean;
 
+    public boolean checkAuth(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
+        if (session == null || session.getAttribute("userEmail") == null) {
+            response.sendRedirect("UserLogin");
+            return true;
+        }
+        return false;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Security Check
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userEmail") == null) {
-            response.sendRedirect("UserLogin");
-            return;
-        }
-
         String loggedInEmail = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
+        if (checkAuth(request, response, session)) {
+            return;
+        }
 
         String idParam = request.getParameter("id");
         StudentInfoDto student = null;
@@ -93,6 +98,10 @@ public class StudentProfileServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         String loggedInEmail = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
+        if (checkAuth(request, response, session)) {
+            return;
+        }
+
         String action = request.getParameter("action");
 
         if (loggedInEmail == null || action == null || (!"Student".equals(role) && !"Faculty".equals(role))) {

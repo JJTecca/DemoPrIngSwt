@@ -3,6 +3,7 @@ package org.interndb.internshipapplication;
 import com.internshipapp.common.CompanyInfoDto;
 import com.internshipapp.common.InternshipPositionDto;
 import com.internshipapp.common.UserAccountDto;
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.*;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
@@ -32,6 +33,9 @@ public class CompanyProfileServlet extends HttpServlet {
 
     @Inject
     InternshipApplicationBean applicationBean;
+
+    @Inject
+    ApplicationPeriodService periodService;
 
     public boolean checkAuth(HttpServletRequest req, HttpServletResponse resp, HttpSession sess) throws ServletException, IOException {
         if (sess == null || sess.getAttribute("userEmail") == null) {
@@ -109,6 +113,16 @@ public class CompanyProfileServlet extends HttpServlet {
                 }
             }
 
+            boolean isPostingAllowed = true; // Default to TRUE (Allowed) if service fails
+
+            if (periodService != null) {
+                isPostingAllowed = periodService.isPostingAllowed();
+            } else {
+                // This logs the specific error so you can see if Injection is failing
+                LOG.warning("ApplicationPeriodService was NULL in CompanyProfileServlet. defaulting to allowed.");
+            }
+
+            request.setAttribute("isPostingAllowed", isPostingAllowed);
             request.setAttribute("company", company);
             request.setAttribute("myPositions", positions);
             request.setAttribute("isFacultyProfile", isFacultyProfile);

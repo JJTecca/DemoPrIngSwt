@@ -64,12 +64,11 @@ public class StudentDashboardServlet extends HttpServlet {
             return;
         }
 
-        List<StudentInfoDto> allStudents = studentInfoBean.findAllStudents();
         String email = (String) session.getAttribute("userEmail");
         String role = (String) session.getAttribute("userRole");
 
         try {
-            // For STUDENT role: Show only their own details
+            // Show only their own details
             if ("Student".equals(role)) {
                 // Use UserAccountBean to get student info (since it has the relationship)
                 StudentInfoDto student = userAccountBean.getStudentInfoByEmail(email);
@@ -100,44 +99,6 @@ public class StudentDashboardServlet extends HttpServlet {
                     System.out.println("DEBUG: Student data loaded successfully");
                 }
             }
-            // For FACULTY role: Show all students (read-only view)
-            else if ("Faculty".equals(role)) {
-                Map<String, Object> statistics = studentInfoBean.getStudentStatistics();
-                List<AccountActivityDto> recentActivities = getRecentActivities(null);
-
-                // Set attributes for JSP
-                request.setAttribute("allStudents", allStudents);
-                request.setAttribute("statistics", statistics);
-                request.setAttribute("recentActivities", recentActivities);
-                // TODO: Add faculty-specific permissions/actions later
-                request.setAttribute("isFacultyView", true);
-
-                System.out.println("DEBUG: Faculty view - Loaded " + allStudents.size() + " students");
-            }
-            // For ADMIN role: Show all students with full control
-            else if ("Admin".equals(role)) {
-                Map<String, Object> statistics = studentInfoBean.getStudentStatistics();
-                List<AccountActivityDto> recentActivities = getRecentActivities(null);
-
-                // Set attributes for JSP
-                request.setAttribute("allStudents", allStudents);
-                request.setAttribute("statistics", statistics);
-                request.setAttribute("recentActivities", recentActivities);
-                // Admin-specific controls
-                request.setAttribute("canEditAll", true);
-                request.setAttribute("canDelete", true);
-
-                System.out.println("DEBUG: Admin view - Loaded " + allStudents.size() + " students");
-                System.out.println("DEBUG: Statistics: " + statistics);
-            } else {
-                // For Company role, redirect to company panel
-                // Note: UserLoginServlet redirects Company to companyPanel.jsp
-                System.out.println("DEBUG: Company role detected, redirecting to company panel");
-                response.sendRedirect("pages/panels/companyPanel.jsp");
-                return;
-            }
-
-            // Set common attributes
             request.setAttribute("userEmail", email);
             request.setAttribute("userRole", role);
 
@@ -147,7 +108,6 @@ public class StudentDashboardServlet extends HttpServlet {
             request.setAttribute("error", "Error loading student data: " + e.getMessage());
         }
 
-        // Forward to studentPanel.jsp (all roles see student data, just differently)
         request.getRequestDispatcher("pages/panels/studentPanel.jsp").forward(request, response);
     }
 
@@ -164,7 +124,6 @@ public class StudentDashboardServlet extends HttpServlet {
                     }
                 }
             } else {
-                // Return all activities (for faculty/admin)
                 filteredActivities = allActivities;
             }
 
@@ -232,8 +191,8 @@ public class StudentDashboardServlet extends HttpServlet {
             return;
         }
 
-        // 2. ILLEGAL SCENARIO: If the current status is NOT 'Request', block the student from Rejecting/Declining via this specific dashboard flow
-        // (This prevents students from "cancelling" an application that has already moved to Interview/Accepted/Discussion)
+        // If the current status is NOT 'Request', block the student from Rejecting/Declining via this specific dashboard flow
+        // (This prevents students from changing an application that has already moved to Interview/Accepted/Discussion)
 
         String action = request.getParameter("action");
         if ("updateStatus".equals(action)) {

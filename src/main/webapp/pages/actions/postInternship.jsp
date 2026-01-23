@@ -8,7 +8,14 @@
     }
     boolean isFaculty = "Faculty".equals(role);
     String pageTitle = isFaculty ? "Post Tutoring Position" : "Post New Internship";
-    String minDate = LocalDate.now().plusDays(7).toString();
+
+    // Retrieve constraints from Servlet
+    String minDate = (String) request.getAttribute("minDeadline");
+    String maxDate = (String) request.getAttribute("maxDeadline");
+
+    // Fallbacks just in case
+    if (minDate == null) minDate = LocalDate.now().plusDays(4).toString();
+    // No default fallback for maxDate needed, HTML ignores null max
 
     // Determine the dashboard return path based on role
     String dashboardPath = isFaculty ? "FacultyDashboard" : "CompanyDashboard";
@@ -202,8 +209,12 @@
                                 <label class="form-label">APPLICATION DEADLINE *</label>
                                 <input type="date" name="deadline" id="deadlineInput"
                                        class="form-control form-control-lg"
-                                       min="<%= minDate %>" required>
-                                <div class="invalid-feedback-custom">Deadline must be at least 7 days from today</div>
+                                       min="<%= minDate %>"
+                                       max="<%= maxDate %>"
+                                       required>
+                                <div class="invalid-feedback-custom" id="deadlineFeedback">
+                                    Date must be between <%= minDate %> and <%= maxDate %>.
+                                </div>
                             </div>
                         </div>
 
@@ -269,6 +280,16 @@
             req: document.getElementById('reqInput')
         };
 
+        // Configuration from Server
+        const minAllowedStr = "<%= minDate %>";
+        const maxAllowedStr = "<%= maxDate %>";
+
+        const minAllowed = new Date(minAllowedStr);
+        minAllowed.setHours(0,0,0,0);
+
+        const maxAllowed = new Date(maxAllowedStr);
+        maxAllowed.setHours(23,59,59,999);
+
         function validateField(input, condition) {
             if (condition) {
                 input.classList.remove('is-invalid');
@@ -284,12 +305,22 @@
             if (!validateField(inputs.title, inputs.title.value.length >= 10)) isValid = false;
             if (!validateField(inputs.desc, inputs.desc.value.length >= 50)) isValid = false;
             if (!validateField(inputs.req, inputs.req.value.length >= 20)) isValid = false;
-            if (!validateField(inputs.spots, inputs.spots.value >= 1)) isValid = false;
+            if (!validateField(inputs.spots, inputs.spots.value >= 3)) isValid = false; // Spots >= 3
 
-            const minAllowed = new Date();
-            minAllowed.setDate(minAllowed.getDate() + 7);
+            // Date Validation
             const selected = new Date(inputs.deadline.value);
-            if (!validateField(inputs.deadline, inputs.deadline.value && selected >= minAllowed.setHours(0, 0, 0, 0))) isValid = false;
+            // Fix timezone offset issue for pure date comparison
+            selected.setHours(12,0,0,0);
+
+            let dateValid = true;
+            if (!inputs.deadline.value) dateValid = false;
+            if (selected < minAllowed) dateValid = false;
+            if (selected > maxAllowed) dateValid = false;
+
+            if (!validateField(inputs.deadline, dateValid)) {
+                // Update error message dynamically if possible, currently static in HTML
+                isValid = false;
+            }
 
             return isValid;
         }
@@ -306,6 +337,7 @@
                 e.preventDefault();
             }
         });
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success') === 'true') {
             const successModal = new bootstrap.Modal(document.getElementById('successModal'));
