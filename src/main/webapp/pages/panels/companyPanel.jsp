@@ -330,6 +330,33 @@
             font-size: 0.65rem;
         }
 
+        .btn-gray-outline {
+            background-color: #f1f5f9;
+            border: 1px solid #94a3b8;
+            color: #475569;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+
+            transition: all 0.2s ease-in-out;
+
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .btn-gray-outline:hover {
+            background-color: #cbd5e1;
+            border-color: #64748b;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-gray-outline:active {
+            background-color: #94a3b8;
+            transform: translateY(0);
+            box-shadow: none;
+            transition: 0.1s;
+        }
+
         /* --- High Contrast Application Status Badges --- */
         .status-badge {
             font-size: 0.72rem;
@@ -567,10 +594,29 @@
                     <h1 class="h2 page-title">Welcome, <%= company.getName() %>!</h1>
                     <p class="text-muted mb-0"><i class="fa-solid fa-industry me-1"></i> Company Dashboard</p>
                 </div>
-                <div class="d-none d-md-block">
-                    <span class="badge bg-light text-dark border">
-                        <i class="fa-regular fa-clock me-1"></i> <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
+                <div class="d-flex align-items-center gap-2 d-none d-md-flex">
+                    <span class="badge bg-light text-dark border shadow-sm py-2 px-3">
+                        <i class="fa-regular fa-clock me-2 text-muted"></i>
+                        <%= new java.text.SimpleDateFormat("MMMM dd, yyyy").format(new java.util.Date()) %>
                     </span>
+
+                    <%
+                        Boolean allowed = (Boolean) request.getAttribute("isPostingAllowed");
+                        String deadline = (String) request.getAttribute("postingDeadline");
+                        if (allowed == null) allowed = true;
+                    %>
+
+                    <% if (allowed && deadline != null) { %>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-2 px-3"
+                          data-bs-toggle="tooltip" title="New positions cannot be created after this date.">
+                        <i class="fa-solid fa-hourglass-half me-2"></i>
+                        Posting closes: <strong><%= deadline %></strong>
+                    </span>
+                    <% } else if (!allowed) { %>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-2 px-3">
+                        <i class="fa-solid fa-lock me-2"></i> Posting Closed
+                    </span>
+                    <% } %>
                 </div>
             </div>
 
@@ -971,10 +1017,25 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="d-grid gap-0">
+                                <%
+                                    Boolean postingAllowed = (Boolean) request.getAttribute("isPostingAllowed");
+                                    if (postingAllowed == null) postingAllowed = true; // Safety default
+                                %>
+                                <% if (postingAllowed) { %>
                                 <a href="${pageContext.request.contextPath}/PostPosition"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
                                     <i class="fa-solid fa-plus-circle me-2"></i> Post New Internship
                                 </a>
+                                <% } else { %>
+                                    <div class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0 d-flex justify-content-between align-items-center"
+                                         style="background: #f8f9fa; cursor: not-allowed; opacity: 0.8; color: #6c757d !important;"
+                                         title="The posting period has expired.">
+                                        <div>
+                                            <i class="fa-solid fa-lock me-2 text-secondary"></i> Post New Internship
+                                        </div>
+                                        <span class="badge bg-secondary border border-secondary text-white" style="font-size: 0.6rem;">CLOSED</span>
+                                    </div>
+                                <% } %>
                                 <!-- Request Interview Button -->
                                 <a href="${pageContext.request.contextPath}/RequestInterview"
                                    class="btn btn-action rounded-0 border-bottom-0 border-start-0 border-end-0">
@@ -990,12 +1051,20 @@
                     <div class="card custom-card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span class="fw-bold"><i class="fa-solid fa-list-ul me-2"></i> Your Positions</span>
+                            <% if (postingAllowed) { %>
                             <a href="${pageContext.request.contextPath}/PostPosition"
                                class="btn btn-sm btn-primary rounded-circle d-flex align-items-center justify-content-center"
                                style="width: 28px; height: 28px; transition: all 0.3s ease; border: none;"
                                title="Post New Position">
                                 <i class="fa-solid fa-plus" style="font-size: 0.8rem;"></i>
                             </a>
+                            <% } else { %>
+                            <span class="btn btn-sm btn-secondary rounded-circle d-flex align-items-center justify-content-center disabled"
+                                  style="width: 28px; height: 28px; border: none; cursor: not-allowed;"
+                                  title="Posting is currently closed">
+                                <i class="fa-solid fa-lock" style="font-size: 0.7rem;"></i>
+                            </span>
+                            <% } %>
                         </div>
                         <div class="scrollable-list">
                             <% if (myPositions != null && !myPositions.isEmpty()) { %>
@@ -1132,9 +1201,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer border-0 justify-content-center pb-4">
-                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
-                                                Close
-                                            </button>
+                                            <button type="button" class="btn btn-gray-outline px-5 rounded-pill" data-bs-dismiss="modal">Close</button>
                                         </div>
                                     </div>
                                 </div>

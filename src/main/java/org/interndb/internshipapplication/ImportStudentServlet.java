@@ -1,5 +1,6 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.ExcelParserBean;
 import com.internshipapp.ejb.StudentInfoBean;
 import jakarta.inject.Inject;
@@ -29,6 +30,9 @@ public class ImportStudentServlet extends HttpServlet {
     @Inject
     private StudentInfoBean studentInfoBean;
 
+    @Inject
+    ApplicationPeriodService periodService;
+
     private boolean checkAccess(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws IOException {
         if (session == null || session.getAttribute("userEmail") == null) {
             response.sendRedirect(request.getContextPath() + "/UserLogin");
@@ -51,6 +55,12 @@ public class ImportStudentServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         if (checkAccess(request, response, session)) return;
 
+        if (periodService.canApply()) {
+            request.setAttribute("errorMessage", "Student import is disabled while the application period is active.");
+            request.getRequestDispatcher("/pages/FacultyPanel.jsp").forward(request, response);
+            return;
+        }
+
         // Check for preview data
         List<Map<String, String>> previewData = (List<Map<String, String>>) session.getAttribute("previewData");
 
@@ -69,6 +79,9 @@ public class ImportStudentServlet extends HttpServlet {
             }
         }
 
+        boolean isImportAllowed = !periodService.canApply(); // Only allow if period is NOT active
+        request.setAttribute("isImportAllowed", isImportAllowed);
+
         request.getRequestDispatcher("/pages/actions/import.jsp").forward(request, response);
     }
 
@@ -79,6 +92,11 @@ public class ImportStudentServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         if (checkAccess(request, response, session)) return;
+
+        if (periodService.canApply()) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Import disabled during active application period.");
+            return;
+        }
 
         LOG.info("=== DEBUG doPost() ===");
         LOG.info("Action: " + action);

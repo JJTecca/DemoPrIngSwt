@@ -70,4 +70,19 @@ public class ApplicationPeriodService {
             throw new IllegalStateException(getBlockedApplicationMessage());
         }
     }
+    public boolean isPostingAllowed() {
+        if (!applicationConfig.isPeriodEnabled()) {
+            return true;
+        }
+        LocalDate today = LocalDate.now(applicationConfig.getTimezone());
+        return !today.isAfter(getPostingCutoffDate());
+    }
+
+    public LocalDate getPostingCutoffDate() {
+        return applicationConfig.getApplicationEndDate().minusDays(5);
+    }
+
+    public String getFormattedCutoffDate() {
+        return getPostingCutoffDate().format(DateTimeFormatter.ofPattern("MMMM dd"));
+    }
 }

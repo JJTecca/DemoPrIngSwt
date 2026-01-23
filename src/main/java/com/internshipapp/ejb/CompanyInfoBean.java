@@ -44,7 +44,6 @@ public class CompanyInfoBean {
         );
     }
 
-    // --- CONVERTER METHOD ---
     public CompanyInfoDto copyToDto(CompanyInfo entity) {
         if (entity == null) return null;
 
@@ -72,7 +71,6 @@ public class CompanyInfoBean {
 
         Long totalApplications = applicationBean.countApplicationsByCompanyId(entity.getId());
         String studentsAppliedString = String.valueOf(totalApplications);
-        // -----------------------------------------------------------------
 
         return new CompanyInfoDto(
                 entity.getId(),
@@ -81,7 +79,6 @@ public class CompanyInfoBean {
                 entity.getWebsite(),
                 entity.getCompDescription(),
                 entity.getOpenedPositions(),
-                // FIX: Use the calculated count instead of the raw entity field
                 studentsAppliedString,
                 entity.getBiography(),
                 getAttachmentDto(entity.getAttachment()),

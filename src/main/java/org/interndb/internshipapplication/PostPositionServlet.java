@@ -1,5 +1,6 @@
 package org.interndb.internshipapplication;
 
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.AccountActivityBean;
 import com.internshipapp.ejb.InternshipPositionBean;
 import jakarta.inject.Inject;
@@ -12,7 +13,10 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.Map;
 
 /**********************************************************
  * GENERAL SERVLET STRUCTURE :
@@ -36,6 +40,9 @@ public class PostPositionServlet extends HttpServlet {
     @Inject
     InternshipPositionBean internshipPositionBean;
 
+    @Inject
+    ApplicationPeriodService periodService;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -45,6 +52,30 @@ public class PostPositionServlet extends HttpServlet {
             response.sendRedirect("UserLogin");
             return;
         }
+
+        String role = (String) session.getAttribute("userRole");
+
+        if (!periodService.isPostingAllowed()) {
+            // Redirect to appropriate dashboard
+            String redirect = "Faculty".equals(role) ? "FacultyDashboard" : "CompanyDashboard";
+            response.sendRedirect(redirect + "?error=posting_closed");
+            return;
+        }
+
+        // Rule: At least 4 days from "Today" OR "Start Date" (whichever is later)
+        Map<String, Object> periodStatus = periodService.getApplicationPeriodStatus();
+        LocalDate startDate = (LocalDate) periodStatus.get("startDate");
+        LocalDate endDate = (LocalDate) periodStatus.get("endDate");
+        LocalDate today = LocalDate.now(ZoneId.of("Europe/Bucharest"));
+
+        // If we are currently BEFORE the start date, the 4-day count starts from the Start Date.
+        // If we are currently IN the period, it starts from Today.
+        LocalDate calculationBase = today.isBefore(startDate) ? startDate : today;
+        LocalDate minDeadline = calculationBase.plusDays(4);
+
+        // Pass to JSP
+        request.setAttribute("minDeadline", minDeadline.toString());
+        request.setAttribute("maxDeadline", endDate.toString());
 
         // Forward to the form located in the new 'actions' directory
         request.getRequestDispatcher("/pages/actions/postInternship.jsp").forward(request, response);
@@ -56,32 +87,38 @@ public class PostPositionServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
 
-        // 1. Basic Auth Check
+        // Basic Auth Check
         if (session == null || session.getAttribute("userEmail") == null) {
             response.sendRedirect("UserLogin");
             return;
         }
 
-        // 2. Retrieve required session attributes
+        // Retrieve required session attributes
         String role = (String) session.getAttribute("userRole");
         Long companyId = (Long) session.getAttribute("companyId");
         Long userId = (Long) session.getAttribute("userId");
 
-        // 3. Strict Validation: If IDs are missing, stop immediately
+        // Block companies from posting after 5 days are left
+        if ("Company".equals(role) && !periodService.isPostingAllowed()) {
+            response.sendRedirect("CompanyDashboard?error=posting_closed");
+            return;
+        }
+
+        // Strict Validation: If IDs are missing, stop immediately
         if (userId == null || companyId == null) {
             System.err.println("CRITICAL: Post attempt by " + session.getAttribute("userEmail") + " failed because IDs were missing in session.");
             response.sendRedirect(request.getContextPath() + "/PostPosition?error=session_expired");
             return;
         }
 
-        // 4. Role Security Check
+        // Role Security Check
         if (!"Company".equals(role) && !"Faculty".equals(role)) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
         try {
-            // 5. Parse Parameters
+            // Parse Parameters
             String title = request.getParameter("title");
             String description = request.getParameter("description");
             String requirements = request.getParameter("requirements");
@@ -90,6 +127,27 @@ public class PostPositionServlet extends HttpServlet {
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             Date deadline = sdf.parse(deadlineStr);
+
+            Map<String, Object> periodStatus = periodService.getApplicationPeriodStatus();
+            LocalDate startDate = (LocalDate) periodStatus.get("startDate");
+            LocalDate endDate = (LocalDate) periodStatus.get("endDate");
+            LocalDate today = LocalDate.now(ZoneId.of("Europe/Bucharest"));
+
+            LocalDate calculationBase = today.isBefore(startDate) ? startDate : today;
+            LocalDate minDeadline = calculationBase.plusDays(4);
+
+            LocalDate inputDeadline = new java.sql.Date(deadline.getTime()).toLocalDate();
+
+            if (inputDeadline.isBefore(minDeadline)) {
+                // Fail if deadline is too soon
+                response.sendRedirect(request.getContextPath() + "/PostPosition?error=invalid_date");
+                return;
+            }
+
+            if (inputDeadline.isAfter(endDate)) {
+                response.sendRedirect(request.getContextPath() + "/PostPosition?error=date_too_late");
+                return;
+            }
 
             // Faculty bypasses the 'Pending' status
             String initialStatus = "Faculty".equals(role) ? "Open" : "Pending";
@@ -105,7 +163,7 @@ public class PostPositionServlet extends HttpServlet {
                     initialStatus
             );
 
-            // 7. Log Activity
+            // Log Activity
             String details = "Posted new position: " + title + " (Status: " + initialStatus + ")";
             accountActivityBean.logActivity(userId, "PostPosition", details);
 

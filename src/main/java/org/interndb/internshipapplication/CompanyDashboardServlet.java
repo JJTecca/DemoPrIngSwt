@@ -1,19 +1,29 @@
 package org.interndb.internshipapplication;
 
 import com.internshipapp.common.*;
+import com.internshipapp.config.ApplicationPeriodService;
 import com.internshipapp.ejb.*;
-import com.internshipapp.entities.InternshipApplication;
 import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
-
+/**********************************************************
+ *              GENERAL SERVLET STRUCTURE :
+ *   1. @WebServlet with it's value set to redirect webpage
+ *   2. @Inject the bean Class
+ *   3. /doGet function at first with debugging context (optional)
+ *   4. Redirect to render the companyPanel.jsp
+ **********************************************************/
 @WebServlet(name = "CompanyDashboardServlet", value = "/CompanyDashboard")
 public class CompanyDashboardServlet extends HttpServlet {
-
+    /**************************************************************
+     * Inject Java Beans that performs CRUD OPERATIONS and filtering
+     *************************************************************/
     @Inject
     UserAccountBean userAccountBean;
 
@@ -28,6 +38,17 @@ public class CompanyDashboardServlet extends HttpServlet {
 
     @Inject
     AccountActivityBean accountActivityBean;
+
+    @Inject
+    ApplicationPeriodService periodService;
+
+    /******************************************************************
+     * @param request an {@link HttpServletRequest}
+     * @param response an {@link HttpServletResponse}
+     * doGet functions implementation to retrieve data from the server
+     * Display a webpage or form
+     * doPost to handle form submissions : Insert, update, or delete data
+     *****************************************************************/
 
     public boolean checkAuth(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws ServletException, IOException {
         if (session == null || session.getAttribute("userEmail") == null) {
@@ -101,6 +122,18 @@ public class CompanyDashboardServlet extends HttpServlet {
                 }
             }
 
+            boolean isPostingAllowed = periodService.isPostingAllowed();
+
+            String postingDeadline = periodService.getFormattedCutoffDate();
+
+            request.setAttribute("isPostingAllowed", isPostingAllowed);
+            request.setAttribute("postingDeadline", postingDeadline);
+
+            // Check for error flag
+            String errorParam = request.getParameter("error");
+            boolean showPostingError = "posting_closed".equals(errorParam);
+            request.setAttribute("showPostingError", showPostingError);
+
             // 4. Set Attributes for JSP
             request.setAttribute("userAccount", userDto);
             request.setAttribute("company", companyDto);
@@ -145,7 +178,7 @@ public class CompanyDashboardServlet extends HttpServlet {
                             company.getStudentsApplied(),
                             company.getBiography(),
                             company.getContactEmail(),
-                            phoneNumber // The only new value
+                            phoneNumber
                     );
                 }
             }

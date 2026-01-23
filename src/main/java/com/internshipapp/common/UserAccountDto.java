@@ -11,7 +11,7 @@ package com.internshipapp.common;
 public class UserAccountDto {
     private Long userId;
     private String username;
-    private String password;  // ADDED: For authentication and user creation
+    private String password;
     private String email;
     private Long studentId;
     private String studentName;

@@ -20,6 +20,39 @@
     String statusMessage = applicationPeriod != null ? (String) applicationPeriod.get("statusMessage") : "";
     boolean isAvailableGlobally = !"Available".equalsIgnoreCase(globalStudentStatus);
 
+    String bannerTitle = "Internship Opportunities";
+    String bannerSubtitle = "";
+    String bannerClass = "header-stat"; // Default Blue
+
+    // Helper to safely get dates
+    String endDateFormatted = (applicationPeriod != null && applicationPeriod.get("endDateFormatted") != null)
+            ? (String) applicationPeriod.get("endDateFormatted") : "TBA";
+    String startDateFormatted = (applicationPeriod != null && applicationPeriod.get("startDateFormatted") != null)
+            ? (String) applicationPeriod.get("startDateFormatted") : "TBA";
+
+    // 1. STATE: FUTURE (Before Start Date)
+    if ("BEFORE".equals(periodState)) {
+        bannerClass = "header-stat period-future";
+        bannerTitle = "Applications Opening Soon";
+        bannerSubtitle = "Prepare your CV! <div class='mt-1 opacity-75'>The application window opens on <strong>" + startDateFormatted + "</strong>.</div>";
+    }
+    // 2. STATE: ENDED (After End Date)
+    else if ("AFTER".equals(periodState)) {
+        bannerClass = "header-stat period-ended";
+        bannerTitle = "Application Period Closed";
+        bannerSubtitle = "The application window for this year has closed. <div class='mt-1 opacity-75'>Ended on <strong>" + endDateFormatted + "</strong>.</div>";
+    }
+    // 3. STATE: ACTIVE (The 'else' block you requested)
+    else {
+        // Keep the standard Blue design
+        bannerClass = "header-stat";
+        bannerTitle = "Internship Opportunities";
+
+        // We add the specific deadline date to the subtitle for clarity
+        bannerSubtitle = "Browse <strong>" + totalPositions + "</strong> available positions. " +
+                "<div class='mt-1 opacity-75'>Applications are open until " + endDateFormatted + ".</div>";
+    }
+
     // Safety check for stats
     if (totalPositions == null) totalPositions = 0L;
 %>
@@ -43,13 +76,32 @@
             padding: 2rem;
             margin-bottom: 2rem;
             position: relative;
-            /* UPDATED: Allow dropdowns to show while staying under Modals */
-            overflow: visible;
+            overflow: hidden; /* Keeps icon inside */
             z-index: 1;
+            transition: all 0.3s ease;
+            /* Allow dropdowns to show while staying under Modals */
+            overflow: visible;
         }
 
+        /* Future State (Orange) */
+        .header-stat.period-future {
+            background: linear-gradient(135deg, #f59f00 0%, #d9480f 100%);
+            --banner-icon: "\f073"; /* Calendar */
+        }
+
+        /* Ended State (Dark Gray) */
+        .header-stat.period-ended {
+            background: linear-gradient(135deg, #495057 0%, #212529 100%);
+            --banner-icon: "\f274"; /* Calendar Check */
+        }
+
+        /* Default State (Blue) */
+        .header-stat:not(.period-future):not(.period-ended) {
+            --banner-icon: "\f0b1"; /* Briefcase */
+        }
+
+        /* The Background Icon (One Rule to Rule Them All) */
         .header-stat::after {
-            content: "\f0b1";
             font-family: "Font Awesome 6 Free";
             font-weight: 900;
             position: absolute;
@@ -58,7 +110,8 @@
             font-size: 8rem;
             opacity: 0.1;
             pointer-events: none;
-            z-index: 1;
+            z-index: 0;
+            content: var(--banner-icon); /* Uses the variable set above */
         }
 
         /* 2. TUTORING FILTER (Updated with Descriptive Label) */
@@ -107,7 +160,6 @@
             transform: rotate(-10deg) scale(1.1);
         }
 
-        /* 3. POSITION CARDS */
         .position-card {
             background: white;
             border: none;
@@ -123,6 +175,33 @@
         .position-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-gray-outline {
+            background-color: #f1f5f9;
+            border: 1px solid #94a3b8;
+            color: #475569;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+
+            transition: all 0.2s ease-in-out;
+
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .btn-gray-outline:hover {
+            background-color: #cbd5e1;
+            border-color: #64748b;
+            color: #0f172a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-gray-outline:active {
+            background-color: #94a3b8;
+            transform: translateY(0);
+            box-shadow: none;
+            transition: 0.1s;
         }
 
         .company-logo-small {
@@ -165,7 +244,6 @@
             text-decoration: underline;
         }
 
-        /* 4. BUTTONS & UI COMPONENTS */
         .btn-brand {
             background-color: var(--brand-blue);
             color: white;
@@ -285,6 +363,12 @@
             border: 1px solid #d3d3d4;
         }
 
+        .modal-header-spacer {
+            height: 40px;
+            border-radius: 12px 12px 0 0; /* Matches your modal-content's rounded corners */
+            width: 100%;
+        }
+
         .period-banner {
             background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white;
@@ -388,49 +472,36 @@
         <% } %>
 
         <div class="col-md-9 col-lg-10 main-content">
-            <% if ("Student".equals(sessionRole) && !canApply) { %>
-            <div class="period-banner period-<%= periodState.toLowerCase() %> d-flex align-items-center">
-                <i class="fa-solid fa-calendar-xmark"></i>
-                <div>
-                    <h6 class="mb-0 fw-bold">Application Period Closed</h6>
-                    <small><%= statusMessage %></small>
-                </div>
-            </div>
-            <% } %>
-            <% if (error != null || "already_applied".equals(request.getParameter("error")) || "period_closed".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                <% if ("already_applied".equals(request.getParameter("error"))) { %>
-                You have already applied for this position.
-                <% } else if ("period_closed".equals(request.getParameter("error"))) { %>
-                Applications are currently closed. <%= statusMessage %>
-                <% } else { %>
-                <%= error %>
-                <% } %>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <% } %>
-
-            <div class="header-stat">
-                <div class="row align-items-center">
-                    <div class="col-md-4">
-                        <h2 class="fw-bold mb-1"><i class="fa-solid fa-briefcase me-2"></i> Internship Opportunities
+            <div class="<%= bannerClass %>">
+                <div class="row align-items-center position-relative" style="z-index: 2;">
+                    <div class="col-md-5">
+                        <h2 class="fw-bold mb-1">
+                            <%-- Icon logic handled by CSS classes, but we add a small icon here for text alignment --%>
+                            <% if ("BEFORE".equals(periodState)) { %>
+                            <i class="fa-regular fa-calendar me-2"></i>
+                            <% } else if ("AFTER".equals(periodState)) { %>
+                            <i class="fa-solid fa-lock me-2"></i>
+                            <% } else { %>
+                            <i class="fa-solid fa-briefcase me-2"></i>
+                            <% } %>
+                            <%= bannerTitle %>
                         </h2>
-                        <p class="mb-0 opacity-75">Browse <strong><%= totalPositions %>
-                        </strong> available positions.</p>
+                        <p class="mb-0 opacity-75"><%= bannerSubtitle %></p>
                     </div>
 
-                    <div class="col-md-8">
+                    <div class="col-md-7">
                         <div class="d-flex gap-2 justify-content-end align-items-center">
+                            <%-- Search Input --%>
                             <div class="bg-white rounded p-1 shadow-sm flex-grow-1" style="max-width: 400px;">
                                 <div class="input-group">
-                                    <span class="input-group-text bg-transparent border-0"><i
-                                            class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <span class="input-group-text bg-transparent border-0"><i
+                                class="fa-solid fa-magnifying-glass text-muted"></i></span>
                                     <input type="text" id="searchInput" class="form-control border-0 shadow-none"
                                            placeholder="Search title or company...">
                                 </div>
                             </div>
 
+                            <%-- Sort Dropdown --%>
                             <div class="dropdown">
                                 <button id="sortButton" class="btn btn-white shadow-sm dropdown-toggle fw-bold" type="button"
                                         data-bs-toggle="dropdown" style="height: 45px; background: white;">
@@ -455,6 +526,7 @@
                                 </ul>
                             </div>
 
+                            <%-- Tutoring Filter --%>
                             <button id="tutoringFilter" class="btn btn-outline-light rounded shadow-sm"
                                     style="height: 45px;">
                                 <i class="fa-solid fa-chalkboard-user"></i>
@@ -549,8 +621,9 @@
                             </button>
                             <% } %>
                         <% } else { %>
-                            <button class="btn btn-outline-secondary btn-sm px-4 rounded-pill" data-bs-toggle="modal"
-                                    data-bs-target="#applyModal<%= pos.getId() %>">View Details
+                            <button class="btn btn-gray-outline btn-sm px-4 rounded-pill" data-bs-toggle="modal"
+                                    data-bs-target="#applyModal<%= pos.getId() %>">
+                                View Details
                             </button>
                             <% } %>
                         </div>
@@ -561,9 +634,7 @@
                 <div class="modal fade" id="applyModal<%= pos.getId() %>" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-lg modal-dialog-scrollable">
                         <div class="modal-content border-0">
-                            <div class="modal-header border-0 pb-0">
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+                            <div class="modal-header-spacer"></div>
                             <div class="modal-body p-5 pt-0">
                                 <div class="text-center mb-4">
                                     <%-- Status Badge Logic --%>
@@ -665,7 +736,7 @@
                                 </div>
                             </div>
                             <div class="modal-footer border-0 justify-content-center pb-4">
-                                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-gray-outline px-5 rounded-pill" data-bs-dismiss="modal">Close</button>
 
                                 <% if ("Student".equals(sessionRole)) {%>
                                 <%-- UPDATED: Added Period Check as FIRST Priority --%>
